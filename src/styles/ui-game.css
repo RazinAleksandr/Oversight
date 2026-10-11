@@ -2279,6 +2279,7 @@ button.desk__tile:hover {
 .rail__seed {
   font-size: 11px;
   color: var(--text-faint);
+  text-transform: lowercase;
 }
 
 /* finale-aware bits */

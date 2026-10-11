@@ -3,6 +3,7 @@
  * (threshold > last chance > critical > priority > routine), overflow queued for later quarters.
  * Cards never hold functions — resolution is dispatched by `templateId` (see resolve.ts).
  */
+import { t } from '../i18n';
 import { changeMeter, changeResource, effectiveConfidence, spendEvidence } from './changes';
 import type { Card, CardKind, Choice, Cost, GameState } from './types';
 import { nextId } from './util';
@@ -48,26 +49,37 @@ export function pushInboxNow(s: GameState, card: Card, front = true): void {
   else s.inbox.push(card);
 }
 
-export const COST_REASONS = {
-  capacity: 'Not enough capacity this quarter',
-  budget: 'Not enough budget',
-  evidence: 'Requires evidence',
-  confidence: 'Not enough political capital',
-} as const;
+type CostKey = 'capacity' | 'budget' | 'evidence' | 'confidence';
 
-const COST_REASON_SET: ReadonlySet<string> = new Set(Object.values(COST_REASONS));
+/** Disabled reasons for unaffordable costs, in the current language. */
+export function costReason(key: CostKey): string {
+  switch (key) {
+    case 'capacity':
+      return t('Not enough capacity this quarter');
+    case 'budget':
+      return t('Not enough budget');
+    case 'evidence':
+      return t('Requires evidence');
+    case 'confidence':
+      return t('Not enough political capital');
+  }
+}
 
+const COST_KEYS: CostKey[] = ['capacity', 'budget', 'evidence', 'confidence'];
+
+/** True for a cost-based disabled reason (in the current language; a save may come from another one). */
 export function isCostReason(reason: string | null | undefined): boolean {
-  return !!reason && COST_REASON_SET.has(reason);
+  if (!reason) return false;
+  return COST_KEYS.some((k) => costReason(k) === reason) || ['Not enough capacity this quarter', 'Not enough budget', 'Requires evidence', 'Not enough political capital'].includes(reason);
 }
 
 /** Why a cost can't be paid right now, or null if affordable. */
 export function costBlock(s: GameState, cost: Cost | undefined): string | null {
   if (!cost) return null;
-  if ((cost.capacity ?? 0) > s.capacity) return COST_REASONS.capacity;
-  if ((cost.budget ?? 0) > 0 && (cost.budget ?? 0) > s.budget) return COST_REASONS.budget;
-  if ((cost.evidence ?? 0) > s.evidence.length) return COST_REASONS.evidence;
-  if ((cost.confidence ?? 0) > 0 && effectiveConfidence(s, cost.confidence ?? 0) >= s.meters.confidence) return COST_REASONS.confidence;
+  if ((cost.capacity ?? 0) > s.capacity) return costReason('capacity');
+  if ((cost.budget ?? 0) > 0 && (cost.budget ?? 0) > s.budget) return costReason('budget');
+  if ((cost.evidence ?? 0) > s.evidence.length) return costReason('evidence');
+  if ((cost.confidence ?? 0) > 0 && effectiveConfidence(s, cost.confidence ?? 0) >= s.meters.confidence) return costReason('confidence');
   return null;
 }
 

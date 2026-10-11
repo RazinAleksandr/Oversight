@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import type { CountryId, Difficulty, EndingReport, GameAPI, NewGameOptions, Settings, TurnReport } from '../engine/types';
 import { audio } from '../audio';
 import { fx } from '../fx';
+import { t } from '../i18n';
 import { type Backend, clearSave, readSave, writeSave } from './backend';
 import { GameScreen } from './game/GameScreen';
 import { EndingScreen } from './screens/EndingScreen';
@@ -14,6 +15,7 @@ import { HowToPlay } from './screens/HowToPlay';
 import { NewGameScreen } from './screens/NewGameScreen';
 import { SettingsSheet } from './screens/SettingsSheet';
 import { TitleScreen } from './screens/TitleScreen';
+import { switchLang } from './lang';
 import { SettingsCtx, applySettings, loadSettings, saveSettings } from './settings';
 import { announce, dailySeed } from './util';
 
@@ -81,8 +83,8 @@ export function App({ backend }: { backend: Backend }): JSX.Element {
   // Error toast auto-hide.
   useEffect(() => {
     if (!error) return;
-    const t = window.setTimeout(() => setError(null), 3500);
-    return () => window.clearTimeout(t);
+    const timer = window.setTimeout(() => setError(null), 3500);
+    return () => window.clearTimeout(timer);
   }, [error]);
 
   const start = async (opts: NewGameOptions) => {
@@ -93,10 +95,10 @@ export function App({ backend }: { backend: Backend }): JSX.Element {
       setEnding(null);
       writeSave(g);
       setScreen({ name: 'game' });
-      announce('New run started.');
+      announce(t('New run started.'));
     } catch (e) {
       console.error(e);
-      setError('Could not start a new run.');
+      setError(t('Could not start a new run.'));
     }
   };
 
@@ -110,7 +112,7 @@ export function App({ backend }: { backend: Backend }): JSX.Element {
       /* optional */
     }
     setScreen({ name: 'title' });
-    setSaveTick((t) => t + 1);
+    setSaveTick((n) => n + 1);
   };
 
   const continueGame = async () => {
@@ -123,8 +125,8 @@ export function App({ backend }: { backend: Backend }): JSX.Element {
     }
     if (!g) {
       clearSave();
-      setSaveTick((t) => t + 1);
-      setError('That save could not be loaded. Start a new run.');
+      setSaveTick((n) => n + 1);
+      setError(t('That save could not be loaded. Start a new run.'));
       return;
     }
     const v = g.view();
@@ -214,11 +216,16 @@ export function App({ backend }: { backend: Backend }): JSX.Element {
             setQuitPrompt(false);
           }}
           inGame={screen.name === 'game'}
+          hasSave={hasSave}
           confirmQuit={quitPrompt && screen.name === 'game'}
           onHowTo={() => setModal('howto')}
           onQuit={() => {
             if (game) writeSave(game);
             toTitle();
+          }}
+          onLang={(l) => {
+            if (game && screen.name === 'game') writeSave(game);
+            switchLang(l);
           }}
         />
       )}

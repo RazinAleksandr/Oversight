@@ -2,11 +2,13 @@
  * Quarterly headlines: triggered by what happened this quarter, plus era flavor.
  * Situation warning signals are emitted by the situations system and appear alongside these.
  */
+import { t } from '../i18n';
 import { getGenericHeadlines, getHeadlinesFor, getOutlets } from './content';
 import { turnLog } from './log';
 import { currentEra, domesticBestC, findCompany, findModel, findRival } from './query';
 import { hashString } from './rng';
 import { rng } from './rng';
+import { sourceOf } from './source';
 import type { TickCtx } from './systems/tick';
 import { fillTemplate, type TemplateCtx } from './template';
 import type { CardContext, GameState, HeadlineTrigger, NewsItem, SectorId, Tone } from './types';
@@ -75,23 +77,29 @@ function capitalize(text: string): string {
   return text ? text[0].toUpperCase() + text.slice(1) : text;
 }
 
-/** One-off lines (headline templates, signals) are tracked by hash so a run never repeats them. */
+/**
+ * One-off lines (headline templates, signals) are tracked by hash so a run never repeats them.
+ * The hash is of the English source, so the same run behaves identically in every language.
+ */
 export function lineUsed(s: GameState, line: string): boolean {
-  return (s.usedLines ?? []).includes(hashString(line));
+  return (s.usedLines ?? []).includes(hashString(sourceOf(line)));
 }
 
 export function markLineUsed(s: GameState, line: string): void {
   s.usedLines = s.usedLines ?? [];
-  const h = hashString(line);
+  const h = hashString(sourceOf(line));
   if (!s.usedLines.includes(h)) s.usedLines.push(h);
 }
 
-/** Headline templates for a trigger that fit the context and have not been used yet this run. */
+/** Headline templates for a trigger that fit the context and have not been used yet this run (rules read the English source). */
 function headlineOptions(s: GameState, trigger: HeadlineTrigger, tctx: TemplateCtx): string[] {
-  let options = getHeadlinesFor(trigger).filter((h) => (tctx.sector || !h.includes('{sector}')) && (tctx.situation || !h.includes('{situation}')));
+  let options = getHeadlinesFor(trigger).filter((h) => {
+    const en = sourceOf(h);
+    return (tctx.sector || !en.includes('{sector}')) && (tctx.situation || !en.includes('{situation}'));
+  });
   // Never claim a rival "leads" when it is actually behind our best lab.
   if (trigger === 'rival_breakthrough' && tctx.rival && tctx.rival.capability <= domesticBestC(s)) {
-    options = options.filter((h) => !/\b(lead|leads|leading|ahead|overtak\w*|surpass\w*|first place)\b/i.test(h));
+    options = options.filter((h) => !/\b(lead|leads|leading|ahead|overtak\w*|surpass\w*|first place)\b/i.test(sourceOf(h)));
   }
   const fresh = options.filter((h) => !lineUsed(s, h));
   return fresh.length ? fresh : [];
@@ -104,7 +112,7 @@ export function publishHeadline(s: GameState, trigger: HeadlineTrigger, ctx: Car
   const tpl = r.pick(headlineOptions(s, trigger, tctx));
   if (!tpl) return;
   markLineUsed(s, tpl);
-  s.news.push({ turn: s.turn, outlet: r.pick(getOutlets()) ?? 'Global Wire', text: capitalize(fillTemplate(s, tpl, tctx).trim()), tone: TONE[trigger] });
+  s.news.push({ turn: s.turn, outlet: r.pick(getOutlets()) ?? t('Global Wire'), text: capitalize(fillTemplate(s, tpl, tctx).trim()), tone: TONE[trigger] });
 }
 
 /** Adds this quarter's headlines to `s.news`; returns the items added. */
@@ -118,7 +126,7 @@ export function generateNews(s: GameState, tc: TickCtx, turn: number): NewsItem[
     text = capitalize(text.trim());
     if (!text || recent.has(text)) return false;
     recent.add(text);
-    const item: NewsItem = { turn, outlet: r.pick(outlets) ?? 'Global Wire', text, tone };
+    const item: NewsItem = { turn, outlet: r.pick(outlets) ?? t('Global Wire'), text, tone };
     s.news.push(item);
     added.push(item);
     return true;

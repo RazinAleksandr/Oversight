@@ -4,6 +4,7 @@
 import type { JSX } from 'preact';
 import type { Estimate } from '../../engine/types';
 import { STAGE_LABELS } from '../../engine/labels';
+import { t } from '../../i18n';
 import { CONF_LABEL, clamp, cx, one } from '../util';
 
 export type BarTone = 'good' | 'warn' | 'bad' | 'accent' | 'ai' | 'gov' | 'neutral';
@@ -112,7 +113,7 @@ export function Sparkline({
 
 export function StageStepper({ stage, compact }: { stage: number; compact?: boolean }): JSX.Element {
   return (
-    <ol class={cx('stages', compact && 'stages--compact')} aria-label={`Stage ${STAGE_LABELS[stage]}`}>
+    <ol class={cx('stages', compact && 'stages--compact')} aria-label={t('Stage {stage}', { stage: STAGE_LABELS[stage] })}>
       {STAGE_LABELS.map((l, i) => (
         <li key={l} class={cx('stages__step', `stages__step--${i}`, i < stage && 'is-past', i === stage && 'is-current')}>
           <span class="stages__dot" aria-hidden="true" />

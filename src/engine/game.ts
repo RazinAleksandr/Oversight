@@ -3,6 +3,7 @@
  * All mutations go through here; each emits `{type:'change'}` plus a specific event.
  * Invalid input never throws — methods return `{ ok: false, error }` instead.
  */
+import { t } from '../i18n';
 import { getActionViews, performActionImpl } from './actions';
 import { beginCapture, endCapture, visibleChanges } from './changes';
 import { checkFailure, computeScores, finishGame, survivalEnding } from './endings';
@@ -77,19 +78,19 @@ export class Game implements GameAPI {
   resolveChoice(cardUid: string, choiceId: string): ChoiceResult {
     const s = this.s;
     const fail = (error: string, title = ''): ChoiceResult => ({ ok: false, error, cardUid, choiceId, title, text: '', changes: [], newCards: 0, gameOver: s.gameOver });
-    if (s.gameOver) return fail('The game is over');
+    if (s.gameOver) return fail(t('The game is over'));
     const card = s.inbox.find((c) => c.uid === cardUid);
-    if (!card) return fail('Card not found');
+    if (!card) return fail(t('Card not found'));
     refreshCard(s, card);
     const choice = card.choices.find((c) => c.id === choiceId);
-    if (!choice) return fail('Unknown choice', card.title);
+    if (!choice) return fail(t('Unknown choice'), card.title);
     if (choice.disabled) return fail(choice.disabled, card.title);
 
     const buf = beginCapture(s);
     const res = resolveCard(s, card, choiceId);
     if (!res.ok) {
       endCapture(s, buf);
-      return fail(res.error ?? 'Not possible', card.title);
+      return fail(res.error ?? t('Not possible'), card.title);
     }
     s.inbox = s.inbox.filter((c) => c.uid !== cardUid);
     for (const nc of [...res.newCards].reverse()) s.inbox.unshift(nc);
@@ -132,7 +133,7 @@ export class Game implements GameAPI {
 
   performAction(actionId: ActionId, targetId?: string, optionId?: string): ActionResult {
     const s = this.s;
-    if (s.gameOver) return { ok: false, error: 'The game is over', title: '', text: '', changes: [], newCards: 0, gameOver: true };
+    if (s.gameOver) return { ok: false, error: t('The game is over'), title: '', text: '', changes: [], newCards: 0, gameOver: true };
     const buf = beginCapture(s);
     const out = performActionImpl(s, actionId, targetId, optionId);
     if (out.ok) this.checkGameOver();
@@ -159,16 +160,16 @@ export class Game implements GameAPI {
 
   setProgramLevel(id: ProgramId, level: number): { ok: boolean; reason?: string } {
     const s = this.s;
-    if (s.gameOver) return { ok: false, reason: 'The game is over' };
-    if (!PROGRAM_ORDER.includes(id)) return { ok: false, reason: 'Unknown program' };
+    if (s.gameOver) return { ok: false, reason: t('The game is over') };
+    if (!PROGRAM_ORDER.includes(id)) return { ok: false, reason: t('Unknown program') };
     const def = PROGRAMS[id];
-    if (!Number.isInteger(level) || level < 0 || level > 3) return { ok: false, reason: 'Level must be 0–3' };
-    if (!s.unlockedTabs.includes('nation') && level > (s.programs[id] ?? 0)) return { ok: false, reason: 'Programs unlock next quarter' };
+    if (!Number.isInteger(level) || level < 0 || level > 3) return { ok: false, reason: t('Level must be 0–3') };
+    if (!s.unlockedTabs.includes('nation') && level > (s.programs[id] ?? 0)) return { ok: false, reason: t('Programs unlock next quarter') };
     const current = s.programs[id] ?? 0;
     if (level === current) return { ok: true };
-    if (level > current && def.costs[level] > s.budget) return { ok: false, reason: 'Not enough budget for this level' };
+    if (level > current && def.costs[level] > s.budget) return { ok: false, reason: t('Not enough budget for this level') };
     s.programs[id] = level;
-    addLog(s, `${def.name} set to level ${level}.`, false, 'neutral');
+    addLog(s, t('{program} set to level {level}.', { program: def.name, level }), false, 'neutral');
     this.emit({ type: 'change' });
     return { ok: true };
   }
@@ -185,7 +186,7 @@ export class Game implements GameAPI {
 
   endTurn(): TurnReport {
     const s = this.s;
-    if (!this.canEndTurn()) return this.noopReport(s.gameOver ? 'The game is over' : 'Resolve all briefings first');
+    if (!this.canEndTurn()) return this.noopReport(s.gameOver ? t('The game is over') : t('Resolve all briefings first'));
     const report = endTurnImpl(s);
     this.emit({ type: 'turn', report });
     if (s.gameOver && s.ending) this.emit({ type: 'gameover', ending: s.ending });

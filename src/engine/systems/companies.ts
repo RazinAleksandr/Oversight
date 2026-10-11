@@ -2,6 +2,7 @@
  * Domestic labs (GDD §3–4): capability growth, concealment, intel decay, trait drift,
  * hidden violations, relation drift and lobbying, model-release readiness.
  */
+import { t } from '../../i18n';
 import { addEvidence, changeCapability, changeCompanyRelation, changeMeter } from '../changes';
 import { getCountry } from '../content';
 import { dateLabel } from '../labels';
@@ -10,7 +11,7 @@ import { flagNum, getMods } from '../modifiers';
 import { hasPolicy, shownTurn } from '../query';
 import { lineUsed, markLineUsed } from '../news';
 import { rng } from '../rng';
-import type { Company, GameState, Modifiers, SituationType, Violation } from '../types';
+import type { AIModel, Company, GameState, Modifiers, SituationType, Violation } from '../types';
 import { clamp, nextId } from '../util';
 import { spawnSituation } from './situations';
 import type { TickCtx } from './tick';
@@ -57,22 +58,30 @@ export function readyToRelease(s: GameState, c: Company): boolean {
   return c.capability - c.capAtLastModel >= 1.2 || s.turn - c.lastModelTurn >= 6;
 }
 
-const VIOLATION_TEXT: Record<Violation['kind'], string> = {
-  secret_training: 'ran an unreported large training run',
-  unreported_incident: 'concealed a safety incident from regulators',
-  unauthorized_deployment: 'deployed a model without approval',
-  safety_cut: 'quietly cut its safety team',
-};
+/** What the company did, as a predicate ("ran an unreported large training run"). */
+export function violationAct(kind: Violation['kind'], modelName?: string): string {
+  switch (kind) {
+    case 'secret_training':
+      return t('ran an unreported large training run');
+    case 'unreported_incident':
+      return t('concealed a safety incident from regulators');
+    case 'unauthorized_deployment':
+      return modelName ? t('deployed {model} without approval', { model: modelName }) : t('deployed a model without approval');
+    case 'safety_cut':
+      return t('quietly cut its safety team');
+  }
+}
 
-export function addViolation(s: GameState, c: Company, kind: Violation['kind'], detail?: string): Violation {
+export function addViolation(s: GameState, c: Company, kind: Violation['kind'], model?: AIModel): Violation {
   const v: Violation = {
     id: nextId(s, 'v'),
     companyId: c.id,
     kind,
     turn: s.turn,
-    description: `${c.name} ${detail ?? VIOLATION_TEXT[kind]} (${dateLabel(shownTurn(s))}).`,
+    description: t('{company} {act} ({date}).', { company: c.name, act: violationAct(kind, model?.name), date: dateLabel(shownTurn(s)) }),
     discovered: false,
   };
+  if (model) v.modelId = model.id;
   c.violations.push(v);
   return v;
 }
@@ -86,9 +95,9 @@ export function discoverViolation(s: GameState, c: Company, v: Violation, how: s
     c.hiddenGain = 0;
     syncReported(c);
   }
-  addEvidence(s, `${v.description} (${how})`, { companyId: c.id }, `Evidence: ${c.name}`);
-  addLog(s, `Discovered: ${v.description}`, false, 'bad', { companyId: c.id });
-  highlight(s, `Evidence found: ${v.description}`, 'bad', 'evidence');
+  addEvidence(s, `${v.description} (${how})`, { companyId: c.id }, t('Evidence: {company}', { company: c.name }));
+  addLog(s, t('Discovered: {violation}', { violation: v.description }), false, 'bad', { companyId: c.id });
+  highlight(s, t('Evidence found: {violation}', { violation: v.description }), 'bad', 'evidence');
 }
 
 export function tickCompanies(s: GameState, _tc: TickCtx): void {
@@ -102,8 +111,9 @@ export function tickCompanies(s: GameState, _tc: TickCtx): void {
       const gain = r.range(0.4, 0.8);
       changeCapability(s, { companyId: c.id }, gain, 'Breakthrough');
       trigger(s, 'domestic_breakthrough', { companyId: c.id });
+      // The one-off line is tracked by its English text (company names are never translated).
       const line = `${c.name} reports a breakthrough`;
-      highlight(s, lineUsed(s, line) ? `${c.name} reports another breakthrough` : line, 'neutral', 'capability');
+      highlight(s, lineUsed(s, line) ? t('{company} reports another breakthrough', { company: c.name }) : t('{company} reports a breakthrough', { company: c.name }), 'neutral', 'capability');
       markLineUsed(s, line);
     }
 
@@ -114,8 +124,8 @@ export function tickCompanies(s: GameState, _tc: TickCtx): void {
 
     // Relation drift: policy friction plus slow regression toward neutral.
     const drift = mods.companyRelation + (50 - c.relation) * 0.04;
-    if (Math.abs(drift) >= 0.05) changeCompanyRelation(s, c.id, drift, mods.companyRelation < 0 ? 'Regulatory friction' : 'Relations settle');
-    if (c.relation < 25) changeMeter(s, 'confidence', -1, `Lobbying by ${c.name}`);
+    if (Math.abs(drift) >= 0.05) changeCompanyRelation(s, c.id, drift, mods.companyRelation < 0 ? t('Regulatory friction') : t('Relations settle'));
+    if (c.relation < 25) changeMeter(s, 'confidence', -1, t('Lobbying by {company}', { company: c.name }));
     if (c.status === 'sanctioned' && s.turn - flagNum(s, `sanctionTurn:${c.id}`, -99) >= 3) c.status = 'active';
 
     // Intel decays after an investigation; cooperative companies keep you better informed.
@@ -135,7 +145,7 @@ function rollViolation(s: GameState, c: Company, mods: Modifiers): void {
   // Compute licensing makes secret training runs visible to regulators over time.
   if (hasPolicy(s, 'compute_licensing')) {
     for (const v of c.violations) {
-      if (!v.discovered && v.kind === 'secret_training' && r.chance(0.3)) discoverViolation(s, c, v, 'compute license audit');
+      if (!v.discovered && v.kind === 'secret_training' && r.chance(0.3)) discoverViolation(s, c, v, t('compute license audit'));
     }
   }
   if (s.turn < 3 || c.ambition <= 60 || c.transparency >= 50) return;
@@ -153,6 +163,6 @@ function rollViolation(s: GameState, c: Company, mods: Modifiers): void {
     c.safety = clamp(c.safety - 10, 0, 100);
   } else if (kind === 'unreported_incident') {
     const type = INCIDENT_TYPE[c.archetype];
-    spawnSituation(s, type, { companyId: c.id, severity: 10, noEarlyBoost: true, origin: `${c.name} (unreported incident)` });
+    spawnSituation(s, type, { companyId: c.id, severity: 10, noEarlyBoost: true, origin: t('{company} (unreported incident)', { company: c.name }) });
   }
 }

@@ -5,6 +5,7 @@
 import type { ComponentChildren, JSX } from 'preact';
 import { createPortal } from 'preact/compat';
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { t } from '../../i18n';
 import { cx } from '../util';
 import { Icon } from './Icon';
 
@@ -91,7 +92,7 @@ export function Sheet({ label, onClose, size = 'auto', class: cls, closeButton =
       <div ref={ref} class={cx('sheet', `sheet--${size}`, cls)} role="dialog" aria-modal="true" aria-label={label} tabIndex={-1}>
         {onClose && closeButton && (
           <div class="sheet__closebar">
-            <button type="button" class="sheet__close iconbtn" onClick={onClose} aria-label="Close">
+            <button type="button" class="sheet__close iconbtn" onClick={onClose} aria-label={t('Close')}>
               <Icon name="close" size={18} />
             </button>
           </div>

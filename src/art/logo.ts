@@ -3,6 +3,7 @@
  * OVERSIGHT. Text uses textLength so the layout holds even when Space Grotesk is unavailable.
  * The same iris doubles as the app icon (logoMark).
  */
+import { t } from '../i18n';
 import { uid } from './rng';
 import { n, polar, svgRoot } from './util';
 
@@ -89,8 +90,8 @@ export function gameLogo(width = 640): string {
       `<path d="M210 146H984" stroke="${CYAN}" stroke-width="1" opacity=".35"/>` +
       `<path d="${tk}" stroke="${CYAN}" stroke-width="1" opacity=".35"/>` +
       `<rect x="214" y="143.5" width="98" height="5" fill="${CYAN}" opacity=".9"/>` +
-      `<text x="214" y="178" font-family="${MONO}" font-size="16" font-weight="600" letter-spacing="5" fill="#7f8ba3">GOVERNMENT AI DEPARTMENT</text>` +
-      `<text x="984" y="178" text-anchor="end" font-family="${MONO}" font-size="16" font-weight="600" letter-spacing="5" fill="#7f8ba3">EYES ONLY <tspan fill="${RED}">●</tspan></text>`;
+      `<text x="214" y="178" font-family="${MONO}" font-size="16" font-weight="600" letter-spacing="5" fill="#7f8ba3">${t('GOVERNMENT AI DEPARTMENT')}</text>` +
+      `<text x="984" y="178" text-anchor="end" font-family="${MONO}" font-size="16" font-weight="600" letter-spacing="5" fill="#7f8ba3">${t('EYES ONLY')} <tspan fill="${RED}">●</tspan></text>`;
   }
 
   const inner =

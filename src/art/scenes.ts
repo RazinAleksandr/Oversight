@@ -7,6 +7,7 @@
  * Deterministic per tone; <defs> ids are unique per call.
  */
 import type { Tone } from '../engine/types';
+import { t } from '../i18n';
 import { Rng, uid } from './rng';
 import { n, svgRoot, type Pt } from './util';
 
@@ -210,6 +211,8 @@ function network(r: Rng, cfg: ToneCfg, tips: Pt[], gl: (s: string) => string): s
 
 // ---------------------------------------------------------------- scene
 
+const ENDING_LABEL: Partial<Record<Tone, string>> = { good: t('good ending'), bad: t('bad ending'), mixed: t('mixed ending'), neutral: t('neutral ending') };
+
 export function endingArt(tone: Tone, width = 960): string {
   const cfg = TONES[tone] ?? TONES.neutral;
   const ids: Record<string, string> = {};
@@ -394,5 +397,5 @@ export function endingArt(tone: Tone, width = 960): string {
   const inner =
     defs + sky + clouds + layerEls + water + waterFx + grid + net + particles + glitch +
     `<rect width="${W}" height="${H}" fill="url(#${id('vignette')})"/>`;
-  return svgRoot(width, (width * H) / W, `0 0 ${W} ${H}`, inner, `role="img" aria-label="${tone} ending" preserveAspectRatio="xMidYMid slice"`);
+  return svgRoot(width, (width * H) / W, `0 0 ${W} ${H}`, inner, `role="img" aria-label="${ENDING_LABEL[tone] ?? t('{tone} ending', { tone })}" preserveAspectRatio="xMidYMid slice"`);
 }

@@ -1310,3 +1310,209 @@
   gap: 8px;
   margin-top: 6px;
 }
+
+/* ───────────── Language switch (title corner) ───────────── */
+.langtoggle {
+  position: absolute;
+  z-index: 2;
+  top: calc(36px + var(--safe-t));
+  right: calc(10px + var(--safe-r));
+  display: flex;
+  align-items: center;
+}
+.langtoggle__opt {
+  min-width: 40px;
+  min-height: 36px;
+  padding: 0 8px;
+  border: none;
+  background: none;
+  font: 600 11px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  color: var(--text-faint);
+  cursor: pointer;
+}
+.langtoggle__opt + .langtoggle__opt {
+  border-left: 1px solid var(--line-2);
+}
+.langtoggle__opt:hover {
+  color: var(--text);
+}
+.langtoggle__opt.is-on {
+  color: var(--accent);
+  cursor: default;
+}
+@media (max-width: 420px) {
+  .langtoggle {
+    top: calc(30px + var(--safe-t));
+    right: calc(6px + var(--safe-r));
+  }
+}
+
+/* ───────────── Russian layout (≈ 20–30% longer text) ───────────── */
+/* Narrow labels wrap with real hyphenation instead of overflowing; English is untouched. */
+html[lang='ru'] .desk__tile .eyebrow,
+html[lang='ru'] .trait__k,
+html[lang='ru'] .cstart__k,
+html[lang='ru'] .stat .eyebrow,
+html[lang='ru'] .qtile .eyebrow,
+html[lang='ru'] .risk-range .eyebrow {
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+html[lang='ru'] .risk-range .eyebrow {
+  display: block;
+  letter-spacing: 0.08em;
+}
+html[lang='ru'] .title__tagline {
+  text-wrap: balance;
+}
+html[lang='ru'] .desk__tile .eyebrow {
+  display: block;
+  max-width: 100%;
+  letter-spacing: 0.06em;
+}
+html[lang='ru'] .title__menu .btn--xl {
+  white-space: nowrap;
+}
+/* The On/Off text («Вкл»/«Выкл») is wider than "On"/"Off". */
+html[lang='ru'] .switch {
+  width: 74px;
+}
+html[lang='ru'] .switch.is-on .switch__knob {
+  transform: translateX(40px);
+}
+html[lang='ru'] .switch__text {
+  right: 8px;
+}
+html[lang='ru'] .switch.is-on .switch__text {
+  left: 9px;
+}
+/* Tab bar: mixed case is ~15% narrower than spaced capitals, so «Лаборатории» fits five tabs at 360px. */
+html[lang='ru'] .tab {
+  letter-spacing: 0;
+  text-transform: none;
+}
+html[lang='ru'] .tab__label {
+  white-space: nowrap;
+}
+/* HUD: «ДЕЙСТВИЯ» and «$20 млрд» are wider than "ACTIONS" / "$20B"; keep the date column on one line. */
+html[lang='ru'] .hud__reslabel {
+  letter-spacing: 0.08em;
+}
+html[lang='ru'] .hud__era {
+  letter-spacing: 0.1em;
+}
+html[lang='ru'] .hud__quarter {
+  white-space: nowrap;
+}
+html[lang='ru'] .hud__money {
+  letter-spacing: -0.03em;
+}
+@media (max-width: 419px) {
+  html[lang='ru'] .hud {
+    column-gap: 8px;
+  }
+  html[lang='ru'] .hud__res {
+    gap: 8px;
+  }
+  html[lang='ru'] .hud__reslabel {
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+  html[lang='ru'] .hud__money {
+    font-size: 14.5px;
+  }
+  html[lang='ru'] .tab {
+    font-size: 10.5px;
+  }
+}
+/* HUD meters: full names where there is room, compact names on phones. */
+.meter__abbr {
+  display: none;
+}
+@media (max-width: 559px) {
+  .meter__label:has(.meter__abbr) .meter__full {
+    display: none;
+  }
+  .meter__abbr {
+    display: inline;
+  }
+}
+/* Section asides («Менять бесплатно · содержание ежеквартально») wrap instead of overflowing. */
+html[lang='ru'] .section__aside {
+  flex: 0 1 auto;
+  min-width: 0;
+  text-align: right;
+}
+html[lang='ru'] .demand__top {
+  flex-wrap: wrap;
+}
+html[lang='ru'] .demand__status {
+  flex: 0 1 auto;
+}
+html[lang='ru'] .demand__foot {
+  gap: 10px;
+}
+html[lang='ru'] .demand__foot > span:last-child {
+  flex: none;
+  white-space: nowrap;
+}
+/* «$20 млрд» needs more room than "$20B": the treasury strip is 2 × 2 (its column is narrow on desktop too). */
+html[lang='ru'] .budgetstrip {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+/* Response buttons: the «Активна» pill may drop below a long label instead of overflowing. */
+html[lang='ru'] .respbtn__top {
+  flex-wrap: wrap;
+}
+html[lang='ru'] .respbtn__cur {
+  letter-spacing: 0.06em;
+}
+@media (max-width: 519px) {
+  /* Trait rows: name on the left (may wrap), level and «Не проверено» stacked on the right. */
+  html[lang='ru'] .traits .trait {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'k v'
+      'k n';
+    row-gap: 2px;
+  }
+  html[lang='ru'] .traits .trait__k {
+    grid-area: k;
+    white-space: normal;
+    letter-spacing: 0.03em;
+  }
+  html[lang='ru'] .traits .trait__v {
+    grid-area: v;
+    justify-self: end;
+  }
+  html[lang='ru'] .traits .trait__note {
+    grid-area: n;
+  }
+  /* How to Play demo: two narrow columns — stack name, value and note. */
+  html[lang='ru'] .howto__demo .trait {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+  html[lang='ru'] .howto__demo .trait__k {
+    white-space: normal;
+  }
+}
+html[lang='ru'] .section__title {
+  flex: 1 0 auto;
+}
+/* Calendar page: «2 кв.» is wider than "Q2". */
+html[lang='ru'] .calflip__q {
+  font-size: 26px;
+}
+/* Tab bar «Новое» badge is longer than "NEW": keep it inside its tab on phones. */
+html[lang='ru'] .game:not(.game--desktop) .tab__new {
+  left: auto;
+  right: 2px;
+  margin-left: 0;
+  padding: 2px 4px;
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+}

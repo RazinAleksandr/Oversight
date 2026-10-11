@@ -100,7 +100,7 @@ export function Portrait({ seed, role, size, name, hue }: { seed: number; role: 
   if (isPlaceholder(svg)) {
     const initials = name
       .split(/\s+/)
-      .filter((w) => /^[A-Z]/.test(w))
+      .filter((w) => /^\p{Lu}/u.test(w))
       .slice(0, 2)
       .map((w) => w[0])
       .join('');

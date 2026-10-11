@@ -1,8 +1,8 @@
 /**
- * Settings sheet (sound, music, volume, reduced motion, text speed) + in-game menu actions.
+ * Settings sheet (sound, music, volume, reduced motion, text speed, language) + in-game menu actions.
  */
 import type { JSX } from 'preact';
-import type { ComponentChildren } from 'preact';
+import { LANGS, type Lang, getLang, t } from '../../i18n';
 import { Seg } from '../components/Common';
 import { Icon } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
@@ -21,7 +21,7 @@ function SwitchRow({ on, onChange, name, desc, icon }: { on: boolean; onChange(v
       </span>
       <span class={cx('switch', on && 'is-on')} aria-hidden="true">
         <span class="switch__knob" />
-        <span class="switch__text">{on ? 'On' : 'Off'}</span>
+        <span class="switch__text">{on ? t('On') : t('Off')}</span>
       </span>
     </button>
   );
@@ -29,15 +29,15 @@ function SwitchRow({ on, onChange, name, desc, icon }: { on: boolean; onChange(v
 
 function QuitPrompt({ onStay, onQuit }: { onStay(): void; onQuit?(): void }): JSX.Element {
   return (
-    <div class="quitprompt" role="alertdialog" aria-label="Return to title?">
-      <p class="quitprompt__title">Return to the title screen?</p>
-      <p class="quitprompt__text">Your run is saved — you can pick it up again with Continue.</p>
+    <div class="quitprompt" role="alertdialog" aria-label={t('Return to title?')}>
+      <p class="quitprompt__title">{t('Return to the title screen?')}</p>
+      <p class="quitprompt__text">{t('Your run is saved — you can pick it up again with Continue.')}</p>
       <div class="quitprompt__actions">
         <button type="button" class="btn btn--primary" onClick={onStay} data-autofocus>
-          Keep playing
+          {t('Keep playing')}
         </button>
         <button type="button" class="btn btn--danger" onClick={onQuit}>
-          Return to title
+          {t('Return to title')}
         </button>
       </div>
     </div>
@@ -47,37 +47,44 @@ function QuitPrompt({ onStay, onQuit }: { onStay(): void; onQuit?(): void }): JS
 export function SettingsSheet({
   onClose,
   inGame,
+  hasSave,
   onHowTo,
   onQuit,
+  onLang,
   confirmQuit,
 }: {
   onClose(): void;
   inGame?: boolean;
+  /** A saved run exists (switching language mid-run deserves a note). */
+  hasSave?: boolean;
   onHowTo?(): void;
   onQuit?(): void;
+  /** Saves (if needed) and switches language — reloads the page. */
+  onLang(l: Lang): void;
   confirmQuit?: boolean;
 }): JSX.Element {
   const { settings, update } = useSettings();
+  const lang = getLang();
   return (
-    <Sheet label={inGame ? 'Menu' : 'Settings'} onClose={onClose} class="settings-sheet">
+    <Sheet label={inGame ? t('Menu') : t('Settings')} onClose={onClose} class="settings-sheet">
       <header class="detail__head">
         <span class="detail__icon is-accent">
           <Icon name="settings" size={24} />
         </span>
         <div class="detail__title">
-          <p class="eyebrow">{inGame ? 'Paused' : 'Options'}</p>
-          <h2>{inGame ? 'Menu' : 'Settings'}</h2>
+          <p class="eyebrow">{inGame ? t('Paused') : t('Options')}</p>
+          <h2>{inGame ? t('Menu') : t('Settings')}</h2>
         </div>
       </header>
 
       {confirmQuit && <QuitPrompt onStay={onClose} onQuit={onQuit} />}
 
       <div class="settings">
-        <SwitchRow on={settings.sound} onChange={(v) => update({ sound: v })} name="Sound effects" icon="sound" />
-        <SwitchRow on={settings.music} onChange={(v) => update({ music: v })} name="Music" icon="music" desc="Ambient score that tightens as the clock nears midnight." />
+        <SwitchRow on={settings.sound} onChange={(v) => update({ sound: v })} name={t('Sound effects')} icon="sound" />
+        <SwitchRow on={settings.music} onChange={(v) => update({ music: v })} name={t('Music')} icon="music" desc={t('Ambient score that tightens as the clock nears midnight.')} />
         <div class="setting setting--col">
           <label class="setting__name" for="set-volume">
-            Volume <span class="num dim">{Math.round(settings.volume * 100)}%</span>
+            {t('Volume')} <span class="num dim">{Math.round(settings.volume * 100)}%</span>
           </label>
           <input
             id="set-volume"
@@ -94,37 +101,48 @@ export function SettingsSheet({
         <SwitchRow
           on={settings.reducedMotion}
           onChange={(v) => update({ reducedMotion: v })}
-          name="Reduced motion"
-          desc="No shake, glitch, particles or typewriter; shorter animations."
+          name={t('Reduced motion')}
+          desc={t('No shake, glitch, particles or typewriter; shorter animations.')}
         />
         <div class="setting setting--col">
-          <span class="setting__name">Briefing text speed</span>
+          <span class="setting__name">{t('Briefing text speed')}</span>
           <Seg
-            label="Text speed"
+            label={t('Text speed')}
             value={settings.textSpeed}
             onChange={(v) => update({ textSpeed: v })}
             options={[
-              { id: 'instant', label: 'Instant' },
-              { id: 'fast', label: 'Fast' },
-              { id: 'normal', label: 'Typewriter' },
+              { id: 'instant', label: t('Instant') },
+              { id: 'fast', label: t('Fast') },
+              { id: 'normal', label: t('Typewriter') },
             ]}
           />
+        </div>
+        <div class="setting setting--col setting--lang">
+          <span class="setting__name">
+            <Icon name="world" size={16} /> {t('Language')}
+          </span>
+          <Seg label={t('Language')} value={lang} onChange={(v) => v !== lang && onLang(v)} options={LANGS.map((l) => ({ id: l.id, label: l.name }))} />
+          <span class="setting__desc">
+            {inGame || hasSave
+              ? t('The page reloads and your run continues. Text already on your desk stays in the previous language until new text arrives.')
+              : t('The page reloads in the chosen language.')}
+          </span>
         </div>
       </div>
 
       {inGame && (
         <div class="settings__game">
           <button type="button" class="btn" onClick={onHowTo}>
-            <Icon name="help" size={17} /> How to Play
+            <Icon name="help" size={17} /> {t('How to Play')}
           </button>
           <button type="button" class="btn btn--danger" onClick={onQuit}>
-            <Icon name="back" size={17} /> Save &amp; quit to title
+            <Icon name="back" size={17} /> {t('Save & quit to title')}
           </button>
         </div>
       )}
       <div class="sheet__actions">
         <button type="button" class="btn btn--primary btn--wide" onClick={onClose} data-autofocus={confirmQuit ? undefined : ''}>
-          {inGame ? 'Resume' : 'Done'}
+          {inGame ? t('Resume') : t('Done')}
         </button>
       </div>
     </Sheet>

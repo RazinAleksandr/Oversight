@@ -2,9 +2,10 @@
  * Fog of war: the only place that turns hidden truth into player-visible estimates.
  * Views and advisor notes must use these instead of reading hidden fields directly.
  */
+import { t } from '../i18n';
 import { getMods } from './modifiers';
 import { findCompany } from './query';
-import type { AIModel, Company, Estimate, GameState, Rival, TraitView } from './types';
+import type { AIModel, Company, Confidence, Estimate, GameState, Rival, TraitView } from './types';
 import { clamp, hashNoise, round1 } from './util';
 
 export function confidenceFromIntel(intel: number): Estimate['confidence'] {
@@ -12,6 +13,22 @@ export function confidenceFromIntel(intel: number): Estimate['confidence'] {
   if (intel >= 0.7) return 'high';
   if (intel >= 0.45) return 'medium';
   return 'low';
+}
+
+/** An evidence confidence level as a word inside running text ("high confidence"). */
+export function confidenceWord(c: Confidence): string {
+  switch (c) {
+    case 'verified':
+      return t('verified');
+    case 'high':
+      return t('high');
+    case 'medium':
+      return t('medium');
+    case 'low':
+      return t('low');
+    case 'redacted':
+      return t('redacted');
+  }
 }
 
 function estimate(value: number, u: number, conf: Estimate['confidence'], max = 10): Estimate {

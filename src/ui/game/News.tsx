@@ -5,6 +5,7 @@
 import type { JSX } from 'preact';
 import type { NewsItem } from '../../engine/types';
 import { dateLabel } from '../../engine/labels';
+import { t, tp } from '../../i18n';
 import { Icon } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
 import { costInline } from '../components/Common';
@@ -26,7 +27,7 @@ export function NewsTicker({ news, onOpen }: { news: NewsItem[]; onOpen(): void 
         <span key={i} class={cx('ticker__item', n.signal && 'is-signal')}>
           {n.signal && <span class="ticker__sig" aria-hidden="true">◉</span>}
           <span class="ticker__outlet">{n.outlet}</span> {n.text}
-          {canFollow(n) && <span class="ticker__follow">Follow up ›</span>}
+          {canFollow(n) && <span class="ticker__follow">{t('Follow up')} ›</span>}
         </span>
       ))}
     </>
@@ -36,10 +37,10 @@ export function NewsTicker({ news, onOpen }: { news: NewsItem[]; onOpen(): void 
       type="button"
       class={cx('ticker', followable > 0 && 'ticker--follow')}
       onClick={onOpen}
-      aria-label={`News: ${items[0].text}.${followable ? ` ${followable} warning sign${followable === 1 ? '' : 's'} can be followed up.` : ''} Open news feed`}
+      aria-label={`${t('News: {text}.', { text: items[0].text })}${followable ? ' ' + tp(followable, '{n} warning sign can be followed up.', '{n} warning signs can be followed up.') : ''} ${t('Open news feed')}`}
     >
       <span class="ticker__tag">
-        <Icon name="news" size={13} /> Live
+        <Icon name="news" size={13} /> {t('Live')}
       </span>
       <span class="ticker__viewport" aria-hidden="true">
         <span class="ticker__track" style={{ animationDuration: `${Math.max(28, items.length * 9)}s` }}>
@@ -57,7 +58,8 @@ export function FollowUp({ n, compact }: { n: NewsItem; compact?: boolean }): JS
   const f = followTarget(actions, n);
   if (!f) return null;
   const blocked = f.target.disabled || f.action.disabled || null;
-  if (blocked && /already/i.test(blocked))
+  // Engine reason text ("Already followed", «Уже …»): styling only, the action stays engine-validated.
+  if (blocked && /already|уже/i.test(blocked))
     return (
       <span class="followup-done">
         <Icon name="check" size={12} /> {blocked}
@@ -68,10 +70,10 @@ export function FollowUp({ n, compact }: { n: NewsItem; compact?: boolean }): JS
       type="button"
       class={cx('followup', blocked && 'is-blocked', compact && 'followup--compact')}
       onClick={() => openAction('follow_signal', n.id)}
-      aria-label={`Follow up this warning sign${blocked ? ', unavailable: ' + blocked : ', costs ' + costInline(f.action.cost)}`}
+      aria-label={blocked ? t('Follow up this warning sign, unavailable: {reason}', { reason: blocked }) : t('Follow up this warning sign, costs {cost}', { cost: costInline(f.action.cost) })}
     >
       <Icon name="investigate" size={14} />
-      <span>Follow up</span>
+      <span>{t('Follow up')}</span>
       <span class="followup__cost num">{costInline(f.action.cost)}</span>
     </button>
   );
@@ -87,11 +89,11 @@ export function NewsList({ news, limit }: { news: NewsItem[]; limit?: number }):
         lastTurn = n.turn;
         return (
           <li key={i} class={cx('newsitem', n.signal && 'newsitem--signal', `newsitem--${n.tone}`)}>
-            {head && <span class="newsitem__date num">{n.turn > 0 ? dateLabel(n.turn) : 'Before you took office'}</span>}
+            {head && <span class="newsitem__date num">{n.turn > 0 ? dateLabel(n.turn) : t('Before you took office')}</span>}
             <span class="newsitem__outlet">
               {n.signal && (
-                <span class="newsitem__sig" title="Possible warning sign">
-                  ◉ signal
+                <span class="newsitem__sig" title={t('Possible warning sign')}>
+                  ◉ {t('signal')}
                 </span>
               )}
               {n.outlet}
@@ -105,21 +107,31 @@ export function NewsList({ news, limit }: { news: NewsItem[]; limit?: number }):
   );
 }
 
+/** The feed intro, with the "◉ signal" marker rendered inline wherever the translation puts {mark}. */
+function signalNote(): JSX.Element {
+  const [before, after = ''] = t('Items marked {mark} may be early warning signs. Most are noise. Some are not — following one up costs an action and may expose a threat early.').split('{mark}');
+  return (
+    <>
+      {before}
+      <span class="sigmark">◉ {t('signal')}</span>
+      {after}
+    </>
+  );
+}
+
 export function NewsSheet({ news, onClose }: { news: NewsItem[]; onClose(): void }): JSX.Element {
   return (
-    <Sheet label="News feed" onClose={onClose} class="news-sheet">
+    <Sheet label={t('News feed')} onClose={onClose} class="news-sheet">
       <header class="detail__head">
         <span class="detail__icon is-accent">
           <Icon name="news" size={24} />
         </span>
         <div class="detail__title">
-          <p class="eyebrow">Media monitor</p>
-          <h2>News feed</h2>
+          <p class="eyebrow">{t('Media monitor')}</p>
+          <h2>{t('News feed')}</h2>
         </div>
       </header>
-      <p class="dim small">
-        Items marked <span class="sigmark">◉ signal</span> may be early warning signs. Most are noise. Some are not — following one up costs an action and may expose a threat early.
-      </p>
+      <p class="dim small">{signalNote()}</p>
       <NewsList news={news} />
     </Sheet>
   );

@@ -2,20 +2,19 @@
  * Shared labels, icon names and template tokens (Director-owned contract; engine may extend).
  * UI, art and content all reference these so names stay consistent.
  */
+import { t } from '../i18n';
 import type { Archetype, CardSourceType, Era, MeterId, PreviewKey, SectorId, Stance } from './types';
 
 export const START_YEAR = 2027;
 
 export function dateLabel(turn: number): string {
-  const t = Math.max(1, turn);
-  const year = START_YEAR + Math.floor((t - 1) / 4);
-  const q = ((t - 1) % 4) + 1;
-  return `Q${q} ${year}`;
+  const { year, quarter } = turnYearQuarter(turn);
+  return t('Q{q} {year}', { q: quarter, year });
 }
 
 export function turnYearQuarter(turn: number): { year: number; quarter: 1 | 2 | 3 | 4 } {
-  const t = Math.max(1, turn);
-  return { year: START_YEAR + Math.floor((t - 1) / 4), quarter: (((t - 1) % 4) + 1) as 1 | 2 | 3 | 4 };
+  const n = Math.max(1, turn);
+  return { year: START_YEAR + Math.floor((n - 1) / 4), quarter: (((n - 1) % 4) + 1) as 1 | 2 | 3 | 4 };
 }
 
 export const METER_INFO: Record<MeterId, { name: string; short: string; icon: string; description: string; failText: string }> = {

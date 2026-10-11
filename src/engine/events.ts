@@ -4,6 +4,7 @@
  * EffectHelpers for custom effects, and scheduled follow-ups that carry their bindings.
  * Content functions are always called defensively so bad content can never crash a run.
  */
+import { t, tr } from '../i18n';
 import { eventNotes } from './advisors';
 import { costBlock, makeCard, payCost } from './cards';
 import {
@@ -26,6 +27,7 @@ import { getMods } from './modifiers';
 import { previewEffect } from './preview';
 import { currentEra, findCompany, findModel, findRival, leadingCompany, leadingRival } from './query';
 import { rng } from './rng';
+import { sourceOf } from './source';
 import { removeModelContribution, resolveSituation, spawnSituation, stageFor } from './systems/situations';
 import { fillTemplate, type TemplateCtx } from './template';
 import type {
@@ -168,23 +170,23 @@ function defaultSource(s: GameState, def: EventDef, ctx: EventContext): CardSour
   const name = def.sourceName ? fillTemplate(s, def.sourceName, tctx(ctx)) : undefined;
   switch (def.source) {
     case 'company':
-      return { type: 'company', name: name ?? ctx.company?.name ?? 'Industry', id: ctx.company?.id, color: ctx.company?.color };
+      return { type: 'company', name: name ?? ctx.company?.name ?? t('Industry'), id: ctx.company?.id, color: ctx.company?.color };
     case 'foreign':
-      return { type: 'foreign', name: name ?? ctx.rival?.name ?? 'Foreign Ministry', id: ctx.rival?.id, color: ctx.rival?.color };
+      return { type: 'foreign', name: name ?? ctx.rival?.name ?? t('Foreign Ministry'), id: ctx.rival?.id, color: ctx.rival?.color };
     case 'government':
-      return { type: 'government', name: name ?? `Office of the ${s.government.leaderTitle}` };
+      return { type: 'government', name: name ?? t('Office of the {leaderTitle}', { leaderTitle: s.government.leaderTitle }) };
     case 'intelligence':
-      return { type: 'intelligence', name: name ?? 'Intelligence Directorate' };
+      return { type: 'intelligence', name: name ?? t('Intelligence Directorate') };
     case 'public':
-      return { type: 'public', name: name ?? 'Public' };
+      return { type: 'public', name: name ?? t('Public') };
     case 'ai':
-      return { type: 'ai', name: name ?? 'Unknown system' };
+      return { type: 'ai', name: name ?? t('Unknown system') };
     case 'advisor':
-      return { type: 'advisor', name: name ?? 'Advisor' };
+      return { type: 'advisor', name: name ?? t('Advisor') };
     case 'media':
-      return { type: 'media', name: name ?? getOutlets()[0] ?? 'The Press' };
+      return { type: 'media', name: name ?? getOutlets()[0] ?? t('The Press') };
     default:
-      return { type: 'advisor', name: name ?? 'Briefing' };
+      return { type: 'advisor', name: name ?? t('Briefing') };
   }
 }
 
@@ -200,23 +202,24 @@ function outcomeChances(s: GameState, outcomes: EventOutcomeDef[], ctx: EventCon
 function choiceDisabled(s: GameState, ch: EventChoiceDef, ctx: EventContext): string | null {
   if (ch.requires) {
     const res = safeCall<boolean | string>(() => ch.requires?.(s, ctx) ?? true, false);
-    if (typeof res === 'string') return res || 'Not available';
-    if (!res) return 'Not available';
+    // Content returns English reasons from functions (not reachable by in-place localization).
+    if (typeof res === 'string') return tr(res) || t('Not available');
+    if (!res) return t('Not available');
   }
   return costBlock(s, ch.cost);
 }
 
 function buildChoice(s: GameState, ch: EventChoiceDef, ctx: EventContext): Choice {
-  const t = tctx(ctx);
-  const { preview, uncertain } = previewEffect(ch.effects, t, confidenceScale(s));
+  const tc = tctx(ctx);
+  const { preview, uncertain } = previewEffect(ch.effects, tc, confidenceScale(s));
   const out: Choice = {
     id: ch.id,
-    label: fillTemplate(s, ch.label, t),
+    label: fillTemplate(s, ch.label, tc),
     preview,
     uncertain: uncertain || !!ch.outcomes?.length || !!ch.followUp,
     disabled: choiceDisabled(s, ch, ctx),
   };
-  if (ch.hint) out.hint = fillTemplate(s, ch.hint, t);
+  if (ch.hint) out.hint = fillTemplate(s, ch.hint, tc);
   if (ch.cost) {
     out.cost = { ...ch.cost };
     // Show the confidence the player will actually lose (volatility included).
@@ -229,27 +232,28 @@ function buildChoice(s: GameState, ch: EventChoiceDef, ctx: EventContext): Choic
 }
 
 export function buildEventCard(s: GameState, def: EventDef, ctx: EventContext): Card {
-  const t = tctx(ctx);
+  const tc = tctx(ctx);
   const urgency = def.urgency ?? 'routine';
   const card = makeCard(s, {
     kind: 'event',
     templateId: def.id,
-    title: fillTemplate(s, def.title, t),
-    body: fillTemplate(s, def.text, t),
+    title: fillTemplate(s, def.title, tc),
+    body: fillTemplate(s, def.text, tc),
     source: defaultSource(s, def, ctx),
     urgency,
     choices: def.choices.map((ch) => buildChoice(s, ch, ctx)),
     ctx: cardCtxFromEvent(ctx),
   });
   if (def.tags?.length) card.tags = [...def.tags];
-  const theme = def.tags?.find((t) => t in TAG_LABELS);
-  card.subtitle = `${SOURCE_INFO[def.source]?.label ?? 'Briefing'}${theme ? ` · ${TAG_LABELS[theme]}` : ''}`;
+  const theme = def.tags?.map(tagLabel).find((x) => x !== undefined);
+  const source = SOURCE_INFO[def.source]?.label ?? t('Briefing');
+  card.subtitle = theme ? `${source} · ${theme}` : source;
   if (def.evidence?.length) {
-    card.evidence = def.evidence.map((e) => ({ label: fillTemplate(s, e.label, t), value: fillTemplate(s, e.value, t), confidence: e.confidence }));
+    card.evidence = def.evidence.map((e) => ({ label: fillTemplate(s, e.label, tc), value: fillTemplate(s, e.value, tc), confidence: e.confidence }));
   }
   const advice = def.advice ? (Object.keys(def.advice) as AdvisorId[]).filter((a) => def.advice?.[a]) : [];
   const notes = advice.length
-    ? advice.map((a) => ({ advisor: a, text: fillTemplate(s, def.advice?.[a], t) }))
+    ? advice.map((a) => ({ advisor: a, text: fillTemplate(s, def.advice?.[a], tc) }))
     : eventNotes(s, def.tags, ctx);
   if (notes.length) card.advisors = notes;
   s.firedEvents[def.id] = s.turn;
@@ -268,16 +272,29 @@ export function refreshEventCard(s: GameState, card: Card): void {
   }
 }
 
-const TAG_LABELS: Record<string, string> = {
-  labs: 'Labs',
-  ai: 'AI Systems',
-  society: 'Society',
-  economy: 'Economy',
-  politics: 'Politics',
-  world: 'World',
-  military: 'Security',
-  crisis: 'Crisis',
-};
+/** Theme shown in an event card's subtitle, for the tags that have one. */
+function tagLabel(tag: string): string | undefined {
+  switch (tag) {
+    case 'labs':
+      return t('Labs');
+    case 'ai':
+      return t('AI Systems');
+    case 'society':
+      return t('Society');
+    case 'economy':
+      return t('Economy');
+    case 'politics':
+      return t('Politics');
+    case 'world':
+      return t('World');
+    case 'military':
+      return t('Security');
+    case 'crisis':
+      return t('Crisis');
+    default:
+      return undefined;
+  }
+}
 
 // ───────────────────────────── Selection ─────────────────────────────
 
@@ -336,10 +353,10 @@ export function scheduleFollowUps(s: GameState, followUp: FollowUpDef | FollowUp
 function enactPolicyFree(s: GameState, id: PolicyId, reason: string): void {
   if (!(POLICY_ORDER as string[]).includes(id) || s.policies.includes(id)) return;
   s.policies.push(id);
-  if (id === 'open_weights_ban') for (const c of s.companies) if (c.archetype === 'opensource') changeCompanyRelation(s, c.id, -20, 'Open-weights ban');
+  if (id === 'open_weights_ban') for (const c of s.companies) if (c.archetype === 'opensource') changeCompanyRelation(s, c.id, -20, t('Open-weights ban'));
   const on = POLICIES[id].onEnact;
   if (on) applyEffect(s, on, {}, reason);
-  highlight(s, `New law: ${POLICIES[id].name}`, 'neutral', 'policy');
+  highlight(s, t('New law: {policy}', { policy: POLICIES[id].name }), 'neutral', 'policy');
 }
 
 export function applyEffect(s: GameState, e: Effect | undefined, ctx: EventContext, reason: string): void {
@@ -445,8 +462,9 @@ function applySituationEffect(s: GameState, se: NonNullable<Effect['situation']>
 export function makeHelpers(s: GameState, ctx: EventContext): EffectHelpers {
   return {
     rand: () => rng(s).float(),
+    // Strings passed by content functions are English: translate them at the sink.
     meter: (id, delta, reason) => {
-      changeMeter(s, id, delta, reason);
+      changeMeter(s, id, delta, tr(reason));
     },
     risk: (delta, reason) => {
       changeRisk(s, delta, reason, 'events');
@@ -464,10 +482,10 @@ export function makeHelpers(s: GameState, ctx: EventContext): EffectHelpers {
       s.scheduled.push({ eventId, turn: s.turn + Math.max(1, Math.round(delay)), ctx: cardCtxFromEvent(c ?? ctx) });
     },
     log: (text, key) => {
-      addLog(s, text, !!key);
+      addLog(s, tr(text), !!key, undefined, undefined, { en: sourceOf(text) });
     },
     news: (text) => {
-      s.news.push({ turn: s.turn, outlet: rng(s).pick(getOutlets()) ?? 'Global Wire', text, tone: 'neutral' });
+      s.news.push({ turn: s.turn, outlet: rng(s).pick(getOutlets()) ?? t('Global Wire'), text: tr(text), tone: 'neutral' });
     },
     text: (template) => fillTemplate(s, template, tctx(ctx)),
   };
@@ -485,19 +503,19 @@ export interface EventResolution {
 
 export function resolveEventCard(s: GameState, card: Card, choiceId: string): EventResolution {
   const def = getEvent(card.templateId);
-  if (!def) return { ok: true, text: 'Noted.' };
+  if (!def) return { ok: true, text: t('Noted.') };
   const ch = def.choices.find((c) => c.id === choiceId);
-  if (!ch) return { ok: false, error: 'Unknown choice', text: '' };
+  if (!ch) return { ok: false, error: t('Unknown choice'), text: '' };
   const ctx = eventCtxFromCard(s, card.ctx);
   const blocked = choiceDisabled(s, ch, ctx);
   if (blocked) return { ok: false, error: blocked, text: '' };
-  const t = tctx(ctx);
+  const tc = tctx(ctx);
   const reason = card.title.length > 48 ? `${card.title.slice(0, 45)}…` : card.title;
   // Odds are fixed before anything changes, so the roll matches the % shown on the card.
   const chances = ch.outcomes?.length ? outcomeChances(s, ch.outcomes, ctx) : [];
   payCost(s, ch.cost, reason, { companyId: ctx.company?.id, rivalId: ctx.rival?.id });
   applyEffect(s, ch.effects, ctx, reason);
-  let text = ch.resultText ? fillTemplate(s, ch.resultText, t) : '';
+  let text = ch.resultText ? fillTemplate(s, ch.resultText, tc) : '';
   let success: boolean | undefined;
   if (ch.outcomes?.length) {
     const r = rng(s).float();
@@ -511,16 +529,16 @@ export function resolveEventCard(s: GameState, card: Card, choiceId: string): Ev
       }
     }
     applyEffect(s, picked.effects, ctx, reason);
-    text = fillTemplate(s, picked.text, t) || text;
+    text = fillTemplate(s, picked.text, tc) || text;
     success = picked.success;
     scheduleFollowUps(s, picked.followUp, ctx);
   }
   scheduleFollowUps(s, ch.followUp, ctx);
   if (ch.log) {
     const tone = ch.tone === 'safe' ? 'good' : ch.tone === 'risky' || ch.tone === 'aggressive' ? 'mixed' : 'neutral';
-    addLog(s, fillTemplate(s, ch.log, t), true, success === false ? 'bad' : tone, card.ctx);
+    addLog(s, fillTemplate(s, ch.log, tc), true, success === false ? 'bad' : tone, card.ctx, { en: sourceOf(ch.log) });
   }
   bumpStat(s, 'eventsResolved');
-  const fallback = `${fillTemplate(s, ch.label, t).replace(/[.!]$/, '')}. Your order goes out.`;
+  const fallback = t('{choice}. Your order goes out.', { choice: fillTemplate(s, ch.label, tc).replace(/[.!]$/, '') });
   return { ok: true, text: text || fallback, success, stamp: ch.stamp };
 }

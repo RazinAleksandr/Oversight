@@ -2,6 +2,7 @@
  * Hidden global risk (GDD §2.2, §7) and national safeguards growth (GDD §3).
  * Risk sources are tallied in `state.riskSources` for the debrief and failure typing.
  */
+import { t } from '../../i18n';
 import { changeResource, changeRisk } from '../changes';
 import { SAFETY_PROGRAM_GROWTH } from '../data/programs';
 import { DIFFICULTY, modSources } from '../modifiers';
@@ -13,13 +14,13 @@ import { clamp } from '../util';
 export function safeguardsGrowth(s: GameState): { label: string; value: number }[] {
   const lvl = s.programs.safety ?? 0;
   const parts: { label: string; value: number }[] = [
-    { label: 'Baseline safety science', value: 0.05 },
-    { label: 'Industry safety work', value: (avgCompanySafety(s) / 100) * 0.08 },
+    { label: t('Baseline safety science'), value: 0.05 },
+    { label: t('Industry safety work'), value: (avgCompanySafety(s) / 100) * 0.08 },
   ];
-  if (lvl > 0) parts.push({ label: 'Alignment & Safety Research program', value: SAFETY_PROGRAM_GROWTH[lvl] });
-  if (accordActive(s)) parts.push({ label: 'Global Accord research sharing', value: 0.08 });
+  if (lvl > 0) parts.push({ label: t('Alignment & Safety Research program'), value: SAFETY_PROGRAM_GROWTH[lvl] });
+  if (accordActive(s)) parts.push({ label: t('Global Accord research sharing'), value: 0.08 });
   const partners = s.rivals.filter((r) => r.partnership).length;
-  if (partners) parts.push({ label: 'Research partnerships', value: 0.03 * partners });
+  if (partners) parts.push({ label: t('Research partnerships'), value: 0.03 * partners });
   for (const src of modSources(s, 'safeguardsGrowth')) parts.push(src);
   return parts;
 }
@@ -28,6 +29,7 @@ export function tickSafeguards(s: GameState): void {
   for (const p of safeguardsGrowth(s)) changeResource(s, 'safeguards', p.value, p.label);
 }
 
+/** Hidden risk: its change reasons are never shown to the player, so they stay untranslated. */
 export function tickRisk(s: GameState): void {
   const diff = DIFFICULTY[s.difficulty].riskGrowth;
   const add = (v: number, reason: string, key: string) => {

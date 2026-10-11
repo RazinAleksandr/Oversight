@@ -5,6 +5,7 @@
 import { createContext } from 'preact';
 import { useContext } from 'preact/hooks';
 import type { ActionId, ActionTarget, ActionView, AdvisorId, GameAPI, GameView, NewsItem, ProgramId, TabId } from '../../engine/types';
+import { t } from '../../i18n';
 
 export interface GameCtxValue {
   game: GameAPI;
@@ -28,10 +29,10 @@ export const GameCtx = createContext<GameCtxValue>(null as unknown as GameCtxVal
 export const useGame = (): GameCtxValue => useContext(GameCtx);
 
 const FALLBACK_ADVISORS: Record<AdvisorId, { name: string; role: string; bias: string; portraitSeed: number }> = {
-  chief_of_staff: { name: 'Chief of Staff', role: 'Chief of Staff', bias: 'Politics first.', portraitSeed: 11 },
-  scientist: { name: 'Chief Scientist', role: 'Chief Scientist', bias: 'Cautious.', portraitSeed: 23 },
-  economist: { name: 'Economic Advisor', role: 'Economic Advisor', bias: 'Growth first.', portraitSeed: 37 },
-  intelligence: { name: 'Intelligence Director', role: 'Intelligence Director', bias: 'Hawkish.', portraitSeed: 41 },
+  chief_of_staff: { name: t('Chief of Staff'), role: t('Chief of Staff'), bias: t('Politics first.'), portraitSeed: 11 },
+  scientist: { name: t('Chief Scientist'), role: t('Chief Scientist'), bias: t('Cautious.'), portraitSeed: 23 },
+  economist: { name: t('Economic Advisor'), role: t('Economic Advisor'), bias: t('Growth first.'), portraitSeed: 37 },
+  intelligence: { name: t('Intelligence Director'), role: t('Intelligence Director'), bias: t('Hawkish.'), portraitSeed: 41 },
 };
 
 export function advisorInfo(view: GameView, id: AdvisorId) {

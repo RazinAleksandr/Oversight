@@ -7,6 +7,7 @@ import type { JSX } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import type { Card, Choice, EvidenceLine } from '../../engine/types';
 import { SOURCE_INFO } from '../../engine/labels';
+import { getLang, t } from '../../i18n';
 import { audio } from '../../audio';
 import { fx } from '../../fx';
 import { Icon, Portrait } from '../components/Icon';
@@ -24,16 +25,19 @@ export function choiceBlock(ch: Choice, res: { capacity: number; budget: number;
   if (ch.disabled) return ch.disabled;
   const c = ch.cost;
   if (!c) return null;
-  if (c.capacity && res.capacity < c.capacity) return 'No actions left this quarter';
-  if (c.budget && res.budget < c.budget) return 'Not enough budget';
-  if (c.evidence && res.evidence < c.evidence) return 'You hold no evidence';
+  if (c.capacity && res.capacity < c.capacity) return t('No actions left this quarter');
+  if (c.budget && res.budget < c.budget) return t('Not enough budget');
+  if (c.evidence && res.evidence < c.evidence) return t('You hold no evidence');
   return null;
 }
 
-/** The Threshold's choices carry "Estimated control: 70–85%." in their hint (no `chance` on purpose). */
+/**
+ * The Threshold's choices carry "Estimated control: 70–85%." in their hint (no `chance` on purpose).
+ * Translated hints keep the shape "<label>: 70–85%." at the end, so non-English text matches any label.
+ */
 export function parseControl(hint?: string): { low: number; high: number; rest: string } | null {
   if (!hint) return null;
-  const m = /Estimated control:\s*(\d+)\s*[–-]\s*(\d+)%\.?/i.exec(hint);
+  const m = /Estimated control:\s*(\d+)\s*[–-]\s*(\d+)%\.?/i.exec(hint) ?? (getLang() === 'en' ? null : /[^.!?:]*:\s*(\d+)\s*[–-]\s*(\d+)\s*%\.?\s*$/.exec(hint));
   if (!m) return null;
   return { low: Number(m[1]), high: Number(m[2]), rest: hint.replace(m[0], '').trim() };
 }
@@ -42,8 +46,8 @@ function ControlMeter({ low, high }: { low: number; high: number }): JSX.Element
   const mid = (low + high) / 2;
   const tone = mid >= 70 ? 'good' : mid >= 45 ? 'warn' : 'bad';
   return (
-    <span class={cx('control', `control--${tone}`)} aria-label={`Estimated chance of keeping control: ${low} to ${high} percent`}>
-      <span class="control__label">Control</span>
+    <span class={cx('control', `control--${tone}`)} aria-label={t('Estimated chance of keeping control: {low} to {high} percent', { low, high })}>
+      <span class="control__label">{t('Control')}</span>
       <span class="control__track" aria-hidden="true">
         <span class="control__span" style={{ left: `${clamp(low, 0, 100)}%`, width: `${Math.max(2, clamp(high, 0, 100) - clamp(low, 0, 100))}%` }} />
       </span>
@@ -126,27 +130,27 @@ export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose
   });
 
   const src = SOURCE_INFO[card.source.type];
-  const headStamp = finale ? 'Top secret' : card.urgency === 'critical' ? 'Urgent' : card.kind === 'demand' ? 'Priority' : 'Classified';
+  const headStamp = finale ? t('Top secret') : card.urgency === 'critical' ? t('Urgent') : card.kind === 'demand' ? t('Priority') : t('Classified');
   const docNo = `${view.year}-Q${view.quarter}-${String(hash(card.uid) % 900 + 100)}`;
 
   return (
-    <Sheet label={`Briefing: ${card.title}`} onClose={onClose} size="full" class="briefing-sheet">
+    <Sheet label={t('Briefing: {title}', { title: card.title })} onClose={onClose} size="full" class="briefing-sheet">
       {/* Any tap inside the briefing completes the typewriter instantly (choices still register). */}
       <div class={cx('briefing', finale && 'briefing--finale')} onPointerDown={() => typer.current?.skip()}>
         {finale && (
           <header class="finale">
             <RiskClock risk={view.risk} size={112} showLabel class="finale__clock" />
             <div class="finale__text">
-              <p class="finale__kicker">Final decision · {view.dateLabel}</p>
-              <h2 class="finale__title fx-glitch" data-text="The Threshold">
-                The Threshold
+              <p class="finale__kicker">{t('Final decision · {date}', { date: view.dateLabel })}</p>
+              <h2 class="finale__title fx-glitch" data-text={t('The Threshold')}>
+                {t('The Threshold')}
               </h2>
-              <p class="finale__sub">Everything you did led here. One choice remains.</p>
+              <p class="finale__sub">{t('Everything you did led here. One choice remains.')}</p>
             </div>
           </header>
         )}
         <p class="briefing__count">
-          <Icon name="inbox" size={14} /> Briefing {Math.max(1, view.inbox.findIndex((c) => c.uid === card.uid) + 1)} of {view.inbox.length}
+          <Icon name="inbox" size={14} /> {t('Briefing {n} of {total}', { n: Math.max(1, view.inbox.findIndex((c) => c.uid === card.uid) + 1), total: view.inbox.length })}
           <span class="briefing__date num">{view.dateLabel}</span>
         </p>
         <article
@@ -156,7 +160,7 @@ export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose
           {card.urgency !== 'routine' && <div class="dossier__strip" aria-hidden="true" />}
           <header class="dossier__head">
             <div class="dossier__meta">
-              <span>File {docNo}</span>
+              <span>{t('File {no}', { no: docNo })}</span>
             </div>
             <div class="dossier__src" style={card.source.color ? { '--src': card.source.color } : undefined}>
               <Icon name={src.icon} size={15} />
@@ -173,8 +177,8 @@ export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose
           <p class="dossier__body" ref={bodyRef} />
 
           {card.evidence && card.evidence.length > 0 && (
-            <section class="evidence" aria-label="Evidence">
-              <h3 class="dossier__h">Evidence</h3>
+            <section class="evidence" aria-label={t('Evidence')}>
+              <h3 class="dossier__h">{t('Evidence')}</h3>
               <dl class="evidence__list">
                 {card.evidence.map((e, i) => (
                   <EvidenceRow key={i} e={e} seed={hash(card.uid + i)} />
@@ -184,8 +188,8 @@ export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose
           )}
 
           {card.advisors && card.advisors.length > 0 && (
-            <section class="advisors" aria-label="Advisor notes">
-              <h3 class="dossier__h">Advisors</h3>
+            <section class="advisors" aria-label={t('Advisor notes')}>
+              <h3 class="dossier__h">{t('Advisors')}</h3>
               {card.advisors.map((n) => {
                 const a = advisorInfo(view, n.advisor);
                 return (
@@ -196,7 +200,7 @@ export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose
                         <strong>{a.name}</strong>
                         <span class="advisor__role">{a.role}</span>
                       </span>
-                      <blockquote class="advisor__quote">“{n.text}”</blockquote>
+                      <blockquote class="advisor__quote">{t('“{text}”', { text: n.text })}</blockquote>
                     </figcaption>
                   </figure>
                 );
@@ -205,9 +209,9 @@ export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose
           )}
         </article>
 
-        <section class="decision" aria-label="Your decision">
+        <section class="decision" aria-label={t('Your decision')}>
           <h3 class="decision__title">
-            <span>Your decision</span>
+            <span>{t('Your decision')}</span>
             <span class="decision__keys">
               <Kbd>1</Kbd>–<Kbd>{card.choices.length}</Kbd>
             </span>
@@ -230,7 +234,7 @@ function EvidenceRow({ e, seed }: { e: EvidenceLine; seed: number }): JSX.Elemen
       <dt class="evidence__label">{e.label}</dt>
       <dd class="evidence__value">
         {redacted ? (
-          <span class="redact" aria-label="Redacted">
+          <span class="redact" aria-label={t('Redacted')}>
             <span class="redact__bar" style={{ width: `${55 + (seed % 35)}%` }} />
             {seed % 3 === 0 && <span class="redact__bar redact__bar--short" style={{ width: `${20 + (seed % 25)}%` }} />}
           </span>

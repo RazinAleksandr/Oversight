@@ -7,24 +7,26 @@ import type { Situation, SituationView } from '../../../engine/types';
 import { dateLabel } from '../../../engine/labels';
 import { EstimateLine, RangeBar, StageStepper } from '../../components/Bars';
 import { CostChips, PreviewChip } from '../../components/Chips';
-import { EmptyState, PageHead, Section } from '../../components/Common';
+import { EmptyState, PageHead, Section, rich } from '../../components/Common';
 import { Icon } from '../../components/Icon';
 import { cx, hasCost } from '../../util';
+import { t } from '../../../i18n';
 import { followableSignals, useGame } from '../context';
 import { NewsList } from '../News';
 
 const RESPONSE_LABEL: Record<Situation['response'], string> = {
-  none: 'None',
-  monitor: 'Monitoring',
-  contained: 'Broad containment',
-  restricted: 'Source restricted',
-  suspended: 'Source suspended',
-  shutdown: 'Emergency shutdown',
-  taskforce: 'International task force',
+  none: t('None'),
+  monitor: t('Monitoring'),
+  contained: t('Broad containment'),
+  restricted: t('Source restricted'),
+  suspended: t('Source suspended'),
+  shutdown: t('Emergency shutdown'),
+  taskforce: t('International task force'),
 };
 
 const STAGE_TONE = ['accent', 'warn', 'warn', 'bad', 'bad'] as const;
 
+/** Renders `**…**` segments of a translated sentence in bold (keeps the sentence one key). */
 export function ThreatsPanel(): JSX.Element {
   const { view, actions, openAction } = useGame();
   const active = view.situations.filter((s) => !s.resolved).sort((a, b) => b.stage - a.stage || Number(b.escalationWarning) - Number(a.escalationWarning));
@@ -34,9 +36,9 @@ export function ThreatsPanel(): JSX.Element {
   const investigate = actions.find((a) => a.id === 'investigate_situation');
   return (
     <div class="page page--threats">
-      <PageHead title="Threats" sub="Detected situations. Undetected ones are still out there." />
+      <PageHead title={t('Threats')} sub={t('Detected situations. Undetected ones are still out there.')} />
       {active.length === 0 ? (
-        <EmptyState icon="eye" title="No detected threats" text="Quiet does not mean safe. Funding Evaluation & Oversight lets you see trouble sooner." />
+        <EmptyState icon="eye" title={t('No detected threats')} text={t('Quiet does not mean safe. Funding Evaluation & Oversight lets you see trouble sooner.')} />
       ) : (
         <div class="cardgrid cardgrid--threats">
           {active.map((s) => (
@@ -46,25 +48,25 @@ export function ThreatsPanel(): JSX.Element {
       )}
 
       {resolved.length > 0 && (
-        <Section title="Resolved" icon="check">
+        <Section title={t('Resolved')} icon="check">
           <ul class="resolved">
             {resolved.map((s) => (
               <li key={s.id} class="resolved__row">
                 <Icon name={s.icon} size={16} />
                 <span class="resolved__name">{s.name}</span>
-                <span class={cx('pill', s.outcome === 'catastrophe' ? 'pill--bad' : 'pill--good')}>{s.outcome === 'catastrophe' ? 'Catastrophe' : s.outcome === 'faded' ? 'Faded' : 'Contained'}</span>
+                <span class={cx('pill', s.outcome === 'catastrophe' ? 'pill--bad' : 'pill--good')}>{s.outcome === 'catastrophe' ? t('Catastrophe') : s.outcome === 'faded' ? t('Faded') : t('Contained')}</span>
               </li>
             ))}
           </ul>
         </Section>
       )}
 
-      <Section title="Warning signs" icon="news" aside={<span class="dim small">{followable.length ? `${followable.length} worth a look` : 'Possible early signals'}</span>} class="signals">
+      <Section title={t('Warning signs')} icon="news" aside={<span class="dim small">{followable.length ? t('{n} worth a look', { n: followable.length }) : t('Possible early signals')}</span>} class="signals">
         <div class={cx('panel signals__panel', followable.length > 0 && 'has-followable')}>
           <p class="signals__intro">
-            Odd reports from the last three quarters. Most are noise. <strong>Following one up</strong> costs an action — if something real is behind it, you catch it before it grows.
+            {rich(t('Odd reports from the last three quarters. Most are noise. **Following one up** costs an action — if something real is behind it, you catch it before it grows.'), 'strong')}
           </p>
-          {signals.length ? <NewsList news={signals} limit={10} /> : <p class="dim small">No unusual reports. Keep watching the news.</p>}
+          {signals.length ? <NewsList news={signals} limit={10} /> : <p class="dim small">{t('No unusual reports. Keep watching the news.')}</p>}
         </div>
       </Section>
     </div>
@@ -85,8 +87,17 @@ function SituationCard({ s, canInvestigate, onInvestigate }: { s: SituationView;
         <div class="entity__id">
           <h3 class="entity__name">{s.name}</h3>
           <p class="entity__sub">
-            {s.causeKnown ? 'Cause identified' : 'Cause unknown'}
-            {s.detectedTurn !== undefined && ` · detected ${s.detectedTurn > 0 ? dateLabel(s.detectedTurn) : 'before term'}`}
+            {s.detectedTurn === undefined
+              ? s.causeKnown
+                ? t('Cause identified')
+                : t('Cause unknown')
+              : s.detectedTurn > 0
+                ? s.causeKnown
+                  ? t('Cause identified · detected {date}', { date: dateLabel(s.detectedTurn) })
+                  : t('Cause unknown · detected {date}', { date: dateLabel(s.detectedTurn) })
+                : s.causeKnown
+                  ? t('Cause identified · detected before term')
+                  : t('Cause unknown · detected before term')}
           </p>
         </div>
         <span class={cx('stagepill', `stagepill--${s.stage}`)}>{s.stageLabel}</span>
@@ -96,7 +107,7 @@ function SituationCard({ s, canInvestigate, onInvestigate }: { s: SituationView;
 
       {s.escalationWarning && (
         <p class="threat__warn" role="alert">
-          <Icon name="warning" size={16} /> Escalation expected next quarter
+          <Icon name="warning" size={16} /> {t('Escalation expected next quarter')}
         </p>
       )}
 
@@ -104,7 +115,7 @@ function SituationCard({ s, canInvestigate, onInvestigate }: { s: SituationView;
 
       <div class="kvs">
         <div class="kvs__head">
-          <span class="kv__k">Severity (rough)</span>
+          <span class="kv__k">{t('Severity (rough)')}</span>
           <EstimateLine est={s.severity} digits={0} />
         </div>
         <RangeBar est={s.severity} max={100} tone={tone === 'accent' ? 'accent' : tone} />
@@ -114,14 +125,14 @@ function SituationCard({ s, canInvestigate, onInvestigate }: { s: SituationView;
         <Icon name="target" size={15} />
         {s.causeKnown && s.sourceLabel ? (
           <span>
-            Source: <strong>{s.sourceLabel}</strong>
+            {t('Source:')} <strong>{s.sourceLabel}</strong>
           </span>
         ) : (
-          <span>Source unknown — investigate to unlock targeted responses.</span>
+          <span>{t('Source unknown — investigate to unlock targeted responses.')}</span>
         )}
       </p>
       <p class="threat__resp">
-        Current response: <strong>{RESPONSE_LABEL[s.response]}</strong>
+        {t('Current response:')} <strong>{RESPONSE_LABEL[s.response]}</strong>
       </p>
 
       <div class="responses">
@@ -129,7 +140,7 @@ function SituationCard({ s, canInvestigate, onInvestigate }: { s: SituationView;
           <button type="button" class="respbtn" onClick={onInvestigate}>
             <span class="respbtn__top">
               <Icon name="investigate" size={16} />
-              <span class="respbtn__label">Investigate</span>
+              <span class="respbtn__label">{t('Investigate')}</span>
             </span>
             <span class="respbtn__chips">
               <CostChips cost={{ capacity: 1 }} />
@@ -142,12 +153,12 @@ function SituationCard({ s, canInvestigate, onInvestigate }: { s: SituationView;
             key={r.id}
             class={cx('respbtn', r.disabled && 'is-blocked', r.id === s.response && 'is-current')}
             onClick={() => openResponse(s.id, r.id)}
-            aria-label={`${r.label}${r.disabled ? ', unavailable: ' + r.disabled : ''}`}
+            aria-label={r.disabled ? t('{label}, unavailable: {reason}', { label: r.label, reason: r.disabled }) : r.label}
           >
             <span class="respbtn__top">
               <Icon name={r.id === 'investigate' ? 'investigate' : r.id === 'monitor' ? 'eye' : 'respond'} size={16} />
               <span class="respbtn__label">{r.label}</span>
-              {r.id === s.response && <span class="respbtn__cur">Active</span>}
+              {r.id === s.response && <span class="respbtn__cur">{t('Active')}</span>}
             </span>
             {(hasCost(r.cost) || r.preview.length > 0) && (
               <span class="respbtn__chips">

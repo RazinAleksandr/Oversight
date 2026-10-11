@@ -3,6 +3,7 @@
  * Choices depend on who leads; the card shows an advisor-estimated control chance range,
  * while the roll uses the true values.
  */
+import { t, tr } from '../../i18n';
 import { thresholdNotes } from '../advisors';
 import { makeCard } from '../cards';
 import { changeMeter } from '../changes';
@@ -11,8 +12,9 @@ import { addLog } from '../log';
 import { pv, pvConf } from '../preview';
 import { accordActive, avgTrust, findCompany, findRival, leadingCompany, leadingRival } from '../query';
 import { rng } from '../rng';
+import { fmt } from '../template';
 import type { Card, Choice, Company, GameState, Rival } from '../types';
-import { clamp, possessive, round1 } from '../util';
+import { clamp, round1 } from '../util';
 
 export const THRESHOLD_CARD = 'sys:threshold';
 export const THRESHOLD_C = 9.0;
@@ -72,33 +74,55 @@ function estimateRange(s: GameState, choice: ThresholdChoice): { low: number; hi
 
 function choiceFor(s: GameState, id: ThresholdChoice, label: string, hint: string, preview: Choice['preview'], disabled: string | null = null): Choice {
   const { low, high } = estimateRange(s, id);
-  return { id, label, hint: `${hint} Estimated control: ${low}–${high}%.`, preview, uncertain: true, disabled, stamp: 'urgent', tone: id === 'race' ? 'aggressive' : id === 'pause' || id === 'international' ? 'safe' : 'risky' };
+  return {
+    id,
+    label,
+    hint: t('{hint} Estimated control: {low}–{high}%.', { hint, low, high }),
+    preview,
+    uncertain: true,
+    disabled,
+    stamp: 'urgent',
+    tone: id === 'race' ? 'aggressive' : id === 'pause' || id === 'international' ? 'safe' : 'risky',
+  };
 }
 
 export function thresholdCard(s: GameState): Card {
   s.thresholdFired = true;
   const leader = thresholdLeader(s);
-  const intl = internationalOk(s) ? null : 'Requires the Global Accord or strong foreign trust';
+  const intl = internationalOk(s) ? null : t('Requires the Global Accord or strong foreign trust');
   let choices: Choice[];
   let body: string;
   let leaderName: string;
   if (leader.kind === 'domestic') {
     leaderName = leader.company.name;
-    body = `${leader.company.name} reports that its newest system can do everything its researchers can — faster, and on its own initiative. It is asking to run it. Whatever you decide here will shape what the next decade looks like.`;
+    body = t('{company} reports that its newest system can do everything its researchers can — faster, and on its own initiative. It is asking to run it. Whatever you decide here will shape what the next decade looks like.', {
+      company: leader.company.name,
+    });
     choices = [
-      choiceFor(s, 'authorize', 'Authorize under national safeguards', 'Trust our safeguards and reap the gains.', [pv('economy', 8), pv('security', 5)]),
-      choiceFor(s, 'international', 'Place it under international oversight', 'Share control with partners.', [pv('economy', 3), pv('security', -3)], intl),
-      choiceFor(s, 'pause', 'Contain and pause', 'Lock it down until we understand it.', [pv('economy', -10), pv('security', -8), pvConf(s, -6)]),
+      choiceFor(s, 'authorize', t('Authorize under national safeguards'), t('Trust our safeguards and reap the gains.'), [pv('economy', 8), pv('security', 5)]),
+      choiceFor(s, 'international', t('Place it under international oversight'), t('Share control with partners.'), [pv('economy', 3), pv('security', -3)], intl),
+      choiceFor(s, 'pause', t('Contain and pause'), t('Lock it down until we understand it.'), [pv('economy', -10), pv('security', -8), pvConf(s, -6)]),
     ];
   } else {
     const rv = leader.rival;
     leaderName = rv.name;
-    body = `${rv.leadLab} in ${rv.name} has crossed the threshold: a system that improves itself faster than its makers can follow. The world is watching what the ${rv.adjective} government does next — and what you do.`;
+    body = t('{lab} in {rival} has crossed the threshold: a system that improves itself faster than its makers can follow. The world is watching what the {rivalAdj} government does next — and what you do.', {
+      lab: rv.leadLab,
+      rival: rv.name,
+      rivalAdj: rv.adjective,
+    });
     choices = [
-      choiceFor(s, 'race', 'Race to match', 'Throw everything at our own labs.', [pv('security', 6), pv('economy', 4)]),
-      choiceFor(s, 'join', `Join ${possessive(rv.name)} framework`, 'Accept their system under shared rules.', [pv('economy', -5), pv('security', -10)], rv.trust >= 50 ? null : `Requires trust ≥ 50 with ${rv.name}`),
-      choiceFor(s, 'international', 'Demand international oversight', 'Rally the world to govern it together.', [pv('security', -2)], intl),
-      choiceFor(s, 'pause', 'Call for a global pause', 'Ask everyone to stop.', [pv('economy', -6), pvConf(s, -4)]),
+      choiceFor(s, 'race', t('Race to match'), t('Throw everything at our own labs.'), [pv('security', 6), pv('economy', 4)]),
+      choiceFor(
+        s,
+        'join',
+        fmt(tr("Join {rival}'s framework"), { rival: rv.name }),
+        t('Accept their system under shared rules.'),
+        [pv('economy', -5), pv('security', -10)],
+        rv.trust >= 50 ? null : t('Requires trust ≥ 50 with {rival}', { rival: rv.name }),
+      ),
+      choiceFor(s, 'international', t('Demand international oversight'), t('Rally the world to govern it together.'), [pv('security', -2)], intl),
+      choiceFor(s, 'pause', t('Call for a global pause'), t('Ask everyone to stop.'), [pv('economy', -6), pvConf(s, -4)]),
     ];
   }
   const est = leader.kind === 'domestic' ? domesticCapEstimate(s).est : rivalCapEstimate(leader.rival);
@@ -107,16 +131,16 @@ export function thresholdCard(s: GameState): Card {
   return makeCard(s, {
     kind: 'threshold',
     templateId: THRESHOLD_CARD,
-    title: 'The Threshold',
+    title: t('The Threshold'),
     body,
-    subtitle: `Leading actor: ${leaderName}`,
+    subtitle: t('Leading actor: {leader}', { leader: leaderName }),
     source: { type: 'ai', name: leaderName },
     urgency: 'critical',
     evidence: [
-      { label: 'Leading system capability', value: `${est.low}–${est.high}`, confidence: est.confidence },
-      { label: 'Our safeguards', value: round1(s.safeguards).toFixed(1), confidence: 'verified' },
-      { label: 'Risk Clock estimate', value: `${risk.low}–${risk.high}`, confidence: 'medium' },
-      { label: 'Global Accord', value: s.accord.signed ? 'In force' : 'Not signed', confidence: 'verified' },
+      { label: t('Leading system capability'), value: `${est.low}–${est.high}`, confidence: est.confidence },
+      { label: t('Our safeguards'), value: round1(s.safeguards).toFixed(1), confidence: 'verified' },
+      { label: t('Risk Clock estimate'), value: `${risk.low}–${risk.high}`, confidence: 'medium' },
+      { label: t('Global Accord'), value: s.accord.signed ? t('In force') : t('Not signed'), confidence: 'verified' },
     ],
     advisors: thresholdNotes(s, best.low, best.high),
     choices,
@@ -135,11 +159,11 @@ export interface ThresholdOutcome {
 
 export function resolveThresholdCard(s: GameState, card: Card, choiceId: string): ThresholdOutcome {
   const id = choiceId as ThresholdChoice;
-  if (!(id in CHOICE_MOD)) return { ok: false, error: 'Unknown choice', text: '', success: false };
+  if (!(id in CHOICE_MOD)) return { ok: false, error: t('Unknown choice'), text: '', success: false };
   const ch = card.choices.find((c) => c.id === id);
   if (ch?.disabled) return { ok: false, error: ch.disabled, text: '', success: false };
   const p = controlChance(s, id, false);
-  const reason = 'The Threshold';
+  const reason = t('The Threshold');
   const meter = (k: 'economy' | 'security' | 'confidence', v: number) => changeMeter(s, k, v, reason);
   switch (id) {
     case 'authorize':
@@ -168,10 +192,18 @@ export function resolveThresholdCard(s: GameState, card: Card, choiceId: string)
   s.flags.thresholdChoice = id;
   s.flags.thresholdSuccess = success;
   s.flags.thresholdChance = Math.round(p * 100);
-  const who = findCompany(s, card.ctx.companyId)?.name ?? findRival(s, card.ctx.rivalId)?.name ?? 'the leading lab';
-  addLog(s, `At the Threshold you chose: ${ch?.label ?? id}. ${success ? 'Control held.' : 'Control was lost.'}`, true, success ? 'good' : 'bad', card.ctx);
-  if (success) return { ok: true, success, text: `The system built by ${who} stays under human direction. The transition continues — governed.` };
+  const who = findCompany(s, card.ctx.companyId)?.name ?? findRival(s, card.ctx.rivalId)?.name ?? t('the leading lab');
+  const choice = ch?.label ?? id;
+  addLog(
+    s,
+    success ? t('At the Threshold you chose: {choice}. Control held.', { choice }) : t('At the Threshold you chose: {choice}. Control was lost.', { choice }),
+    true,
+    success ? 'good' : 'bad',
+    card.ctx,
+    { en: 'threshold', title: t('The Threshold') },
+  );
+  if (success) return { ok: true, success, text: t('The system built by {who} stays under human direction. The transition continues — governed.', { who }) };
   const failureId = id === 'race' && rng(s).chance(0.5) ? 'ai_war' : 'loss_of_control';
-  return { ok: true, success, failureId, text: `The system built by ${who} slips beyond anyone's control.` };
+  return { ok: true, success, failureId, text: t("The system built by {who} slips beyond anyone's control.", { who }) };
 }
 

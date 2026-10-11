@@ -7,17 +7,17 @@ import { useEffect, useState } from 'preact/hooks';
 import type { EndingReport } from '../../engine/types';
 import { audio } from '../../audio';
 import { fx } from '../../fx';
+import { t } from '../../i18n';
 import { Bar } from '../components/Bars';
 import { Section } from '../components/Common';
 import { Icon, Svg, artCached, isPlaceholder } from '../components/Icon';
 import { countryCard } from '../countries';
 import { useSettings } from '../settings';
-import { cx, toneClass } from '../util';
+import { DIFF_LABEL, cx, toneClass } from '../util';
 
-const SCORE_LABEL = { control: 'Control', prosperity: 'Prosperity', security: 'Security', legitimacy: 'Legitimacy' } as const;
+const SCORE_LABEL = { control: t('Control'), prosperity: t('Prosperity'), security: t('Security'), legitimacy: t('Legitimacy') };
 const SCORE_ICON = { control: 'safeguards', prosperity: 'economy', security: 'security', legitimacy: 'confidence' } as const;
-const TRUTH_LABEL = { company: 'Companies', model: 'Models', rival: 'Rivals', violation: 'Violations' } as const;
-const DIFF_LABEL = { analyst: 'Analyst', director: 'Director', doomer: 'Doomer' } as const;
+const TRUTH_LABEL = { company: t('Companies'), model: t('Models'), rival: t('Rivals'), violation: t('Violations') };
 
 const gradeTone = (g: string) => (/^[SA]/.test(g) ? 'good' : /^B/.test(g) ? 'accent' : /^C/.test(g) ? 'warn' : 'bad');
 
@@ -42,12 +42,12 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
   // Reveal epilogue paragraphs one by one.
   useEffect(() => {
     if (shown >= ending.epilogue.length) return;
-    const t = window.setTimeout(() => setShown((n) => n + 1), 2200);
-    return () => window.clearTimeout(t);
+    const timer = window.setTimeout(() => setShown((n) => n + 1), 2200);
+    return () => window.clearTimeout(timer);
   }, [shown]);
 
   const country = countryCard(ending.countryId);
-  const truths = (Object.keys(TRUTH_LABEL) as (keyof typeof TRUTH_LABEL)[]).map((k) => ({ k, items: ending.hiddenTruths.filter((t) => t.category === k) })).filter((g) => g.items.length);
+  const truths = (Object.keys(TRUTH_LABEL) as (keyof typeof TRUTH_LABEL)[]).map((k) => ({ k, items: ending.hiddenTruths.filter((h) => h.category === k) })).filter((g) => g.items.length);
   const acted = ending.warningSigns.filter((w) => w.actedOn).length;
 
   const copySeed = async () => {
@@ -67,13 +67,13 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
         <header class="ending__hero">
           <div class="ending__art">{!isPlaceholder(artCached.ending(ending.tone, 720)) ? <Svg html={artCached.ending(ending.tone, 720)} label={ending.title} /> : <div class="ending__artfallback" aria-hidden="true" />}</div>
           <p class={cx('ending__cat', good ? 'is-good' : 'is-bad')}>
-            {ending.category === 'survival' ? 'Survival' : 'Failure'} · {ending.dateLabel} · {country.name}
+            {ending.category === 'survival' ? t('Survival') : t('Failure')} · {ending.dateLabel} · {country.name}
           </p>
           <h1 class="ending__title">{ending.title}</h1>
           <p class="ending__subtitle">{ending.subtitle}</p>
         </header>
 
-        <section class="epilogue" aria-label="Epilogue" onClick={() => setShown(ending.epilogue.length)}>
+        <section class="epilogue" aria-label={t('Epilogue')} onClick={() => setShown(ending.epilogue.length)}>
           {ending.epilogue.slice(0, shown).map((p, i) => (
             <p key={i} class="epilogue__p">
               {p}
@@ -81,29 +81,29 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
           ))}
           {shown < ending.epilogue.length && (
             <button type="button" class="linkbtn epilogue__more" onClick={() => setShown(ending.epilogue.length)}>
-              Reveal all
+              {t('Reveal all')}
             </button>
           )}
         </section>
 
-        <section class="scorecard" aria-label="Rating">
+        <section class="scorecard" aria-label={t('Rating')}>
           <div class={cx('rating', `rating--${gradeTone(ending.rating)}`)}>
-            <span class="eyebrow">Overall</span>
+            <span class="eyebrow">{t('Overall')}</span>
             <span class="rating__letter">{ending.rating}</span>
             <span class="rating__sub">{DIFF_LABEL[ending.difficulty]}</span>
           </div>
           <ul class="scores">
             {(Object.keys(SCORE_LABEL) as (keyof typeof SCORE_LABEL)[]).map((k) => {
               const s = ending.scores[k];
-              const t = gradeTone(s.grade);
+              const tone = gradeTone(s.grade);
               return (
                 <li key={k} class="score">
                   <span class="score__k">
                     <Icon name={SCORE_ICON[k]} size={15} /> {SCORE_LABEL[k]}
                   </span>
-                  <Bar value={s.value} tone={t as 'good'} label={`${SCORE_LABEL[k]} ${s.value}`} />
+                  <Bar value={s.value} tone={tone as 'good'} label={`${SCORE_LABEL[k]} ${s.value}`} />
                   <span class="score__v num">{Math.round(s.value)}</span>
-                  <span class={cx('score__grade', `is-${t}`)}>{s.grade}</span>
+                  <span class={cx('score__grade', `is-${tone}`)}>{s.grade}</span>
                 </li>
               );
             })}
@@ -111,7 +111,7 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
         </section>
 
         {ending.decisiveMoments.length > 0 && (
-          <Section title="Decisive moments" icon="flag">
+          <Section title={t('Decisive moments')} icon="flag">
             <ol class="timeline">
               {ending.decisiveMoments.map((m, i) => (
                 <li key={i} class={cx('timeline__item', `timeline__item--${toneClass(m.tone)}`)}>
@@ -133,17 +133,17 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
         )}
 
         {truths.length > 0 && (
-          <Section title="Hidden truths" icon="eye" aside={<span class="dim small">What was really going on</span>}>
+          <Section title={t('Hidden truths')} icon="eye" aside={<span class="dim small">{t('What was really going on')}</span>}>
             <div class="truths">
               {truths.map((g) => (
                 <div key={g.k} class="truths__group">
                   <h3 class="eyebrow">{TRUTH_LABEL[g.k]}</h3>
                   <ul>
-                    {g.items.map((t, i) => (
-                      <li key={i} class={cx('truth', t.known ? 'truth--known' : 'truth--new')}>
-                        <span class="truth__title">{t.title}</span>
-                        <span class="truth__detail">{t.detail}</span>
-                        <span class="truth__tag">{t.known ? <><Icon name="check" size={12} /> You knew</> : <><Icon name="eye" size={12} /> Revealed</>}</span>
+                    {g.items.map((truth, i) => (
+                      <li key={i} class={cx('truth', truth.known ? 'truth--known' : 'truth--new')}>
+                        <span class="truth__title">{truth.title}</span>
+                        <span class="truth__detail">{truth.detail}</span>
+                        <span class="truth__tag">{truth.known ? <><Icon name="check" size={12} /> {t('You knew')}</> : <><Icon name="eye" size={12} /> {t('Revealed')}</>}</span>
                       </li>
                     ))}
                   </ul>
@@ -154,11 +154,11 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
         )}
 
         {ending.warningSigns.length > 0 && (
-          <Section title="Warning signs" icon="warning" aside={<span class="dim small num">{acted}/{ending.warningSigns.length} acted on</span>}>
+          <Section title={t('Warning signs')} icon="warning" aside={<span class="dim small num">{t('{acted}/{total} acted on', { acted, total: ending.warningSigns.length })}</span>}>
             <ul class="signs">
               {ending.warningSigns.map((w, i) => (
                 <li key={i} class={cx('sign', w.actedOn ? 'sign--acted' : 'sign--ignored')}>
-                  <span class="sign__mark" aria-label={w.actedOn ? 'Acted on' : 'Ignored'}>
+                  <span class="sign__mark" aria-label={w.actedOn ? t('Acted on') : t('Ignored')}>
                     <Icon name={w.actedOn ? 'check' : 'cross'} size={14} />
                   </span>
                   <span class="sign__date num">{w.dateLabel}</span>
@@ -170,7 +170,7 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
         )}
 
         {ending.missed.length > 0 && (
-          <Section title="Missed opportunities" icon="target">
+          <Section title={t('Missed opportunities')} icon="target">
             <ul class="missed">
               {ending.missed.map((m, i) => (
                 <li key={i}>{m}</li>
@@ -180,7 +180,7 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
         )}
 
         {ending.stats.length > 0 && (
-          <Section title="By the numbers" icon="report">
+          <Section title={t('By the numbers')} icon="report">
             <dl class="stats">
               {ending.stats.map((s) => (
                 <div key={s.label} class="stats__item">
@@ -193,20 +193,20 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
         )}
 
         <footer class="ending__foot">
-          <button type="button" class="seed" onClick={copySeed} aria-label={`Seed ${ending.seed}. Copy`}>
-            <span class="eyebrow">Seed</span>
+          <button type="button" class="seed" onClick={copySeed} aria-label={t('Seed {seed}. Copy', { seed: ending.seed })}>
+            <span class="eyebrow">{t('Seed')}</span>
             <span class="num">#{ending.seed}</span>
-            <span class="seed__copy">{copied ? 'Copied' : 'Copy'}</span>
+            <span class="seed__copy">{copied ? t('Copied') : t('Copy')}</span>
           </button>
           <div class="ending__buttons">
             <button type="button" class="btn btn--primary btn--xl" onClick={onReplay}>
-              <Icon name="refresh" size={18} /> Replay this seed
+              <Icon name="refresh" size={18} /> {t('Replay this seed')}
             </button>
             <button type="button" class="btn btn--xl" onClick={onNew}>
-              <Icon name="flag" size={18} /> New run
+              <Icon name="flag" size={18} /> {t('New run')}
             </button>
             <button type="button" class="btn btn--ghost" onClick={onTitle}>
-              Title screen
+              {t('Title screen')}
             </button>
           </div>
         </footer>

@@ -6,6 +6,7 @@ import type { JSX } from 'preact';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { ActionId, ActionResult, Card, Choice, ChoiceResult, EndingReport, GameAPI, GameEvent, MeterId, ProgramId, TabId, TurnReport } from '../../engine/types';
 import { METER_INFO } from '../../engine/labels';
+import { t } from '../../i18n';
 import { audio } from '../../audio';
 import { fx } from '../../fx';
 import { writeSave } from '../backend';
@@ -103,7 +104,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     if (added.length) {
       setFresh((f) => [...f, ...added]);
       audio.play('unlock');
-      announce(`New section unlocked: ${added.map((t) => TABS.find((x) => x.id === t)?.label).join(', ')}`);
+      announce(t('New section unlocked: {tabs}', { tabs: added.map((id) => TABS.find((x) => x.id === id)?.label ?? id).join(', ') }));
     }
   }, [view.unlockedTabs.join()]);
 
@@ -119,7 +120,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
         } catch {
           /* optional */
         }
-        announce(`${METER_INFO[id].name} is critical`);
+        announce(t('{meter} is critical', { meter: METER_INFO[id].name }));
       }
       lastStatus.current[id] = st;
     }
@@ -185,7 +186,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     const r = game.resolveChoice(card.uid, ch.id);
     if (!r.ok) {
       audio.play('fail', { volume: 0.5 });
-      toast(r.error ?? 'That choice is not available.');
+      toast(r.error ?? t('That choice is not available.'));
       return;
     }
     save();
@@ -208,7 +209,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     if (!r.ok) {
       // The engine validates at perform time (e.g. situation responses); explain, don't crash.
       audio.play('fail', { volume: 0.5 });
-      toast(r.error ?? 'That action is not available right now.');
+      toast(r.error ?? t('That action is not available right now.'));
       return;
     }
     save();
@@ -220,7 +221,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     const r = game.setProgramLevel(id, level);
     if (!r.ok) {
       audio.play('fail', { volume: 0.5 });
-      toast(r.reason ?? 'Cannot change that program now.');
+      toast(r.reason ?? t('Cannot change that program now.'));
       return;
     }
     save();
@@ -229,7 +230,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
   const endQuarter = useCallback(() => {
     if (turnBusy.current) return;
     if (!game.canEndTurn()) {
-      toast('Resolve every briefing before ending the quarter.');
+      toast(t('Resolve every briefing before ending the quarter.'));
       return;
     }
     turnBusy.current = true;
@@ -237,7 +238,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     save();
     setSheet(null);
     setOverlay({ type: 'report', report });
-    announce(`Quarter ended. ${report.dateLabel} begins.`);
+    announce(t('Quarter ended. {date} begins.', { date: report.dateLabel }));
   }, [game]);
 
   const afterReport = () => {
@@ -310,14 +311,14 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
           {panel}
         </main>
         {desktop ? (
-          <aside class="side" aria-label="Desk">
+          <aside class="side" aria-label={t('Desk')}>
             {tab !== 'inbox' && <InboxStack />}
             <div class="side__end">
               <EndQuarterButton wide />
             </div>
-            <section class="side__news" aria-label="News">
+            <section class="side__news" aria-label={t('News')}>
               <h2 class="side__title">
-                <span class="live-dot" aria-hidden="true" /> News
+                <span class="live-dot" aria-hidden="true" /> {t('News')}
               </h2>
               <NewsList news={view.news} limit={14} />
             </section>
@@ -354,7 +355,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
             return (
               <ActionSheet
                 action={responseAsAction(r)}
-                subject={`Threat: ${s.name} (${s.stageLabel})`}
+                subject={t('Threat: {name} ({stage})', { name: s.name, stage: s.stageLabel })}
                 onClose={() => setSheet(null)}
                 onConfirm={() => perform('situation_response', s.id, r.id)}
               />

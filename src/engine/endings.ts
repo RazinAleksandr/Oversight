@@ -2,14 +2,17 @@
  * Failure detection, survival scoring and the debrief (GDD §12): decisive moments, hidden truths,
  * warning signs, missed opportunities and stats.
  */
+import { getLang, t, tp } from '../i18n';
 import { getEndingText, getFlawFlavor, getSituationFlavor } from './content';
 import { SITUATION_FAMILY, type RiskFamily } from './data/situations';
 import { companyCapEstimate, rivalCapEstimate } from './fog';
 import { STAGE_LABELS, dateLabel } from './labels';
+import { debriefWeight } from './log';
 import { domesticBestC, findCompany, leadingRival, shownTurn } from './query';
+import { violationAct } from './systems/companies';
 import { fillTemplate } from './template';
 import type { EndingId, EndingReport, GameState, LogEntry, SituationType, Tone } from './types';
-import { avg, clamp, lowerPhrase, round1 } from './util';
+import { avg, clamp, midPhrase, round1 } from './util';
 
 const FAILURES: ReadonlySet<EndingId> = new Set(['dismissed', 'economic_collapse', 'civil_unrest', 'national_defeat', 'loss_of_control', 'catastrophe', 'ai_war']);
 const GLOBAL_FAILURES: ReadonlySet<EndingId> = new Set(['loss_of_control', 'catastrophe', 'ai_war']);
@@ -32,11 +35,11 @@ export function checkFailure(s: GameState): { id: EndingId; cause: string } | nu
   if (typeof pending === 'string' && FAILURES.has(pending as EndingId)) {
     return { id: pending as EndingId, cause: typeof s.flags.failureCause === 'string' ? s.flags.failureCause : '' };
   }
-  if (s.risk >= 100) return { id: dominantRiskFailure(s), cause: 'Global risk reached midnight.' };
-  if (s.meters.confidence <= 0) return { id: 'dismissed', cause: `The ${s.government.leaderTitle} lost all confidence in you.` };
-  if (s.meters.economy <= 0) return { id: 'economic_collapse', cause: 'Prosperity collapsed.' };
-  if (s.meters.stability <= 0) return { id: 'civil_unrest', cause: 'Social stability broke down.' };
-  if (s.meters.security <= 0) return { id: 'national_defeat', cause: 'National security collapsed.' };
+  if (s.risk >= 100) return { id: dominantRiskFailure(s), cause: t('Global risk reached midnight.') };
+  if (s.meters.confidence <= 0) return { id: 'dismissed', cause: t('The {leaderTitle} lost all confidence in you.', { leaderTitle: s.government.leaderTitle }) };
+  if (s.meters.economy <= 0) return { id: 'economic_collapse', cause: t('Prosperity collapsed.') };
+  if (s.meters.stability <= 0) return { id: 'civil_unrest', cause: t('Social stability broke down.') };
+  if (s.meters.security <= 0) return { id: 'national_defeat', cause: t('National security collapsed.') };
   return null;
 }
 
@@ -104,16 +107,17 @@ function decisiveMoments(s: GameState): EndingReport['decisiveMoments'] {
     const model = s.models.find((m) => m.id === x.source.modelId);
     const peakStage = STAGE_LABELS[peak >= 100 ? 4 : peak >= 70 ? 3 : peak >= 45 ? 2 : peak >= 20 ? 1 : 0];
     // Plain sentences: the UI draws its own arrow.
+    const date = dateLabel(shownTurn(s, x.resolvedTurn ?? s.turn));
     const consequence =
       x.outcome === 'catastrophe'
-        ? `Led to ${flavor.catastropheTitle} in ${dateLabel(shownTurn(s, x.resolvedTurn ?? s.turn))}.`
+        ? t('Led to {catastrophe} in {date}.', { catastrophe: flavor.catastropheTitle, date })
         : x.outcome === 'contained'
-          ? `Caused ${flavor.name}, contained in ${dateLabel(shownTurn(s, x.resolvedTurn ?? s.turn))}.`
+          ? t('Caused {situation}, contained in {date}.', { situation: flavor.name, date })
           : x.detected
-            ? `Caused ${flavor.name}, which reached ${peakStage}.`
+            ? t('Caused {situation}, which reached {stage}.', { situation: flavor.name, stage: peakStage })
             : model?.flawKnown && model.flaw
-              ? `Deployed despite a confirmed ${lowerPhrase(getFlawFlavor(model.flaw).name)}; the resulting ${lowerPhrase(flavor.name)} never surfaced publicly.`
-              : `Seeded a hidden ${lowerPhrase(flavor.name)} that was never detected.`;
+              ? t('Deployed despite a confirmed {flaw}; the resulting {situation} never surfaced publicly.', { flaw: midPhrase(getFlawFlavor(model.flaw).name), situation: midPhrase(flavor.name) })
+              : t('Seeded a hidden {situation} that was never detected.', { situation: midPhrase(flavor.name) });
     used.add(entry.id);
     out.push({ turn: shownTurn(s, entry.turn), dateLabel: dateLabel(shownTurn(s, entry.turn)), title: titleFrom(entry), detail: entry.text, consequence, tone: x.outcome === 'catastrophe' ? 'bad' : x.outcome === 'contained' ? 'mixed' : 'bad', weight: 10 + peak / 10 });
   }
@@ -122,12 +126,8 @@ function decisiveMoments(s: GameState): EndingReport['decisiveMoments'] {
   for (const entry of s.log) {
     if (!entry.key || used.has(entry.id) || seenText.has(entry.text)) continue;
     seenText.add(entry.text);
-    const t = entry.text.toLowerCase();
-    let weight = 3;
-    if (t.includes('accord')) weight = 9;
-    if (t.includes('threshold')) weight = 12;
-    if (t.includes('broke a promise') || t.includes('lost power')) weight = 6;
-    if (t.includes('suspended') || t.includes('restricted') || t.includes('off-switch')) weight = 7;
+    // Keywords are matched in English; translated entries carry their English weight in `w`.
+    let weight = entry.w ?? debriefWeight(entry.text);
     if (entry.tone === 'bad') weight += 2;
     out.push({ turn: shownTurn(s, entry.turn), dateLabel: dateLabel(shownTurn(s, entry.turn)), title: titleFrom(entry), detail: entry.text, tone: entry.tone ?? 'neutral', weight });
   }
@@ -140,12 +140,23 @@ function decisiveMoments(s: GameState): EndingReport['decisiveMoments'] {
 
 /** First sentence as a title; long ones are shortened at a word boundary, never mid-word. */
 function titleFrom(entry: LogEntry): string {
-  if (entry.text.startsWith('At the Threshold')) return 'The Threshold';
-  const first = entry.text.split(/\. |—/)[0].replace(/\.$/, '').trim();
+  if (entry.title) return entry.title;
+  if (entry.text.startsWith('At the Threshold')) return t('The Threshold');
+  const first = firstSentence(entry.text).replace(/\.$/, '').trim();
   if (first.length <= 72) return first;
   const cut = first.slice(0, 72);
   const space = cut.lastIndexOf(' ');
   return `${(space > 40 ? cut.slice(0, space) : cut).replace(/[,;:(\s]+$/, '')}…`;
+}
+
+/**
+ * Text up to the first sentence break (". ") or dash. Russian text also uses ". " inside
+ * abbreviations ("3 кв. 2028", "ген. Ли", "т. е."), which must not end the title.
+ */
+function firstSentence(text: string): string {
+  if (getLang() === 'en') return text.split(/\. |—/)[0];
+  const parts = text.split(/(?<!(?:^|[\s(«„"])(?:кв|ген|адм|полк|проф|акад|св|им|т|д|е|г|гг|в|вв|см|ср|напр|млн|млрд|тыс|ок|др|пр|ул|стр|рис|гл))\. |—/iu);
+  return parts.find((p) => p.trim()) ?? text;
 }
 
 function hiddenTruths(s: GameState): EndingReport['hiddenTruths'] {
@@ -155,7 +166,13 @@ function hiddenTruths(s: GameState): EndingReport['hiddenTruths'] {
     out.push({
       category: 'company',
       title: c.name,
-      detail: `Safety ${Math.round(c.safety)}, transparency ${Math.round(c.transparency)}, ambition ${Math.round(c.ambition)}. True capability ${round1(c.capability)} (you estimated ${est.value}).`,
+      detail: t('Safety {safety}, transparency {transparency}, ambition {ambition}. True capability {capability} (you estimated {estimate}).', {
+        safety: Math.round(c.safety),
+        transparency: Math.round(c.transparency),
+        ambition: Math.round(c.ambition),
+        capability: round1(c.capability),
+        estimate: est.value,
+      }),
       known: c.knownTraits.safety && c.knownTraits.transparency,
     });
   }
@@ -165,7 +182,11 @@ function hiddenTruths(s: GameState): EndingReport['hiddenTruths'] {
     out.push({
       category: 'model',
       title: `${m.name} (${comp?.name ?? '?'})`,
-      detail: m.flaw ? `Hidden flaw: ${getFlawFlavor(m.flaw).name}. ${getFlawFlavor(m.flaw).description}` : `No flaw${m.falseAlarm ? ' — the warning was a false alarm' : ''}.`,
+      detail: m.flaw
+        ? t('Hidden flaw: {flaw}. {description}', { flaw: getFlawFlavor(m.flaw).name, description: getFlawFlavor(m.flaw).description })
+        : m.falseAlarm
+          ? t('No flaw — the warning was a false alarm.')
+          : t('No flaw.'),
       known: m.flaw ? m.flawKnown : true,
     });
   }
@@ -174,7 +195,9 @@ function hiddenTruths(s: GameState): EndingReport['hiddenTruths'] {
     out.push({
       category: 'rival',
       title: r.name,
-      detail: `True capability ${round1(r.capability)} (estimated ${est.value}), safeguards ${round1(r.safeguards)}.${r.defected ? ' Secretly broke the Accord.' : ''}`,
+      detail: r.defected
+        ? t('True capability {capability} (estimated {estimate}), safeguards {safeguards}. Secretly broke the Accord.', { capability: round1(r.capability), estimate: est.value, safeguards: round1(r.safeguards) })
+        : t('True capability {capability} (estimated {estimate}), safeguards {safeguards}.', { capability: round1(r.capability), estimate: est.value, safeguards: round1(r.safeguards) }),
       known: r.intel >= 0.7,
     });
   }
@@ -205,22 +228,35 @@ function missedOpportunities(s: GameState, id: EndingId): string[] {
   const out: string[] = [];
   for (const c of s.companies) {
     const v = c.violations.find((x) => !x.discovered);
-    if (v) out.push(`Investigating ${c.name} in ${dateLabel(shownTurn(s, v.turn + 1))} would have uncovered that it ${v.description.replace(`${c.name} `, '').replace(/\.$/, '')}.`);
+    if (!v) continue;
+    const model = v.modelId ? s.models.find((m) => m.id === v.modelId) : undefined;
+    out.push(
+      t('Investigating {company} in {date} would have uncovered that it {act} ({when}).', {
+        company: c.name,
+        date: dateLabel(shownTurn(s, v.turn + 1)),
+        act: violationAct(v.kind, model?.name),
+        when: dateLabel(shownTurn(s, v.turn)),
+      }),
+    );
   }
   for (const m of s.models) {
     if (!m.flaw || m.flawKnown || m.deepEvaluated) continue;
     if (m.status === 'deployed' || m.status === 'limited' || m.status === 'suspended') {
-      out.push(`A deep evaluation of ${m.name} (${dateLabel(shownTurn(s, m.releasedTurn))}) might have caught its hidden ${lowerPhrase(getFlawFlavor(m.flaw).name)}.`);
+      out.push(
+        t('A deep evaluation of {model} ({date}) might have caught its hidden {flaw}.', { model: m.name, date: dateLabel(shownTurn(s, m.releasedTurn)), flaw: midPhrase(getFlawFlavor(m.flaw).name) }),
+      );
       break;
     }
   }
   const ignored = s.news.find((n) => n.signal && signalActionable(s, n) && !signalActedOn(s, n));
-  if (ignored) out.push(`The warning "${ignored.text}" (${dateLabel(shownTurn(s, ignored.turn))}) went unanswered — following it up could have exposed its cause early.`);
-  if ((s.stats.maxSafety ?? 0) < 2 && domesticBestC(s) - s.safeguards > 1.5) out.push('Funding Alignment & Safety Research earlier would have kept safeguards closer to the frontier.');
-  if (!s.accord.signed) out.push('A Global AI Accord would have slowed the race and cut risk every quarter. Diplomatic initiatives build it.');
-  if (id === 'civil_unrest' && (s.stats.maxWorkforce ?? 0) === 0) out.push('A Workforce Transition program would have softened the job displacement that broke social stability.');
-  if (id === 'dismissed') out.push(`Briefing the ${s.government.leaderTitle} and keeping fewer, achievable promises would have protected your position.`);
-  if (id === 'national_defeat' && (s.stats.maxDefense ?? 0) === 0) out.push('Defense & Cyber AI funding would have kept the balance of power from collapsing.');
+  if (ignored) {
+    out.push(t('The warning "{warning}" ({date}) went unanswered — following it up could have exposed its cause early.', { warning: ignored.text, date: dateLabel(shownTurn(s, ignored.turn)) }));
+  }
+  if ((s.stats.maxSafety ?? 0) < 2 && domesticBestC(s) - s.safeguards > 1.5) out.push(t('Funding Alignment & Safety Research earlier would have kept safeguards closer to the frontier.'));
+  if (!s.accord.signed) out.push(t('A Global AI Accord would have slowed the race and cut risk every quarter. Diplomatic initiatives build it.'));
+  if (id === 'civil_unrest' && (s.stats.maxWorkforce ?? 0) === 0) out.push(t('A Workforce Transition program would have softened the job displacement that broke social stability.'));
+  if (id === 'dismissed') out.push(t('Briefing the {leaderTitle} and keeping fewer, achievable promises would have protected your position.', { leaderTitle: s.government.leaderTitle }));
+  if (id === 'national_defeat' && (s.stats.maxDefense ?? 0) === 0) out.push(t('Defense & Cyber AI funding would have kept the balance of power from collapsing.'));
   return out.slice(0, 5);
 }
 
@@ -229,10 +265,13 @@ function largestRiskSource(s: GameState): string {
   const top = entries[0];
   if (!top) return '—';
   const [key] = top;
-  if (key === 'domestic') return 'Domestic labs outpacing safeguards';
-  if (key === 'tension') return 'Race tension';
-  if (key === 'events') return 'Crises and decisions';
-  if (key.startsWith('rival:')) return `${s.rivals.find((r) => r.id === key.slice(6))?.name ?? 'Foreign labs'} racing ahead`;
+  if (key === 'domestic') return t('Domestic labs outpacing safeguards');
+  if (key === 'tension') return t('Race tension');
+  if (key === 'events') return t('Crises and decisions');
+  if (key.startsWith('rival:')) {
+    const rival = s.rivals.find((r) => r.id === key.slice(6));
+    return rival ? t('{rival} racing ahead', { rival: rival.name }) : t('Foreign labs racing ahead');
+  }
   if (key.startsWith('situation:')) return getSituationFlavor(key.slice(10) as SituationType).name;
   return key;
 }
@@ -242,24 +281,26 @@ function threatSummary(s: GameState): string {
   const contained = s.situations.filter((x) => x.outcome === 'contained').length;
   const catastrophes = s.situations.filter((x) => x.outcome === 'catastrophe').length;
   const hidden = s.situations.length - detected;
-  return `${detected} detected · ${contained} contained · ${catastrophes} catastrophe${catastrophes === 1 ? '' : 's'}${hidden ? ` · ${hidden} never found` : ''}`;
+  const parts = [t('{n} detected', { n: detected }), t('{n} contained', { n: contained }), tp(catastrophes, '{n} catastrophe', '{n} catastrophes')];
+  if (hidden) parts.push(t('{n} never found', { n: hidden }));
+  return parts.join(' · ');
 }
 
 function stats(s: GameState): EndingReport['stats'] {
   const st = s.stats;
   const n = (k: string) => String(st[k] ?? 0);
   return [
-    { label: 'Quarters governed', value: String(Math.min(s.turn, s.maxTurns)) },
-    { label: 'Models approved', value: String((st.approvals ?? 0) + (st.limitedApprovals ?? 0)) },
-    { label: 'Models rejected', value: n('rejections') },
-    { label: 'Deep evaluations', value: n('deepEvals') },
-    { label: 'Investigations', value: n('investigations') },
-    { label: 'Threats', value: threatSummary(s) },
-    { label: 'Catastrophes', value: n('catastrophes') },
-    { label: 'Promises kept / broken', value: `${n('demandsMet')} / ${n('demandsFailed')}` },
-    { label: 'Final global risk (true)', value: String(Math.round(s.risk)) },
-    { label: 'Largest source of risk', value: largestRiskSource(s) },
-    { label: 'Safeguards vs. frontier', value: `${round1(s.safeguards)} vs ${round1(domesticBestC(s))}` },
+    { label: t('Quarters governed'), value: String(Math.min(s.turn, s.maxTurns)) },
+    { label: t('Models approved'), value: String((st.approvals ?? 0) + (st.limitedApprovals ?? 0)) },
+    { label: t('Models rejected'), value: n('rejections') },
+    { label: t('Deep evaluations'), value: n('deepEvals') },
+    { label: t('Investigations'), value: n('investigations') },
+    { label: t('Threats'), value: threatSummary(s) },
+    { label: t('Catastrophes'), value: n('catastrophes') },
+    { label: t('Promises kept / broken'), value: `${n('demandsMet')} / ${n('demandsFailed')}` },
+    { label: t('Final global risk (true)'), value: String(Math.round(s.risk)) },
+    { label: t('Largest source of risk'), value: largestRiskSource(s) },
+    { label: t('Safeguards vs. frontier'), value: t('{safeguards} vs {frontier}', { safeguards: round1(s.safeguards), frontier: round1(domesticBestC(s)) }) },
   ];
 }
 

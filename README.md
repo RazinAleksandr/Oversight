@@ -26,4 +26,4 @@ It's 2027 and you run your country's AI department. Labs race to ship ever more 
   <img src="docs/images/ending.jpg" width="24%" alt="An ending" />
 </p>
 
-A run takes 20–25 minutes, and every run is different: company secrets, model flaws, leaders, rivals and events are all randomized. There is also a **Daily Run** with the same seed for everyone. It plays on phone and desktop. On a keyboard, `1`–`4` picks a choice, `Space` ends the quarter and `Esc` closes a window.
+A run takes 20–25 minutes, and every run is different: company secrets, model flaws, leaders, rivals and events are all randomized. There is also a **Daily Run** with the same seed for everyone. It plays on phone and desktop, in English or Russian (switch with EN | RU on the title screen). On a keyboard, `1`–`4` picks a choice, `Space` ends the quarter and `Esc` closes a window.

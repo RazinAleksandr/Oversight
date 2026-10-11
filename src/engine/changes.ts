@@ -3,6 +3,7 @@
  * records a `MeterChange` (merged per quarter+reason to keep saves small) and feeds any active capture
  * buffers (used to report "what changed" for a single choice/action/turn).
  */
+import { t } from '../i18n';
 import { getMods } from './modifiers';
 import type { CountryId, EvidenceToken, GameState, MeterChange, MeterId, PreviewKey, SectorId } from './types';
 import { clamp, nextId } from './util';
@@ -86,7 +87,7 @@ export function changeMeter(s: GameState, id: MeterId, delta: number, reason: st
   return applied;
 }
 
-/** Hidden global risk; also tracked by source key for the debrief and failure typing. */
+/** Hidden global risk; also tracked by source key for the debrief and failure typing. Its reasons are never shown (untranslated). */
 export function changeRisk(s: GameState, delta: number, reason: string, sourceKey = 'events'): number {
   if (!Number.isFinite(delta) || delta === 0) return 0;
   const before = s.risk;
@@ -191,7 +192,7 @@ export function changeRivalTrust(s: GameState, rivalId: CountryId, delta: number
   return applied;
 }
 
-/** Capability of a company or rival (hidden; recorded under the hidden 'capability' key). */
+/** Capability of a company or rival (hidden; recorded under the hidden 'capability' key, so reasons stay untranslated). */
 export function changeCapability(s: GameState, target: { companyId?: string; rivalId?: CountryId }, delta: number, reason: string): number {
   if (!Number.isFinite(delta) || delta === 0) return 0;
   if (target.companyId) {
@@ -221,7 +222,7 @@ export function isMeter(key: string): key is MeterId {
 }
 
 /** Adds an Evidence token (optionally about a company or rival). */
-export function addEvidence(s: GameState, text: string, about: { companyId?: string; rivalId?: CountryId } = {}, reason = 'Evidence gathered'): EvidenceToken {
+export function addEvidence(s: GameState, text: string, about: { companyId?: string; rivalId?: CountryId } = {}, reason = t('Evidence gathered')): EvidenceToken {
   const token: EvidenceToken = { id: nextId(s, 'e'), text, turn: s.turn };
   if (about.companyId) token.companyId = about.companyId;
   if (about.rivalId) token.rivalId = about.rivalId;

@@ -4,7 +4,8 @@
  */
 import type { ComponentChildren, JSX } from 'preact';
 import type { ActionView, Cost, Stamp, TraitView } from '../../engine/types';
-import { cx } from '../util';
+import { t } from '../../i18n';
+import { cx, money } from '../util';
 import { Icon } from './Icon';
 
 export function PageHead({ title, sub, icon, aside }: { title: string; sub?: string; icon?: string; aside?: ComponentChildren }): JSX.Element {
@@ -69,7 +70,7 @@ export function Switch({ on, onChange, label, id }: { on: boolean; onChange(v: b
     <button type="button" id={id} role="switch" aria-checked={on} aria-label={label} class={cx('switch', on && 'is-on')} onClick={() => onChange(!on)}>
       <span class="switch__knob" />
       <span class="switch__text" aria-hidden="true">
-        {on ? 'On' : 'Off'}
+        {on ? t('On') : t('Off')}
       </span>
     </button>
   );
@@ -99,15 +100,18 @@ export function Seg<T extends string>({
 }
 
 export const STAMP_TEXT: Record<Stamp, string> = {
-  approved: 'Approved',
-  rejected: 'Rejected',
-  deferred: 'Deferred',
-  noted: 'Noted',
-  signed: 'Signed',
-  denied: 'Denied',
-  classified: 'Classified',
-  urgent: 'Urgent',
+  approved: t('Approved'),
+  rejected: t('Rejected'),
+  deferred: t('Deferred'),
+  noted: t('Noted'),
+  signed: t('Signed'),
+  denied: t('Denied'),
+  classified: t('Classified'),
+  urgent: t('Urgent'),
 };
+
+/** Trait levels arrive from the engine as English ids ('Low' | 'Medium' | 'High' | 'Unknown'). */
+const TRAIT_LEVEL: Record<TraitView['label'], string> = { Low: t('Low'), Medium: t('Medium'), High: t('High'), Unknown: t('Unknown') };
 
 export function StampMark({ stamp, text, size = 'md', class: cls }: { stamp?: Stamp; text?: string; size?: 'sm' | 'md' | 'lg'; class?: string }): JSX.Element {
   const label = text ?? (stamp ? STAMP_TEXT[stamp] : '');
@@ -119,16 +123,17 @@ export function StampMark({ stamp, text, size = 'md', class: cls }: { stamp?: St
 }
 
 /** Fogged trait readout: "?" when unknown, label + "unverified" when estimated, exact value when verified. */
-export function Trait({ name, t }: { name: string; t: TraitView }): JSX.Element {
-  const unknown = t.label === 'Unknown';
-  const v = unknown ? '?' : t.verified && t.value !== null ? String(Math.round(t.value)) : t.label;
-  const note = unknown ? 'Unknown' : t.verified ? (t.value !== null ? `${t.label} · verified` : 'Verified') : 'Unverified';
+export function Trait({ name, t: tv }: { name: string; t: TraitView }): JSX.Element {
+  const unknown = tv.label === 'Unknown';
+  const level = TRAIT_LEVEL[tv.label] ?? tv.label;
+  const v = unknown ? '?' : tv.verified && tv.value !== null ? String(Math.round(tv.value)) : level;
+  const note = unknown ? t('Unknown') : tv.verified ? (tv.value !== null ? t('{level} · verified', { level }) : t('Verified')) : t('Unverified');
   return (
-    <div class={cx('trait', unknown ? 'trait--unknown' : t.verified ? 'trait--verified' : 'trait--est')}>
+    <div class={cx('trait', unknown ? 'trait--unknown' : tv.verified ? 'trait--verified' : 'trait--est')}>
       <span class="trait__k">{name}</span>
       <span class="trait__v">
         {v}
-        {t.verified && !unknown && <Icon name="check" size={13} />}
+        {tv.verified && !unknown && <Icon name="check" size={13} />}
       </span>
       <span class="trait__note">{note}</span>
     </div>
@@ -139,9 +144,9 @@ export function costInline(c?: Cost): string {
   if (!c) return '';
   const parts: string[] = [];
   if (c.capacity) parts.push(`${c.capacity}◆`);
-  if (c.budget) parts.push(`$${c.budget}B`);
-  if (c.evidence) parts.push(`${c.evidence} ev.`);
-  if (c.confidence) parts.push(`${c.confidence} conf.`);
+  if (c.budget) parts.push(money(c.budget));
+  if (c.evidence) parts.push(t('{n} ev.', { n: c.evidence }));
+  if (c.confidence) parts.push(t('{n} conf.', { n: c.confidence }));
   return parts.join(' · ');
 }
 
@@ -152,9 +157,9 @@ export function costInline(c?: Cost): string {
 export function actionBlock(action: ActionView, targetId?: string): string | null {
   if (action.disabled) return action.disabled;
   if (!action.targets) return null;
-  if (targetId) return action.targets.find((t) => t.id === targetId)?.disabled ?? null;
-  if (action.targets.length === 0) return 'No valid targets right now';
-  if (action.targets.every((t) => t.disabled)) return action.targets[0].disabled ?? 'No valid targets right now';
+  if (targetId) return action.targets.find((x) => x.id === targetId)?.disabled ?? null;
+  if (action.targets.length === 0) return t('No valid targets right now');
+  if (action.targets.every((x) => x.disabled)) return action.targets[0].disabled ?? t('No valid targets right now');
   return null;
 }
 
@@ -177,7 +182,7 @@ export function ActionChip({
       type="button"
       class={cx('actbtn', blocked && 'is-blocked')}
       onClick={() => onOpen(action.id, targetId)}
-      aria-label={`${label ?? action.name}${cost ? ', costs ' + cost : ''}${blocked ? ', unavailable: ' + blocked : ''}`}
+      aria-label={`${label ?? action.name}${cost ? t(', costs {cost}', { cost }) : ''}${blocked ? t(', unavailable: {reason}', { reason: blocked }) : ''}`}
     >
       <Icon name={action.icon} size={18} />
       <span class="actbtn__text">
@@ -186,6 +191,17 @@ export function ActionChip({
       </span>
     </button>
   );
+}
+
+/**
+ * Renders a translated string whose emphasis is marked with `**…**` (so a sentence stays one key
+ * even when part of it is bold): `rich(t('Tap **any** meter.'))` → Tap <b>any</b> meter.
+ */
+export function rich(text: string, tag: 'b' | 'strong' = 'b'): ComponentChildren {
+  const parts = text.split('**');
+  if (parts.length < 3) return text;
+  const Tag = tag;
+  return parts.map((p, i) => (i % 2 ? <Tag key={i}>{p}</Tag> : p));
 }
 
 export function Kbd({ children }: { children: ComponentChildren }): JSX.Element {

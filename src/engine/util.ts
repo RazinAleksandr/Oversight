@@ -1,4 +1,5 @@
 /** Small pure helpers shared across the engine. */
+import { getLang } from '../i18n';
 import { hashString } from './rng';
 import type { CardContext, GameState, SectorId } from './types';
 
@@ -42,7 +43,7 @@ export function signed(v: number, digits = 0): string {
   return v >= 0 ? `+${r}` : r;
 }
 
-/** Lowercases a common-noun phrase for mid-sentence use, keeping acronyms ("Winning the AI race" → "winning the AI race"). */
+/** (English only) Lowercases a common-noun phrase for mid-sentence use, keeping acronyms ("Winning the AI race" → "winning the AI race"). */
 export function lowerPhrase(text: string): string {
   return text
     .split(' ')
@@ -50,22 +51,24 @@ export function lowerPhrase(text: string): string {
     .join(' ');
 }
 
-/** True when a word takes "an" (vowel sound), with the common exceptions ("a European", "a unique"). */
+/**
+ * A display name used mid-sentence. English lowercases common-noun phrases (`lowerPhrase`); other
+ * languages keep the name as written — their dictionaries pick a case form (`{flaw:nom}`) or quote it.
+ */
+export function midPhrase(text: string): string {
+  return getLang() === 'en' ? lowerPhrase(text) : text;
+}
+
+/** (English only) True when a word takes "an" (vowel sound), with the common exceptions ("a European", "a unique"). */
 export function takesAn(word: string): boolean {
   if (/^(eu|uni|use|usu|ure|one|once)/i.test(word)) return false;
   if (/^(hour|honest|honou?r|heir)/i.test(word)) return true;
   return /^[aeiou]/i.test(word) || /^[FHLMNRSX](\b|[^a-z])/.test(word);
 }
 
-/** English possessive: "Lumen's", "Monsoon Commons'". */
+/** (English only) Possessive: "Lumen's", "Monsoon Commons'". Player text uses `{x}'s` in fmt() templates. */
 export function possessive(name: string): string {
   return /s$/i.test(name) ? `${name}'` : `${name}'s`;
-}
-
-export function listJoin(items: string[]): string {
-  if (items.length <= 1) return items.join('');
-  if (items.length === 2) return `${items[0]} and ${items[1]}`;
-  return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
 }
 
 export function cloneCtx(ctx: CardContext): CardContext {

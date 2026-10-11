@@ -2,6 +2,7 @@
  * Aggregates numeric modifiers from country traits, programs, policies, difficulty and temporary flags.
  * Temporary modifiers live in `state.flags` as `tm|<key>|<untilTurn>` → value so they serialize cleanly.
  */
+import { t } from '../i18n';
 import { getCountry, getCountryModifiers } from './content';
 import { POLICIES } from './data/policies';
 import { PROGRAMS } from './data/programs';
@@ -130,7 +131,7 @@ export function modSources(s: GameState, key: keyof Modifiers): { label: string;
   for (const id of Object.keys(s.programs) as ProgramId[]) {
     const lvl = Math.max(0, Math.min(3, Math.round(s.programs[id] ?? 0)));
     const v = PROGRAMS[id]?.levels[lvl]?.[key];
-    if (typeof v === 'number' && v !== 0) out.push({ label: `${PROGRAMS[id].name} program`, value: v });
+    if (typeof v === 'number' && v !== 0) out.push({ label: t('{program} program', { program: PROGRAMS[id].name }), value: v });
   }
   for (const pid of s.policies) {
     const v = POLICIES[pid]?.modifiers[key];
@@ -143,6 +144,6 @@ export function modSources(s: GameState, key: keyof Modifiers): { label: string;
     const v = s.flags[k];
     if (modKey === key && Number(until) >= s.turn && typeof v === 'number') temp += v;
   }
-  if (temp !== 0) out.push({ label: 'Recent events', value: temp });
+  if (temp !== 0) out.push({ label: t('Recent events'), value: temp });
   return out;
 }

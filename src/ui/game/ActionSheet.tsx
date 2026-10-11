@@ -5,6 +5,7 @@
 import type { JSX } from 'preact';
 import { useState } from 'preact/hooks';
 import type { ActionView, ResponseView } from '../../engine/types';
+import { t } from '../../i18n';
 import { CostChips, PreviewChip } from '../components/Chips';
 import { Icon } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
@@ -12,11 +13,11 @@ import { cx, hasCost } from '../util';
 import { useGame } from './context';
 
 const CATEGORY_LABEL: Record<ActionView['category'], string> = {
-  labs: 'Labs action',
-  nation: 'Legislation',
-  world: 'International action',
-  threats: 'Threat response',
-  politics: 'Political action',
+  labs: t('Labs action'),
+  nation: t('Legislation'),
+  world: t('International action'),
+  threats: t('Threat response'),
+  politics: t('Political action'),
 };
 
 export function responseAsAction(r: ResponseView): ActionView {
@@ -51,21 +52,18 @@ export function ActionSheet({
   const n = view.nation;
   const afford =
     cost.capacity && n.capacity < cost.capacity
-      ? 'No actions left this quarter'
+      ? t('No actions left this quarter')
       : cost.budget && n.budget < cost.budget
-        ? 'Not enough budget'
+        ? t('Not enough budget')
         : cost.evidence && n.evidence.length < cost.evidence
-          ? 'Requires evidence you do not hold'
+          ? t('Requires evidence you do not hold')
           : null;
-  const blocked =
-    action.disabled ||
-    tgt?.disabled ||
-    opt?.disabled ||
-    (action.targets && action.targets.length === 0 ? 'No valid targets right now' : null) ||
-    (action.targets && !target ? 'Choose a target' : null) ||
-    (action.options && !option ? 'Choose an option' : null) ||
-    afford;
-  const hardBlocked = blocked && blocked !== 'Choose a target' && blocked !== 'Choose an option';
+  const hardBlock =
+    action.disabled || tgt?.disabled || opt?.disabled || (action.targets && action.targets.length === 0 ? t('No valid targets right now') : null);
+  // A missing pick is a prompt, not a block reason (it is shown on the button instead).
+  const needs: 'target' | 'option' | null = hardBlock ? null : action.targets && !target ? 'target' : action.options && !option ? 'option' : null;
+  const hardBlocked = hardBlock || (needs ? null : afford);
+  const blocked = hardBlocked || needs;
 
   return (
     <Sheet label={action.name} onClose={onClose} class="action-sheet">
@@ -84,10 +82,10 @@ export function ActionSheet({
       {action.targets && action.targets.length > 0 && !pickTarget && tgt && (
         <div class="picker">
           <div class="picker__head">
-            <span class="eyebrow">Target</span>
+            <span class="eyebrow">{t('Target')}</span>
             {action.targets.length > 1 && (
               <button type="button" class="linkbtn" onClick={() => setPickTarget(true)}>
-                Change
+                {t('Change')}
               </button>
             )}
           </div>
@@ -103,22 +101,22 @@ export function ActionSheet({
 
       {action.targets && action.targets.length > 0 && pickTarget && (
         <fieldset class="picker">
-          <legend class="eyebrow">Target</legend>
-          <div class="picker__list" role="radiogroup" aria-label="Target">
-            {action.targets.map((t) => (
+          <legend class="eyebrow">{t('Target')}</legend>
+          <div class="picker__list" role="radiogroup" aria-label={t('Target')}>
+            {action.targets.map((x) => (
               <button
                 type="button"
-                key={t.id}
+                key={x.id}
                 role="radio"
-                aria-checked={t.id === target}
-                class={cx('picker__opt', t.id === target && 'is-on', t.disabled && 'is-blocked')}
-                onClick={() => setTarget(t.id)}
+                aria-checked={x.id === target}
+                class={cx('picker__opt', x.id === target && 'is-on', x.disabled && 'is-blocked')}
+                onClick={() => setTarget(x.id)}
               >
                 <span class="picker__radio" aria-hidden="true" />
                 <span class="picker__text">
-                  <span class="picker__label">{t.label}</span>
-                  {t.sublabel && <span class="picker__sub">{t.sublabel}</span>}
-                  {t.disabled && <span class="picker__blocked">{t.disabled}</span>}
+                  <span class="picker__label">{x.label}</span>
+                  {x.sublabel && <span class="picker__sub">{x.sublabel}</span>}
+                  {x.disabled && <span class="picker__blocked">{x.disabled}</span>}
                 </span>
               </button>
             ))}
@@ -128,8 +126,8 @@ export function ActionSheet({
 
       {action.options && action.options.length > 0 && (
         <fieldset class="picker">
-          <legend class="eyebrow">Option</legend>
-          <div class="picker__list" role="radiogroup" aria-label="Option">
+          <legend class="eyebrow">{t('Option')}</legend>
+          <div class="picker__list" role="radiogroup" aria-label={t('Option')}>
             {action.options.map((o) => (
               <button
                 type="button"
@@ -161,16 +159,16 @@ export function ActionSheet({
 
       <div class="confirm-fx">
         <div class="confirm-fx__row">
-          <span class="eyebrow">Cost</span>
-          <span class="chips">{hasCost(cost) ? <CostChips cost={cost} /> : <span class="dim">{action.options && !opt ? 'Depends on the option' : 'Free'}</span>}</span>
+          <span class="eyebrow">{t('Cost')}</span>
+          <span class="chips">{hasCost(cost) ? <CostChips cost={cost} /> : <span class="dim">{action.options && !opt ? t('Depends on the option') : t('Free')}</span>}</span>
         </div>
         <div class="confirm-fx__row">
-          <span class="eyebrow">Expected</span>
+          <span class="eyebrow">{t('Expected')}</span>
           <span class="chips">
             {preview.length ? (
               preview.map((p, i) => <PreviewChip key={i} p={p} />)
             ) : (
-              <span class="dim">{action.options && !opt ? 'Choose an option above' : 'No immediate visible effects'}</span>
+              <span class="dim">{action.options && !opt ? t('Choose an option above') : t('No immediate visible effects')}</span>
             )}
           </span>
         </div>
@@ -184,10 +182,10 @@ export function ActionSheet({
 
       <div class="sheet__actions">
         <button type="button" class="btn btn--ghost" onClick={onClose}>
-          Cancel
+          {t('Cancel')}
         </button>
         <button type="button" class="btn btn--primary" disabled={!!blocked} onClick={() => onConfirm(target, option)} data-autofocus={!blocked ? '' : undefined}>
-          {blocked === 'Choose a target' ? 'Choose a target' : blocked === 'Choose an option' ? 'Choose an option' : 'Authorize'}
+          {needs === 'target' ? t('Choose a target') : needs === 'option' ? t('Choose an option') : t('Authorize')}
         </button>
       </div>
     </Sheet>

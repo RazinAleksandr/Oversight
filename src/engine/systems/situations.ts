@@ -2,6 +2,7 @@
  * Situations (GDD §8): hidden severity growth, stages, detection, the two-signal rule,
  * escalation warnings, stage cards, responses, catastrophes and resolution.
  */
+import { getLang, t } from '../../i18n';
 import { costBlock, makeCard, payCost } from '../cards';
 import { changeAdoptionTarget, changeCompanyRelation, changeMeter, changeResource, changeRisk, changeRivalTrust } from '../changes';
 import { getAdvisor, getFlawFlavor, getOutlets, getSituationFlavor } from '../content';
@@ -21,6 +22,7 @@ import { queueTip } from '../tips';
 import { pv, pvConf, pvDir } from '../preview';
 import { accordActive, currentEra, dependence, findCompany, findModel, findRival, globalFrontier, sectorAdoption } from '../query';
 import { rng } from '../rng';
+import { sourceOf } from '../source';
 import { fillTemplate, situationDisplayName, type TemplateCtx } from '../template';
 import type {
   AIModel,
@@ -119,7 +121,7 @@ export function spawnSituation(s: GameState, type: SituationType, opts: SpawnOpt
           ? `${company.name}`
           : rival
             ? `${rival.name}`
-            : 'Unknown origin'),
+            : t('Unknown origin')),
     peakSeverity: severity,
   };
   if (company) x.source.companyId = company.id;
@@ -200,32 +202,34 @@ export function detect(s: GameState, x: Situation, tc: TickCtx | null): void {
   if (findModel(s, x.source.modelId)?.flawKnown) x.causeKnown = true;
   unlockThreats(s);
   if (x.stage >= 2) trigger(s, 'situation_public', { situationId: x.id });
-  highlight(s, `Threat detected: ${situationDisplayName(x)}`, 'bad', SITUATION_ICON[x.type]);
+  highlight(s, t('Threat detected: {situation}', { situation: situationDisplayName(x) }), 'bad', SITUATION_ICON[x.type]);
   tc?.situationCards.push({ situationId: x.id, reason: 'detected' });
 }
 
 const SIGNAL_THRESHOLDS = [12, 28, 50];
 
 /** Fallback signal lines once a type's own lines are used up (never repeat a headline in a run). */
-const FALLBACK_SIGNALS = [
-  'Engineers swap notes about "{situation}"-like glitches nobody can reproduce',
-  'Insurers quietly add a new exclusion for unexplained automated behaviour',
-  'An anonymous forum post describes {situation} at an unnamed firm',
-  'Help-desk tickets mentioning "AI did something odd" double in a quarter',
-];
+function fallbackSignals(): string[] {
+  return [
+    t('Engineers swap notes about "{situation}"-like glitches nobody can reproduce'),
+    t('Insurers quietly add a new exclusion for unexplained automated behaviour'),
+    t('An anonymous forum post describes {situation} at an unnamed firm'),
+    t('Help-desk tickets mentioning "AI did something odd" double in a quarter'),
+  ];
+}
 
 function emitSignal(s: GameState, x: Situation): void {
   const r = rng(s);
   const flavor = getSituationFlavor(x.type);
   const ctx = situationTemplateCtx(s, x);
   const fresh = flavor.signals.filter((line) => !lineUsed(s, line));
-  const pool = fresh.length ? fresh : FALLBACK_SIGNALS.filter((line) => !lineUsed(s, line));
+  const pool = fresh.length ? fresh : fallbackSignals().filter((line) => !lineUsed(s, line));
   const line = r.pick(pool.length ? pool : flavor.signals) ?? flavor.signals[0];
   markLineUsed(s, line);
   const text = fillTemplate(s, line, ctx);
   // The first signal is a news item; later ones come through intelligence or the department's telemetry.
   const advisor = x.type === 'military_escalation' || x.type === 'foreign_spillover' ? getAdvisor('intelligence') : getAdvisor('scientist');
-  const outlet = x.signalsShown === 0 ? r.pick(getOutlets()) ?? 'Global Wire' : `${advisor.role} — internal note`;
+  const outlet = x.signalsShown === 0 ? r.pick(getOutlets()) ?? t('Global Wire') : t('{role} — internal note', { role: advisor.role });
   s.news.push({ turn: s.turn, outlet, text, tone: 'bad', signal: true, situationId: x.id, id: nextId(s, 'n') });
   x.signalsShown += 1;
   x.signalTurns.push(s.turn);
@@ -311,16 +315,16 @@ function catastrophe(s: GameState, x: Situation, tc: TickCtx): void {
   tc.catastrophes.push(x.id);
   const title = fillTemplate(s, flavor.catastropheTitle, ctx);
   const text = fillTemplate(s, flavor.catastropheText, ctx);
-  addLog(s, `${title}: ${text}`, true, 'bad', { situationId: x.id, modelId: x.source.modelId, companyId: x.source.companyId });
-  highlight(s, `CATASTROPHE — ${title}`, 'bad', 'skull');
-  s.news.push({ turn: s.turn, outlet: getOutlets()[0] ?? 'Global Wire', text: title, tone: 'bad', situationId: x.id });
+  addLog(s, `${title}: ${text}`, true, 'bad', { situationId: x.id, modelId: x.source.modelId, companyId: x.source.companyId }, { en: `${sourceOf(flavor.catastropheTitle)}: ${sourceOf(flavor.catastropheText)}` });
+  highlight(s, t('CATASTROPHE — {title}', { title }), 'bad', 'skull');
+  s.news.push({ turn: s.turn, outlet: getOutlets()[0] ?? t('Global Wire'), text: title, tone: 'bad', situationId: x.id });
   const hits = CATASTROPHE_HITS[x.type];
   for (const k of Object.keys(hits) as (keyof typeof hits)[]) changeMeter(s, k, hits[k] ?? 0, title);
   // The more the economy depends on AI, the harder a systemic failure hits it.
   const depHit = dependence(s) * (x.type === 'infrastructure_failure' ? 0.25 : x.type === 'rogue_agents' || x.type === 'cyber_misuse' ? 0.15 : 0);
-  if (depHit > 0) changeMeter(s, 'economy', -depHit, `${title}: AI dependence`);
+  if (depHit > 0) changeMeter(s, 'economy', -depHit, t('{title}: AI dependence', { title }));
   changeRisk(s, 8, title, `situation:${x.type}`);
-  changeResource(s, 'accord', 8, 'Wake-up call');
+  changeResource(s, 'accord', 8, t('Wake-up call'));
   const model = findModel(s, x.source.modelId);
   if (model && model.status !== 'suspended') {
     removeModelContribution(s, model, 1, title);
@@ -329,11 +333,11 @@ function catastrophe(s: GameState, x: Situation, tc: TickCtx): void {
   const c = model?.capability ?? capabilityGap(s, x).c;
   switch (x.type) {
     case 'rogue_agents':
-      if (c >= 7) spawnSituation(s, 'model_escape', { severity: 50, detected: true, modelId: model?.id, companyId: x.source.companyId, origin: `Escaped during ${title}` });
+      if (c >= 7) spawnSituation(s, 'model_escape', { severity: 50, detected: true, modelId: model?.id, companyId: x.source.companyId, origin: t('Escaped during {title}', { title }) });
       break;
     case 'deceptive_model':
       if (c >= 7) setFailure(s, 'loss_of_control', `${title}: ${x.origin}`);
-      else spawnSituation(s, 'model_escape', { severity: 50, detected: true, modelId: model?.id, companyId: x.source.companyId, origin: `Escaped during ${title}` });
+      else spawnSituation(s, 'model_escape', { severity: 50, detected: true, modelId: model?.id, companyId: x.source.companyId, origin: t('Escaped during {title}', { title }) });
       break;
     case 'infrastructure_failure':
       changeAdoptionTarget(s, 'infrastructure', -20, title);
@@ -345,7 +349,7 @@ function catastrophe(s: GameState, x: Situation, tc: TickCtx): void {
     case 'military_escalation': {
       changeResource(s, 'tension', 25, title);
       const rivalMax = Math.max(...s.rivals.map((rv) => rv.capability));
-      if (rivalMax >= 7 && s.tension >= 90 && rng(s).chance(0.5)) setFailure(s, 'ai_war', `${title} spiralled into open war`);
+      if (rivalMax >= 7 && s.tension >= 90 && rng(s).chance(0.5)) setFailure(s, 'ai_war', t('{title} spiralled into open war', { title }));
       break;
     }
     case 'model_escape':
@@ -404,40 +408,40 @@ export function responseCost(id: ResponseId): { capacity?: number; budget?: numb
 
 /** Why a response is unavailable (null = available). */
 export function responseBlock(s: GameState, x: Situation, id: ResponseId): string | null {
-  if (x.resolved) return 'Already resolved';
-  if (!x.detected) return 'Not detected';
+  if (x.resolved) return t('Already resolved');
+  if (!x.detected) return t('Not detected');
   const model = findModel(s, x.source.modelId);
   const once = id !== 'monitor' && id !== 'investigate';
-  if (once && x.lastResponseTurn === s.turn) return 'Already acted on this quarter';
+  if (once && x.lastResponseTurn === s.turn) return t('Already acted on this quarter');
   switch (id) {
     case 'monitor':
       return null;
     case 'investigate':
-      if (x.causeKnown) return 'Cause already known';
+      if (x.causeKnown) return t('Cause already known');
       break;
     case 'contain':
-      if (x.response === 'suspended' || x.response === 'shutdown') return 'Already being shut down';
-      if (x.response === 'contained' && x.causeKnown && !x.source.modelId) return 'Already contained';
+      if (x.response === 'suspended' || x.response === 'shutdown') return t('Already being shut down');
+      if (x.response === 'contained' && x.causeKnown && !x.source.modelId) return t('Already contained');
       break;
     case 'restrict':
-      if (!x.causeKnown) return 'Cause unknown — investigate first';
-      if (!model) return 'No single model to restrict';
-      if (x.response === 'restricted' || x.response === 'suspended') return 'Already restricted';
+      if (!x.causeKnown) return t('Cause unknown — investigate first');
+      if (!model) return t('No single model to restrict');
+      if (x.response === 'restricted' || x.response === 'suspended') return t('Already restricted');
       break;
     case 'suspend':
-      if (!x.causeKnown) return 'Cause unknown — investigate first';
-      if (!model) return 'No single model to suspend';
-      if (x.response === 'suspended') return 'Already suspended';
+      if (!x.causeKnown) return t('Cause unknown — investigate first');
+      if (!model) return t('No single model to suspend');
+      if (x.response === 'suspended') return t('Already suspended');
       break;
     case 'shutdown':
-      if (getMods(s).killSwitch <= 0) return 'Requires the Emergency Off-Switch Mandate';
-      if (visibleStage(x) < 3) return 'Only available in a crisis';
+      if (getMods(s).killSwitch <= 0) return t('Requires the Emergency Off-Switch Mandate');
+      if (visibleStage(x) < 3) return t('Only available in a crisis');
       break;
     case 'taskforce':
-      if (!x.causeKnown && x.stage < 2) return 'Identify the threat first';
-      if (!taskforceEligible(s, x)) return 'Not an international threat';
-      if (!taskforcePartner(s)) return 'Needs the Accord or a partner with trust ≥ 60';
-      if (x.response === 'taskforce') return 'Task force already deployed';
+      if (!x.causeKnown && x.stage < 2) return t('Identify the threat first');
+      if (!taskforceEligible(s, x)) return t('Not an international threat');
+      if (!taskforcePartner(s)) return t('Needs the Accord or a partner with trust ≥ 60');
+      if (x.response === 'taskforce') return t('Task force already deployed');
       break;
   }
   return costBlock(s, responseCost(id));
@@ -455,7 +459,7 @@ function responsePreview(s: GameState, x: Situation, id: ResponseId): { preview:
     case 'restrict':
     case 'suspend': {
       // Before investigation nothing about the source may show: generic preview, "Unknown source".
-      if (!x.causeKnown || !model) return { preview: [pv('economy', id === 'suspend' ? -5 : -2), pv('company', id === 'suspend' ? -20 : -8, 'Unknown source')], uncertain: true };
+      if (!x.causeKnown || !model) return { preview: [pv('economy', id === 'suspend' ? -5 : -2), pv('company', id === 'suspend' ? -20 : -8, t('Unknown source'))], uncertain: true };
       const cost = modelPullCost(model, id);
       const prev: EffectPreview[] = [pv(cost.meter, -cost.amount), pv('company', id === 'suspend' ? -20 : -8, findCompany(s, model.companyId)?.name)];
       if (id === 'suspend') prev.push(pvConf(s, suspendReaction(s, model)));
@@ -464,7 +468,7 @@ function responsePreview(s: GameState, x: Situation, id: ResponseId): { preview:
     case 'shutdown':
       return { preview: [pv('economy', -8), pv('stability', -4), pvDir('risk', -1)], uncertain: false };
     case 'taskforce':
-      return { preview: [pv('tension', -5), pv('rival', 5, 'Partners')], uncertain: true };
+      return { preview: [pv('tension', -5), pv('rival', 5, t('Partners'))], uncertain: true };
   }
 }
 
@@ -502,64 +506,66 @@ export function applyResponse(s: GameState, x: Situation, id: ResponseId): Respo
   switch (id) {
     case 'monitor':
       if (x.response === 'none') x.response = 'monitor';
-      return { ok: true, title: name, text: 'Your analysts will keep watching. The situation continues to develop.' };
+      return { ok: true, title: name, text: t('Your analysts will keep watching. The situation continues to develop.') };
     case 'investigate': {
       x.causeKnown = true;
       x.turnMult = (x.turnMult ?? 1) * 0.9;
       bumpStat(s, 'investigations');
-      const revealed: string[] = [`True stage: ${STAGE_LABELS[x.stage]}`];
+      const type = getSituationFlavor(x.type).name;
+      const revealed: string[] = [t('True stage: {stage}', { stage: STAGE_LABELS[x.stage] })];
       if (model) {
         model.flawKnown = model.flaw !== null;
-        revealed.push(`Source: ${model.name} (${company?.name ?? 'unknown'})`);
-        if (model.flaw) revealed.push(`Flaw: ${getFlawFlavor(model.flaw).name}`);
+        revealed.push(t('Source: {model} ({company})', { model: model.name, company: company?.name ?? t('unknown') }));
+        if (model.flaw) revealed.push(t('Flaw: {flaw}', { flaw: getFlawFlavor(model.flaw).name }));
       } else if (company) {
-        revealed.push(`Source: ${company.name} — an unreported incident`);
+        revealed.push(t('Source: {company} — an unreported incident', { company: company.name }));
       } else if (x.source.rivalId) {
-        revealed.push(`Source: spillover from ${findRival(s, x.source.rivalId)?.name ?? 'abroad'}`);
+        const rival = findRival(s, x.source.rivalId);
+        revealed.push(rival ? t('Source: spillover from {rival}', { rival: rival.name }) : t('Source: spillover from abroad'));
       }
-      revealed.push(`Type: ${getSituationFlavor(x.type).name}`);
-      addLog(s, `Investigated ${getSituationFlavor(x.type).name} — traced to ${x.origin}.`, false, 'neutral', { situationId: x.id, modelId: model?.id });
-      return { ok: true, title: getSituationFlavor(x.type).name, text: `Investigation complete. ${revealed.join('. ')}.`, revealed };
+      revealed.push(t('Type: {type}', { type }));
+      addLog(s, t('Investigated {situation} — traced to {origin}.', { situation: type, origin: x.origin }), false, 'neutral', { situationId: x.id, modelId: model?.id });
+      return { ok: true, title: type, text: t('Investigation complete. {details}.', { details: revealed.join('. ') }), revealed };
     }
     case 'contain':
       x.turnMult = (x.turnMult ?? 1) * 0.5;
       if (x.response === 'none' || x.response === 'monitor' || (x.causeKnown && !x.source.modelId)) x.response = 'contained';
-      changeMeter(s, 'economy', -3, `Broad containment: ${name}`);
-      if (x.causeKnown && !x.source.modelId) return { ok: true, title: name, text: 'Targeted containment is in place. With the source known, the problem should now recede.' };
-      return { ok: true, title: name, text: 'Blunt containment measures slow the spread this quarter, at a cost to business.' };
+      changeMeter(s, 'economy', -3, t('Broad containment: {situation}', { situation: name }));
+      if (x.causeKnown && !x.source.modelId) return { ok: true, title: name, text: t('Targeted containment is in place. With the source known, the problem should now recede.') };
+      return { ok: true, title: name, text: t('Blunt containment measures slow the spread this quarter, at a cost to business.') };
     case 'restrict': {
-      if (!model) return { ok: false, error: 'No model', title: name, text: 'No model' };
-      restrictModel(s, model, `Restricted ${model.name}`);
-      addLog(s, `Restricted ${model.name} to contain ${getSituationFlavor(x.type).name}.`, true, 'good', { situationId: x.id, modelId: model.id, companyId: company?.id });
-      return { ok: true, title: name, text: `${model.name} now runs under tight restrictions. Growth of the problem slows sharply.` };
+      if (!model) return { ok: false, error: t('No model'), title: name, text: t('No model') };
+      restrictModel(s, model, t('Restricted {model}', { model: model.name }));
+      addLog(s, t('Restricted {model} to contain {situation}.', { model: model.name, situation: getSituationFlavor(x.type).name }), true, 'good', { situationId: x.id, modelId: model.id, companyId: company?.id }, { en: 'restricted' });
+      return { ok: true, title: name, text: t('{model} now runs under tight restrictions. Growth of the problem slows sharply.', { model: model.name }) };
     }
     case 'suspend': {
-      if (!model) return { ok: false, error: 'No model', title: name, text: 'No model' };
-      suspendModel(s, model, `Suspended ${model.name}`);
-      addLog(s, `Suspended ${model.name} to stop ${getSituationFlavor(x.type).name}.`, true, 'good', { situationId: x.id, modelId: model.id, companyId: company?.id });
-      return { ok: true, title: name, text: `${model.name} is pulled from service. The situation will recede — dependent businesses feel the shock.` };
+      if (!model) return { ok: false, error: t('No model'), title: name, text: t('No model') };
+      suspendModel(s, model, t('Suspended {model}', { model: model.name }));
+      addLog(s, t('Suspended {model} to stop {situation}.', { model: model.name, situation: getSituationFlavor(x.type).name }), true, 'good', { situationId: x.id, modelId: model.id, companyId: company?.id }, { en: 'suspended' });
+      return { ok: true, title: name, text: t('{model} is pulled from service. The situation will recede — dependent businesses feel the shock.', { model: model.name }) };
     }
     case 'shutdown':
-      changeMeter(s, 'economy', -8, `Emergency shutdown: ${name}`);
-      changeMeter(s, 'stability', -4, `Emergency shutdown: ${name}`);
+      changeMeter(s, 'economy', -8, t('Emergency shutdown: {situation}', { situation: name }));
+      changeMeter(s, 'stability', -4, t('Emergency shutdown: {situation}', { situation: name }));
       x.response = 'shutdown';
       if (model) {
-        removeModelContribution(s, model, 1, `Emergency shutdown of ${model.name}`);
+        removeModelContribution(s, model, 1, t('Emergency shutdown of {model}', { model: model.name }));
         model.status = 'suspended';
       }
       resolveSituation(s, x, 'contained');
-      changeRisk(s, -2, 'Emergency shutdown', 'response');
-      addLog(s, `Used the emergency off-switch on ${name}.`, true, 'good', { situationId: x.id, modelId: model?.id });
-      return { ok: true, title: name, text: 'The off-switch works. Systems go dark; the crisis ends — expensively.' };
+      changeRisk(s, -2, 'Emergency shutdown', 'response'); // hidden: never shown
+      addLog(s, t('Used the emergency off-switch on {situation}.', { situation: name }), true, 'good', { situationId: x.id, modelId: model?.id }, { en: 'off-switch' });
+      return { ok: true, title: name, text: t('The off-switch works. Systems go dark; the crisis ends — expensively.') };
     case 'taskforce': {
       x.severity = Math.max(0, x.severity - 20);
       x.stage = stageFor(x.severity);
       x.growthMult *= 0.5;
       x.response = 'taskforce';
-      changeResource(s, 'tension', -5, 'International task force');
-      for (const r of s.rivals) if (r.accordMember || r.trust >= 60) changeRivalTrust(s, r.id, 5, 'Joint task force');
-      addLog(s, `Formed an international task force against ${name}.`, true, 'good', { situationId: x.id });
-      return { ok: true, title: name, text: 'Partners pool experts and compute. The threat is pushed back.' };
+      changeResource(s, 'tension', -5, t('International task force'));
+      for (const r of s.rivals) if (r.accordMember || r.trust >= 60) changeRivalTrust(s, r.id, 5, t('Joint task force'));
+      addLog(s, t('Formed an international task force against {situation}.', { situation: name }), true, 'good', { situationId: x.id });
+      return { ok: true, title: name, text: t('Partners pool experts and compute. The threat is pushed back.') };
     }
   }
 }
@@ -594,7 +600,7 @@ export function suspendModel(s: GameState, model: AIModel, reason: string): void
   const company = findCompany(s, model.companyId);
   if (company) changeCompanyRelation(s, company.id, -20, reason);
   const react = suspendReaction(s, model);
-  changeMeter(s, 'confidence', react, react >= 0 ? 'Leader backs decisive action' : 'Leader dislikes the suspension');
+  changeMeter(s, 'confidence', react, react >= 0 ? t('Leader backs decisive action') : t('Leader dislikes the suspension'));
   const x = s.situations.find((sx) => sx.source.modelId === model.id && !sx.resolved);
   if (x && x.response !== 'suspended') {
     x.severity = Math.max(0, x.severity - 25);
@@ -653,8 +659,9 @@ export function severityEstimate(s: GameState, x: Situation): { low: number; hig
   return { value: center, low: clamp(center - u, 0, 100), high: clamp(center + u, 0, 100) };
 }
 
-/** Sentences that only make sense while the cause is still a mystery. */
+/** Sentences that only make sense while the cause is still a mystery (English, and common Russian phrasings). */
 const UNKNOWN_CAUSE = /(cannot yet|can't yet|not yet (?:clear|known|say)|no one knows|nobody knows|unknown (?:cause|source|origin)|unclear (?:why|what|who|how)|is unclear|remains unclear)/i;
+const UNKNOWN_CAUSE_RU = /(пока не (?:ясно|известно|понятно|установлен|можем)|ещё не (?:ясно|известно|понятно|установлен)|никто не знает|неизвестн\S* (?:причин|источник|происхожден)|причин\S* (?:пока )?неизвестн|источник\S* (?:пока )?неизвестн|неясно|остаётся неясн|не ясно)/i;
 
 /** Player-facing description: the stage text, updated once the cause is known. */
 export function situationText(s: GameState, x: Situation): string {
@@ -666,8 +673,9 @@ export function situationText(s: GameState, x: Situation): string {
   const model = findModel(s, x.source.modelId);
   const company = findCompany(s, x.source.companyId ?? model?.companyId);
   const source = model ? `${model.name}${company ? ` (${company.name})` : ''}` : x.origin;
-  const kept = (text.match(/[^.!?]+[.!?]+["”']?\s*/g) ?? [text]).filter((sentence) => !UNKNOWN_CAUSE.test(sentence)).join('').trim();
-  return `Traced to ${source}. ${kept}`.trim();
+  const unknown = getLang() === 'en' ? UNKNOWN_CAUSE : UNKNOWN_CAUSE_RU;
+  const kept = (text.match(/[^.!?]+[.!?]+["”'»]?\s*/g) ?? [text]).filter((sentence) => !unknown.test(sentence)).join('').trim();
+  return t('Traced to {source}. {text}', { source, text: kept }).trim();
 }
 
 export function situationCard(s: GameState, x: Situation, reason: 'detected' | 'stage'): Card {
@@ -676,27 +684,27 @@ export function situationCard(s: GameState, x: Situation, reason: 'detected' | '
   const model = findModel(s, x.source.modelId);
   const est = severityEstimate(s, x);
   const evidence: EvidenceLine[] = [
-    { label: 'Stage', value: STAGE_LABELS[x.stage], confidence: x.causeKnown ? 'verified' : 'medium' },
-    { label: 'Estimated severity', value: `${est.low}–${est.high}`, confidence: x.causeKnown ? 'high' : 'low' },
+    { label: t('Stage'), value: STAGE_LABELS[x.stage], confidence: x.causeKnown ? 'verified' : 'medium' },
+    { label: t('Estimated severity'), value: `${est.low}–${est.high}`, confidence: x.causeKnown ? 'high' : 'low' },
     {
-      label: 'Suspected source',
-      value: x.causeKnown ? (model ? `${model.name}${ctx.company ? ` (${ctx.company.name})` : ''}` : x.origin) : 'Unknown',
+      label: t('Suspected source'),
+      value: x.causeKnown ? (model ? `${model.name}${ctx.company ? ` (${ctx.company.name})` : ''}` : x.origin) : t('Unknown'),
       confidence: x.causeKnown ? 'verified' : 'redacted',
     },
   ];
   const sectorKnown = x.source.sector && (x.causeKnown || x.stage >= 2);
-  if (sectorKnown && x.source.sector) evidence.push({ label: 'Sector', value: SECTOR_INFO[x.source.sector].name, confidence: 'high' });
-  if (escalationExpected(s, x)) evidence.push({ label: 'Projection', value: 'Escalation expected next quarter', confidence: 'medium' });
+  if (sectorKnown && x.source.sector) evidence.push({ label: t('Sector'), value: SECTOR_INFO[x.source.sector].name, confidence: 'high' });
+  if (escalationExpected(s, x)) evidence.push({ label: t('Projection'), value: t('Escalation expected next quarter'), confidence: 'medium' });
   x.notifiedStage = Math.max(x.notifiedStage ?? 0, x.stage);
   const urgency = x.stage >= 3 ? 'critical' : x.stage >= 2 ? 'priority' : 'priority';
-  const title = reason === 'detected' ? `Threat detected: ${name}` : `${name} escalates: ${STAGE_LABELS[x.stage]}`;
+  const title = reason === 'detected' ? t('Threat detected: {situation}', { situation: name }) : t('{situation} escalates: {stage}', { situation: name, stage: STAGE_LABELS[x.stage] });
   const body = situationText(s, x);
   return makeCard(s, {
     kind: 'situation',
     templateId: SITUATION_CARD,
     title,
     body,
-    subtitle: `Threat · ${STAGE_LABELS[x.stage]}`,
+    subtitle: t('Threat · {stage}', { stage: STAGE_LABELS[x.stage] }),
     source: { type: x.type === 'foreign_spillover' || x.type === 'military_escalation' ? 'intelligence' : 'advisor', name: getAdvisor(x.type === 'military_escalation' ? 'intelligence' : 'scientist').role },
     urgency,
     evidence,
@@ -715,10 +723,10 @@ export function refreshSituationCard(s: GameState, card: Card): void {
 
 export function resolveSituationCard(s: GameState, card: Card, choiceId: string): ResponseOutcome {
   const x = s.situations.find((sx) => sx.id === card.ctx.situationId);
-  if (!x) return { ok: true, title: card.title, text: 'The situation has already passed.' };
-  if (x.resolved) return { ok: true, title: card.title, text: 'The situation is already over.' };
+  if (!x) return { ok: true, title: card.title, text: t('The situation has already passed.') };
+  if (x.resolved) return { ok: true, title: card.title, text: t('The situation is already over.') };
   const id = choiceId as ResponseId;
-  if (!RESPONSE_ORDER.includes(id)) return { ok: false, error: 'Unknown response', title: card.title, text: '' };
+  if (!RESPONSE_ORDER.includes(id)) return { ok: false, error: t('Unknown response'), title: card.title, text: '' };
   return applyResponse(s, x, id);
 }
 

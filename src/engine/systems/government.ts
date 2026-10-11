@@ -2,6 +2,7 @@
  * Government (GDD §6): leader stance & confidence drift, demands with deadlines, negotiation
  * (comply / counter-offer / present evidence / refuse → "leader insists"), elections and the last-chance card.
  */
+import { t, tr } from '../../i18n';
 import { demandNotes } from '../advisors';
 import { costBlock, makeCard, payCost } from '../cards';
 import { changeMeter, changeResource, changeRisk, confidenceScale } from '../changes';
@@ -15,11 +16,12 @@ import { DIFFICULTY } from '../modifiers';
 import { pv, pvConf, pvConfExact, pvUnits } from '../preview';
 import { domesticBestC, findCompany, findRival, leadingRival, publicSituations } from '../query';
 import { rng } from '../rng';
-import { situationDisplayName } from '../template';
+import { sourceOf } from '../source';
+import { fmt, situationDisplayName } from '../template';
 import { publishHeadline } from '../news';
 import { queueTip } from '../tips';
 import type { Card, Choice, Demand, DemandKind, Government, GameState, SectorId, Stance } from '../types';
-import { clamp, nextId, possessive } from '../util';
+import { clamp, nextId } from '../util';
 import type { TickCtx } from './tick';
 
 export const DEMAND_CARD = 'sys:demand';
@@ -33,8 +35,10 @@ export function createGovernment(s: GameState, excludeName?: string, excludeStan
   const r = rng(s);
   const country = getCountry(s.countryId);
   // A successor must differ from the outgoing leader: skip their name and anyone locked to their stance.
-  const leaders = getLeaders(s.countryId).filter((l) => l.name !== excludeName && (!excludeStance || l.stance !== excludeStance));
-  const tpl = r.pick(leaders.length ? leaders : getLeaders(s.countryId)) ?? { name: `The ${country.leaderTitle}`, bio: '' };
+  // Names are compared by their English source, so a save made in another language still matches.
+  const exclude = excludeName === undefined ? undefined : sourceOf(excludeName);
+  const leaders = getLeaders(s.countryId).filter((l) => sourceOf(l.name) !== exclude && (!excludeStance || l.stance !== excludeStance));
+  const tpl = r.pick(leaders.length ? leaders : getLeaders(s.countryId)) ?? { name: t('The {leaderTitle}', { leaderTitle: country.leaderTitle }), bio: '' };
   let stance: Stance | undefined = tpl.stance && tpl.stance !== excludeStance ? tpl.stance : undefined;
   if (!stance) {
     const pool = country.stancePool.filter((x) => x !== excludeStance);
@@ -92,11 +96,12 @@ function replaceLeader(s: GameState, endorsed: boolean): string {
   s.inbox = s.inbox.filter((c) => !stale(c));
   s.queue = s.queue.filter((c) => !stale(c));
   const start = clamp(45 + 10 * stanceFit(s, gov.stance) - (endorsed ? 10 : 0), 20, 70);
-  changeMeter(s, 'confidence', start - s.meters.confidence, `New ${gov.leaderTitle}: ${gov.leaderName}`, true);
-  addLog(s, `${old.leaderName} lost power. ${gov.leaderName} (${STANCE_LABELS[gov.stance]}) takes over.`, true, 'mixed');
-  highlight(s, `New ${gov.leaderTitle}: ${gov.leaderName} — ${STANCE_LABELS[gov.stance]}`, 'mixed', 'government');
+  const p = { leaderTitle: gov.leaderTitle, leader: gov.leaderName, old: old.leaderName, stance: STANCE_LABELS[gov.stance] };
+  changeMeter(s, 'confidence', start - s.meters.confidence, t('New {leaderTitle}: {leader}', p), true);
+  addLog(s, t('{old} lost power. {leader} ({stance}) takes over.', p), true, 'mixed', undefined, { en: 'lost power' });
+  highlight(s, t('New {leaderTitle}: {leader} — {stance}', p), 'mixed', 'government');
   bumpStat(s, 'leadersChanged');
-  return `${old.leaderName} is out. ${gov.leaderName} takes office with a "${getStanceText(gov.stance).label}" agenda.`;
+  return t('{old} is out. {leader} takes office with a "{agenda}" agenda.', { ...p, agenda: getStanceText(gov.stance).label });
 }
 
 // ───────────────────────────── Confidence ─────────────────────────────
@@ -107,17 +112,17 @@ export function tickConfidence(s: GameState, tc: TickCtx): void {
   const pub = publicSituations(s).length;
   const safety = clamp(0.5 - pub * 1.0 - tc.catastrophes.length * 2, -3, 1);
   const terms: [string, number][] = [
-    ['Economic performance', w.growth * clamp(tc.econDelta, -3, 3)],
-    ['Security situation', w.security * clamp(tc.secDelta, -3, 3)],
-    ['Public mood', w.stability * clamp(tc.stabDelta, -3, 3)],
-    ['Position in the AI race', w.race * race],
-    ['AI safety record', w.safety * safety],
+    [t('Economic performance'), w.growth * clamp(tc.econDelta, -3, 3)],
+    [t('Security situation'), w.security * clamp(tc.secDelta, -3, 3)],
+    [t('Public mood'), w.stability * clamp(tc.stabDelta, -3, 3)],
+    [t('Position in the AI race'), w.race * race],
+    [t('AI safety record'), w.safety * safety],
   ];
   for (const [label, v] of terms) {
     const d = 0.5 * v;
     if (Math.abs(d) >= 0.05) changeMeter(s, 'confidence', d, label);
   }
-  changeMeter(s, 'confidence', -0.3, 'Political wear and tear');
+  changeMeter(s, 'confidence', -0.3, t('Political wear and tear'));
   if (s.meters.confidence <= 30) queueTip(s, 'low_confidence');
 }
 
@@ -189,22 +194,26 @@ function shapeDemand(s: GameState, d: Demand, soft: boolean): void {
       const quarters = Math.max(1, baseDeadline - d.issuedTurn);
       const v = Math.min(95, Math.round((d.baseline ?? s.meters.economy) + (soft ? Math.max(1, quarters - 1) : quarters)));
       d.target = { meter: 'economy', value: v };
-      d.title = `Lift Prosperity to ${v}`;
-      d.text = `The ${lt} wants visible economic results: Prosperity at ${v} by the end of ${dateLabel(d.deadlineTurn)}.`;
+      d.title = t('Lift Prosperity to {value}', { value: v });
+      d.text = t('The {leaderTitle} wants visible economic results: Prosperity at {value} by the end of {date}.', { leaderTitle: lt, value: v, date: dateLabel(d.deadlineTurn) });
       break;
     }
     case 'deploy_sector': {
       const sector = d.target.sector ?? demandSector(s);
       const v = Math.min(95, Math.round((d.baseline ?? s.adoption[sector]) + (soft ? 6 : 12)));
       d.target = { sector, value: v };
-      d.title = `${SECTOR_INFO[sector].name} AI adoption to ${v}`;
-      d.text = `The ${lt} wants AI working in ${SECTOR_INFO[sector].name}: adoption of ${v} by the end of ${dateLabel(d.deadlineTurn)}.`;
+      d.title = t('{sector} AI adoption to {value}', { sector: SECTOR_INFO[sector].name, value: v });
+      d.text = t('The {leaderTitle} wants AI working in {sector}: adoption of {value} by the end of {date}.', { leaderTitle: lt, sector: SECTOR_INFO[sector].name, value: v, date: dateLabel(d.deadlineTurn) });
       break;
     }
     case 'approve_model': {
       const c = findCompany(s, d.target.companyId);
-      d.title = soft ? `Deploy ${possessive(c?.name ?? 'a lab')} next model (limits OK)` : `Fully approve ${possessive(c?.name ?? 'a lab')} next model`;
-      d.text = `${c?.name ?? 'A national champion'} has the ${possessive(lt)} ear. The ${lt} expects their next model ${soft ? 'deployed, even with limits,' : 'fully approved'} by the end of ${dateLabel(d.deadlineTurn)}.`;
+      const p = { company: c?.name ?? t('a lab'), leaderTitle: lt, date: dateLabel(d.deadlineTurn) };
+      d.title = soft ? fmt(tr("Deploy {company}'s next model (limits OK)"), p) : fmt(tr("Fully approve {company}'s next model"), p);
+      const pt = { ...p, company: c?.name ?? t('A national champion') };
+      d.text = soft
+        ? fmt(tr("{company} has the {leaderTitle}'s ear. The {leaderTitle} expects their next model deployed, even with limits, by the end of {date}."), pt)
+        : fmt(tr("{company} has the {leaderTitle}'s ear. The {leaderTitle} expects their next model fully approved by the end of {date}."), pt);
       break;
     }
     case 'match_rival': {
@@ -214,30 +223,31 @@ function shapeDemand(s: GameState, d: Demand, soft: boolean): void {
       const lvl = lowLevel ? 1 : 2;
       if (soft && !lowLevel) d.deadlineTurn = Math.min(s.maxTurns, baseDeadline + 1);
       d.target = { ...d.target, program: 'compute', level: lvl };
-      d.title = `Keep pace with ${rv?.name ?? 'our rivals'}: National Compute level ${lvl} by ${dateLabel(d.deadlineTurn)}`;
-      d.text = `The ${lt} will not be outpaced by ${rv?.name ?? 'our rivals'}. Have National Compute at level ${lvl} (or overtake them) at the end of ${dateLabel(d.deadlineTurn)}.`;
+      const p = { rival: rv?.name ?? t('our rivals'), level: lvl, date: dateLabel(d.deadlineTurn), leaderTitle: lt };
+      d.title = t('Keep pace with {rival}: National Compute level {level} by {date}', p);
+      d.text = t('The {leaderTitle} will not be outpaced by {rival}. Have National Compute at level {level} (or overtake them) at the end of {date}.', p);
       break;
     }
     case 'budget_cut': {
       const v = Math.round((d.baseline ?? s.budget) + (soft ? 4 : 8));
       d.target = { value: v };
-      d.title = `Hold $${v}B in the treasury`;
-      d.text = `The finance ministry wants savings. The treasury must hold at least $${v}B at the end of ${dateLabel(d.deadlineTurn)}.`;
+      d.title = t('Hold ${value}B in the treasury', { value: v });
+      d.text = t('The finance ministry wants savings. The treasury must hold at least ${value}B at the end of {date}.', { value: v, date: dateLabel(d.deadlineTurn) });
       break;
     }
     case 'cover_up': {
       const x = s.situations.find((sx) => sx.id === d.target.situationId);
       if (soft) d.deadlineTurn = Math.max(d.issuedTurn + 1, baseDeadline - 1);
-      const name = x ? situationDisplayName(x) : 'the incident';
-      d.title = `Keep ${name} out of the news until ${dateLabel(d.deadlineTurn)}`;
-      d.text = `The ${lt} does not want a public scandal. Make sure ${name} does not become a public incident before the end of ${dateLabel(d.deadlineTurn)}.`;
+      const p = { situation: x ? situationDisplayName(x) : t('the incident'), date: dateLabel(d.deadlineTurn), leaderTitle: lt };
+      d.title = t('Keep {situation} out of the news until {date}', p);
+      d.text = t('The {leaderTitle} does not want a public scandal. Make sure {situation} does not become a public incident before the end of {date}.', p);
       break;
     }
     case 'jobs_guarantee': {
       const v = Math.max(12, Math.round((d.baseline ?? s.displacement) + (soft ? 10 : 4)));
       d.target = { value: v };
-      d.title = `Keep job displacement under ${v}`;
-      d.text = `The ${lt} promised voters their jobs are safe. Job displacement must stay at or below ${v} through ${dateLabel(d.deadlineTurn)}.`;
+      d.title = t('Keep job displacement under {value}', { value: v });
+      d.text = t('The {leaderTitle} promised voters their jobs are safe. Job displacement must stay at or below {value} through {date}.', { leaderTitle: lt, value: v, date: dateLabel(d.deadlineTurn) });
       break;
     }
     case 'defense_program': {
@@ -245,8 +255,13 @@ function shapeDemand(s: GameState, d: Demand, soft: boolean): void {
       const lvl = soft && lowLevel ? 1 : 2;
       if (soft && !lowLevel) d.deadlineTurn = Math.min(s.maxTurns, baseDeadline + 1);
       d.target = { program: 'defense', level: lvl };
-      d.title = `Defense AI at level ${lvl} by ${dateLabel(d.deadlineTurn)}`;
-      d.text = `The ${lt} wants our forces modernized: ${PROGRAMS.defense.name} funded at level ${lvl} at the end of ${dateLabel(d.deadlineTurn)} — and kept there.`;
+      d.title = t('Defense AI at level {level} by {date}', { level: lvl, date: dateLabel(d.deadlineTurn) });
+      d.text = t('The {leaderTitle} wants our forces modernized: {program} funded at level {level} at the end of {date} — and kept there.', {
+        leaderTitle: lt,
+        program: PROGRAMS.defense.name,
+        level: lvl,
+        date: dateLabel(d.deadlineTurn),
+      });
       break;
     }
   }
@@ -348,12 +363,20 @@ export function demandCard(s: GameState, d: Demand): Card {
   const p = counterChance(s, d);
   const rc = refuseCost(s);
   const choices: Choice[] = [
-    { id: 'comply', label: 'Agree', hint: `Promise: ${d.title} (+${d.reward} if kept, −${d.penalty} if broken)`, preview: [pvConf(s, 1)], uncertain: true, stamp: 'approved', tone: 'neutral' },
-    { id: 'counter', label: 'Counter-offer', hint: `Propose: ${softPreviewTitle(s, d)}`, preview: [], uncertain: true, chance: p, stamp: 'noted', tone: 'neutral' },
+    {
+      id: 'comply',
+      label: t('Agree'),
+      hint: t('Promise: {promise} (+{reward} if kept, −{penalty} if broken)', { promise: d.title, reward: d.reward, penalty: d.penalty }),
+      preview: [pvConf(s, 1)],
+      uncertain: true,
+      stamp: 'approved',
+      tone: 'neutral',
+    },
+    { id: 'counter', label: t('Counter-offer'), hint: t('Propose: {promise}', { promise: softPreviewTitle(s, d) }), preview: [], uncertain: true, chance: p, stamp: 'noted', tone: 'neutral' },
     {
       id: 'evidence',
-      label: 'Present evidence',
-      hint: 'Use Evidence to argue for the softer version.',
+      label: t('Present evidence'),
+      hint: t('Use Evidence to argue for the softer version.'),
       preview: [pvUnits('evidence', -1)],
       uncertain: true,
       chance: clamp(p + 0.3, 0.05, 0.95),
@@ -362,15 +385,15 @@ export function demandCard(s: GameState, d: Demand): Card {
       stamp: 'noted',
       tone: 'safe',
     },
-    { id: 'refuse', label: 'Refuse', hint: `Say no now (−${rc} confidence) rather than break a promise later.`, preview: [pvConfExact(-rc)], stamp: 'denied', tone: 'risky' },
+    { id: 'refuse', label: t('Refuse'), hint: t('Say no now (−{cost} confidence) rather than break a promise later.', { cost: rc }), preview: [pvConfExact(-rc)], stamp: 'denied', tone: 'risky' },
   ];
   return makeCard(s, {
     kind: 'demand',
     templateId: DEMAND_CARD,
     title: d.title,
     body: d.text,
-    subtitle: `Demand · due ${dateLabel(d.deadlineTurn)}`,
-    source: { type: 'government', name: `Office of the ${s.government.leaderTitle}` },
+    subtitle: t('Demand · due {date}', { date: dateLabel(d.deadlineTurn) }),
+    source: { type: 'government', name: t('Office of the {leaderTitle}', { leaderTitle: s.government.leaderTitle }) },
     urgency: 'priority',
     advisors: demandNotes(s, d, rc),
     choices,
@@ -384,14 +407,14 @@ function insistCard(s: GameState, d: Demand): Card {
   return makeCard(s, {
     kind: 'negotiation',
     templateId: INSIST_CARD,
-    title: `The ${s.government.leaderTitle} insists`,
-    body: `Your counter-offer was rejected. ${s.government.leaderName} wants it done as originally stated: ${d.title}. Refusing now will be taken personally.`,
-    subtitle: 'Negotiation',
-    source: { type: 'government', name: `Office of the ${s.government.leaderTitle}` },
+    title: t('The {leaderTitle} insists', { leaderTitle: s.government.leaderTitle }),
+    body: t('Your counter-offer was rejected. {leader} wants it done as originally stated: {promise}. Refusing now will be taken personally.', { leader: s.government.leaderName, promise: d.title }),
+    subtitle: t('Negotiation'),
+    source: { type: 'government', name: t('Office of the {leaderTitle}', { leaderTitle: s.government.leaderTitle }) },
     urgency: 'priority',
     choices: [
-      { id: 'comply', label: 'Comply', hint: `Promise: ${d.title}`, preview: [], uncertain: true, stamp: 'approved' },
-      { id: 'refuse', label: 'Refuse', hint: `Stand your ground (−${rc} confidence).`, preview: [pvConfExact(-rc)], stamp: 'denied', tone: 'risky' },
+      { id: 'comply', label: t('Comply'), hint: t('Promise: {promise}', { promise: d.title }), preview: [], uncertain: true, stamp: 'approved' },
+      { id: 'refuse', label: t('Refuse'), hint: t('Stand your ground (−{cost} confidence).', { cost: rc }), preview: [pvConfExact(-rc)], stamp: 'denied', tone: 'risky' },
     ],
     ctx: { demandId: d.id },
     tags: ['politics'],
@@ -402,11 +425,11 @@ function activate(s: GameState, d: Demand): void {
   d.status = 'active';
   if (d.kind === 'cover_up') {
     const x = s.situations.find((sx) => sx.id === d.target.situationId);
-    changeRisk(s, 1, 'Cover-up', 'domestic');
+    changeRisk(s, 1, 'Cover-up', 'domestic'); // hidden: never shown
     const c = findCompany(s, x?.source.companyId);
     if (c) c.transparency = clamp(c.transparency - 5, 0, 100);
   }
-  addLog(s, `Promised the ${s.government.leaderTitle}: ${d.title}.`, false, 'neutral', { demandId: d.id });
+  addLog(s, t('Promised the {leaderTitle}: {promise}.', { leaderTitle: s.government.leaderTitle, promise: d.title }), false, 'neutral', { demandId: d.id });
 }
 
 export interface GovResolution {
@@ -419,30 +442,30 @@ export interface GovResolution {
 
 export function resolveDemandCard(s: GameState, card: Card, choiceId: string): GovResolution {
   const d = s.demands.find((x) => x.id === card.ctx.demandId);
-  if (!d || d.status !== 'offered') return { ok: true, text: 'The demand has lapsed.' };
+  if (!d || d.status !== 'offered') return { ok: true, text: t('The demand has lapsed.') };
   const r = rng(s);
   const insisting = card.templateId === INSIST_CARD;
   switch (choiceId) {
     case 'comply':
       activate(s, d);
-      if (!insisting) changeMeter(s, 'confidence', 1, 'Agreed to a demand');
-      return { ok: true, text: `You commit: ${d.title} (due ${dateLabel(d.deadlineTurn)}).` };
+      if (!insisting) changeMeter(s, 'confidence', 1, t('Agreed to a demand'));
+      return { ok: true, text: t('You commit: {promise} (due {date}).', { promise: d.title, date: dateLabel(d.deadlineTurn) }) };
     case 'refuse': {
       const cost = refuseCost(s, insisting);
       d.status = 'refused';
-      changeMeter(s, 'confidence', -cost, insisting ? `Defied the ${s.government.leaderTitle}` : `Refused a demand`, true);
-      addLog(s, `Refused the ${s.government.leaderTitle}'s demand: ${d.title}.`, true, 'mixed', { demandId: d.id });
+      changeMeter(s, 'confidence', -cost, insisting ? t('Defied the {leaderTitle}', { leaderTitle: s.government.leaderTitle }) : t('Refused a demand'), true);
+      addLog(s, t("Refused the {leaderTitle}'s demand: {promise}.", { leaderTitle: s.government.leaderTitle, promise: d.title }), true, 'mixed', { demandId: d.id });
       bumpStat(s, 'demandsRefused');
-      return { ok: true, text: `You refuse. ${s.government.leaderName} will remember this.` };
+      return { ok: true, text: t('You refuse. {leader} will remember this.', { leader: s.government.leaderName }) };
     }
     case 'counter':
     case 'evidence': {
-      if (insisting) return { ok: false, error: 'Not available', text: '' };
+      if (insisting) return { ok: false, error: t('Not available'), text: '' };
       const useEvidence = choiceId === 'evidence';
       if (useEvidence) {
         const block = costBlock(s, { evidence: 1 });
         if (block) return { ok: false, error: block, text: '' };
-        payCost(s, { evidence: 1 }, 'Presented evidence');
+        payCost(s, { evidence: 1 }, t('Presented evidence'));
       }
       // Roll exactly the chance shown on the (refreshed) card.
       const shown = card.choices.find((c) => c.id === choiceId)?.chance;
@@ -451,13 +474,13 @@ export function resolveDemandCard(s: GameState, card: Card, choiceId: string): G
         shapeDemand(s, d, true);
         activate(s, d);
         bumpStat(s, 'negotiationsWon');
-        return { ok: true, success: true, text: `Accepted. The revised promise: ${d.title} (due ${dateLabel(d.deadlineTurn)}).` };
+        return { ok: true, success: true, text: t('Accepted. The revised promise: {promise} (due {date}).', { promise: d.title, date: dateLabel(d.deadlineTurn) }) };
       }
       bumpStat(s, 'negotiationsLost');
-      return { ok: true, success: false, text: `${s.government.leaderName} rejects the counter-offer.`, newCard: insistCard(s, d) };
+      return { ok: true, success: false, text: t('{leader} rejects the counter-offer.', { leader: s.government.leaderName }), newCard: insistCard(s, d) };
     }
   }
-  return { ok: false, error: 'Unknown choice', text: '' };
+  return { ok: false, error: t('Unknown choice'), text: '' };
 }
 
 /** Whether an active demand's goal is currently satisfied. */
@@ -499,26 +522,35 @@ export function demandProgress(s: GameState, d: Demand): { progress: number; lab
     case 'growth_target': {
       const base = d.baseline ?? 0;
       const v = d.target.value ?? 0;
-      return { progress: clamp((s.meters.economy - base) / Math.max(1, v - base), 0, 1), label: `Prosperity ${Math.round(s.meters.economy)} / ${v}` };
+      return { progress: clamp((s.meters.economy - base) / Math.max(1, v - base), 0, 1), label: t('Prosperity {value} / {target}', { value: Math.round(s.meters.economy), target: v }) };
     }
     case 'deploy_sector': {
       const sec = d.target.sector ?? 'business';
       const base = d.baseline ?? 0;
       const v = d.target.value ?? 0;
-      return { progress: clamp((s.adoption[sec] - base) / Math.max(1, v - base), 0, 1), label: `${SECTOR_INFO[sec].name} adoption ${Math.round(s.adoption[sec])} / ${v}` };
+      return {
+        progress: clamp((s.adoption[sec] - base) / Math.max(1, v - base), 0, 1),
+        label: t('{sector} adoption {value} / {target}', { sector: SECTOR_INFO[sec].name, value: Math.round(s.adoption[sec]), target: v }),
+      };
     }
     case 'approve_model':
-      return { progress: demandSatisfied(s, d) ? 1 : 0, label: demandSatisfied(s, d) ? 'Model approved' : 'Awaiting their next model' };
+      return { progress: demandSatisfied(s, d) ? 1 : 0, label: demandSatisfied(s, d) ? t('Model approved') : t('Awaiting their next model') };
     case 'match_rival':
-      return { progress: clamp((s.programs.compute ?? 0) / (d.target.level ?? 2), 0, 1), label: `National Compute L${s.programs.compute ?? 0} / L${d.target.level ?? 2}` };
+      return {
+        progress: clamp((s.programs.compute ?? 0) / (d.target.level ?? 2), 0, 1),
+        label: t('National Compute L{level} / L{target}', { level: s.programs.compute ?? 0, target: d.target.level ?? 2 }),
+      };
     case 'budget_cut':
-      return { progress: clamp(s.budget / Math.max(1, d.target.value ?? 1), 0, 1), label: `Treasury $${Math.round(s.budget)}B / $${d.target.value}B` };
+      return { progress: clamp(s.budget / Math.max(1, d.target.value ?? 1), 0, 1), label: t('Treasury ${value}B / ${target}B', { value: Math.round(s.budget), target: String(d.target.value) }) };
     case 'cover_up':
-      return { progress: demandSatisfied(s, d) ? 1 : 0, label: demandSatisfied(s, d) ? 'Still out of the news' : 'Public — promise broken' };
+      return { progress: demandSatisfied(s, d) ? 1 : 0, label: demandSatisfied(s, d) ? t('Still out of the news') : t('Public — promise broken') };
     case 'jobs_guarantee':
-      return { progress: demandSatisfied(s, d) ? 1 : 0, label: `Displacement ${Math.round(s.displacement)} / max ${d.target.value}` };
+      return { progress: demandSatisfied(s, d) ? 1 : 0, label: t('Displacement {value} / max {target}', { value: Math.round(s.displacement), target: String(d.target.value) }) };
     case 'defense_program':
-      return { progress: clamp((s.programs.defense ?? 0) / (d.target.level ?? 2), 0, 1), label: `Defense AI L${s.programs.defense ?? 0} / L${d.target.level ?? 2}` };
+      return {
+        progress: clamp((s.programs.defense ?? 0) / (d.target.level ?? 2), 0, 1),
+        label: t('Defense AI L{level} / L{target}', { level: s.programs.defense ?? 0, target: d.target.level ?? 2 }),
+      };
   }
 }
 
@@ -542,13 +574,13 @@ export function settleAllDemands(s: GameState): void {
 function settle(s: GameState, d: Demand, met: boolean): void {
   d.status = met ? 'met' : 'failed';
   if (met) {
-    changeMeter(s, 'confidence', d.reward, `Promise kept: ${d.title}`, true);
-    highlight(s, `Promise kept: ${d.title}`, 'good', 'check');
+    changeMeter(s, 'confidence', d.reward, t('Promise kept: {promise}', { promise: d.title }), true);
+    highlight(s, t('Promise kept: {promise}', { promise: d.title }), 'good', 'check');
     bumpStat(s, 'demandsMet');
   } else {
-    changeMeter(s, 'confidence', -d.penalty, `Broken promise: ${d.title}`, true);
-    highlight(s, `Promise broken: ${d.title}`, 'bad', 'cross');
-    addLog(s, `Broke a promise to the ${s.government.leaderTitle}: ${d.title}.`, true, 'bad', { demandId: d.id });
+    changeMeter(s, 'confidence', -d.penalty, t('Broken promise: {promise}', { promise: d.title }), true);
+    highlight(s, t('Promise broken: {promise}', { promise: d.title }), 'bad', 'cross');
+    addLog(s, t('Broke a promise to the {leaderTitle}: {promise}.', { leaderTitle: s.government.leaderTitle, promise: d.title }), true, 'bad', { demandId: d.id }, { en: 'broke a promise' });
     bumpStat(s, 'demandsFailed');
   }
 }
@@ -578,32 +610,38 @@ export function electionCard(s: GameState, kind: 'election' | 'congress'): Card 
   const isCongress = kind === 'congress';
   // The campaign headline runs before the result is known.
   if (isCongress) {
-    s.news.push({ turn: s.turn, outlet: 'State Broadcaster', text: `Party Congress opens in ${getCountry(s.countryId).capital}; delegates weigh the AI record`, tone: 'neutral' });
+    s.news.push({
+      turn: s.turn,
+      outlet: t('State Broadcaster'),
+      text: t('Party Congress opens in {capital}; delegates weigh the AI record', { capital: getCountry(s.countryId).capital }),
+      tone: 'neutral',
+    });
   } else {
     publishHeadline(s, 'election');
   }
+  const leader = s.government.leaderName;
   return makeCard(s, {
     kind: 'election',
     templateId: ELECTION_CARD,
-    title: isCongress ? 'The Party Congress convenes' : `Election day for the ${lt}`,
+    title: isCongress ? t('The Party Congress convenes') : t('Election day for the {leaderTitle}', { leaderTitle: lt }),
     body: isCongress
-      ? `Party elders gather to review the leadership. ${possessive(s.government.leaderName)} position depends on the economy and public order. A new ${lt} could have very different priorities.`
-      : `${s.government.leaderName} faces the voters. Prosperity and stability will decide it. If the ${lt} loses, a successor with a different agenda will judge your record from scratch.`,
-    subtitle: isCongress ? 'Leadership Review' : 'Election',
-    source: { type: 'government', name: isCongress ? 'Party Central Committee' : 'Electoral Commission' },
+      ? fmt(tr("Party elders gather to review the leadership. {leader}'s position depends on the economy and public order. A new {leaderTitle} could have very different priorities."), { leader, leaderTitle: lt })
+      : t('{leader} faces the voters. Prosperity and stability will decide it. If the {leaderTitle} loses, a successor with a different agenda will judge your record from scratch.', { leader, leaderTitle: lt }),
+    subtitle: isCongress ? t('Leadership Review') : t('Election'),
+    source: { type: 'government', name: isCongress ? t('Party Central Committee') : t('Electoral Commission') },
     urgency: 'critical',
     evidence: [
-      { label: 'Prosperity', value: String(Math.round(s.meters.economy)), confidence: 'verified' },
-      { label: 'Stability', value: String(Math.round(s.meters.stability)), confidence: 'verified' },
-      { label: `Incumbent's chances`, value: `${Math.round(p * 100)}%`, confidence: 'high' },
+      { label: t('Prosperity'), value: String(Math.round(s.meters.economy)), confidence: 'verified' },
+      { label: t('Stability'), value: String(Math.round(s.meters.stability)), confidence: 'verified' },
+      { label: t("Incumbent's chances"), value: `${Math.round(p * 100)}%`, confidence: 'high' },
     ],
     choices: [
-      { id: 'neutral', label: 'Stay above politics', hint: 'Your department stays neutral.', preview: [], uncertain: true, chance: p, stamp: 'noted' },
-      { id: 'endorse', label: `Back the ${lt} publicly`, hint: 'Big reward if they win; a cold start if they lose.', preview: [], uncertain: true, chance: p, stamp: 'signed', tone: 'risky' },
+      { id: 'neutral', label: t('Stay above politics'), hint: t('Your department stays neutral.'), preview: [], uncertain: true, chance: p, stamp: 'noted' },
+      { id: 'endorse', label: t('Back the {leaderTitle} publicly', { leaderTitle: lt }), hint: t('Big reward if they win; a cold start if they lose.'), preview: [], uncertain: true, chance: p, stamp: 'signed', tone: 'risky' },
       {
         id: 'campaign',
-        label: 'Fund a public AI briefing tour',
-        hint: '$4B to showcase the government\'s AI record (+8%).',
+        label: t('Fund a public AI briefing tour'),
+        hint: t("$4B to showcase the government's AI record (+8%)."),
         preview: [pv('budget', -4)],
         uncertain: true,
         chance: clamp(p + 0.08, 0, 0.97),
@@ -619,16 +657,17 @@ export function electionCard(s: GameState, kind: 'election' | 'congress'): Card 
 
 export function resolveElectionCard(s: GameState, card: Card, choiceId: string): GovResolution {
   const ch = card.choices.find((c) => c.id === choiceId);
-  if (!ch) return { ok: false, error: 'Unknown choice', text: '' };
-  if (choiceId === 'campaign') payCost(s, ch.cost, 'Public AI briefing tour');
+  if (!ch) return { ok: false, error: t('Unknown choice'), text: '' };
+  if (choiceId === 'campaign') payCost(s, ch.cost, t('Public AI briefing tour'));
   const p = ch.chance ?? 0.5;
   s.flags[`reviewDone:${s.turn}`] = true;
   bumpStat(s, 'elections');
   if (rng(s).chance(p)) {
     const bonus = choiceId === 'endorse' ? 8 : 3;
-    changeMeter(s, 'confidence', bonus, choiceId === 'endorse' ? 'Backed the winner' : 'Leadership secure');
-    addLog(s, `${s.government.leaderName} kept power${choiceId === 'endorse' ? ' with your public backing' : ''}.`, false, 'good');
-    return { ok: true, success: true, text: `${s.government.leaderName} stays in office.` };
+    const leader = s.government.leaderName;
+    changeMeter(s, 'confidence', bonus, choiceId === 'endorse' ? t('Backed the winner') : t('Leadership secure'));
+    addLog(s, choiceId === 'endorse' ? t('{leader} kept power with your public backing.', { leader }) : t('{leader} kept power.', { leader }), false, 'good');
+    return { ok: true, success: true, text: t('{leader} stays in office.', { leader }) };
   }
   return { ok: true, success: false, text: replaceLeader(s, choiceId === 'endorse') };
 }
@@ -640,28 +679,38 @@ export function electionDue(s: GameState): 'election' | 'congress' | null {
 
 // ───────────────────────────── Last chance ─────────────────────────────
 
-const CONCESSION: Record<Stance, { label: string; hint: string }> = {
-  accelerationist: { label: 'Fast-track every deployment', hint: 'Enact the Fast-Track; repeal testing rules.' },
-  hawk: { label: 'Hand defense AI to the generals', hint: 'Defense AI to maximum; tensions rise.' },
-  cautious: { label: 'Freeze new business deployments', hint: 'Business AI targets cut; growth suffers.' },
-  populist: { label: 'Guarantee jobs with an AI levy', hint: 'Enact the AI Dividend; prosperity pays for it.' },
-};
+/** The concession each stance demands on the last-chance card. */
+function concession(stance: Stance): { label: string; hint: string } {
+  switch (stance) {
+    case 'accelerationist':
+      return { label: t('Fast-track every deployment'), hint: t('Enact the Fast-Track; repeal testing rules.') };
+    case 'hawk':
+      return { label: t('Hand defense AI to the generals'), hint: t('Defense AI to maximum; tensions rise.') };
+    case 'cautious':
+      return { label: t('Freeze new business deployments'), hint: t('Business AI targets cut; growth suffers.') };
+    case 'populist':
+      return { label: t('Guarantee jobs with an AI levy'), hint: t('Enact the AI Dividend; prosperity pays for it.') };
+  }
+}
 
 export function lastChanceCard(s: GameState): Card {
   s.government.lastChanceUsed = true;
-  const c = CONCESSION[s.government.stance];
+  const c = concession(s.government.stance);
   return makeCard(s, {
     kind: 'last_chance',
     templateId: LAST_CHANCE_CARD,
-    title: 'Your job is on the line',
-    body: `${s.government.leaderName} has asked for your resignation letter "to keep on file". You have one chance to win back the ${s.government.leaderTitle}'s confidence.`,
-    subtitle: 'Last Chance',
-    source: { type: 'advisor', name: 'Chief of Staff', id: 'chief_of_staff' },
+    title: t('Your job is on the line'),
+    body: t('{leader} has asked for your resignation letter "to keep on file". You have one chance to win back the {leaderTitle}\'s confidence.', {
+      leader: s.government.leaderName,
+      leaderTitle: s.government.leaderTitle,
+    }),
+    subtitle: t('Last Chance'),
+    source: { type: 'advisor', name: t('Chief of Staff'), id: 'chief_of_staff' },
     urgency: 'critical',
     choices: [
       { id: 'concede', label: c.label, hint: c.hint, preview: [pvConf(s, 14)], uncertain: true, stamp: 'signed', tone: 'risky' },
-      { id: 'pr', label: 'Launch a PR campaign', hint: '$8B to rebuild your standing.', preview: [pvConf(s, 10), pv('budget', -8)], cost: { budget: 8 }, disabled: costBlock(s, { budget: 8 }), stamp: 'noted' },
-      { id: 'gamble', label: 'Stake your job on a bold promise', hint: 'Win big or lose it all.', preview: [], uncertain: true, chance: 0.55, stamp: 'urgent', tone: 'aggressive' },
+      { id: 'pr', label: t('Launch a PR campaign'), hint: t('$8B to rebuild your standing.'), preview: [pvConf(s, 10), pv('budget', -8)], cost: { budget: 8 }, disabled: costBlock(s, { budget: 8 }), stamp: 'noted' },
+      { id: 'gamble', label: t('Stake your job on a bold promise'), hint: t('Win big or lose it all.'), preview: [], uncertain: true, chance: 0.55, stamp: 'urgent', tone: 'aggressive' },
     ],
     ctx: {},
     tags: ['politics'],
@@ -677,36 +726,36 @@ export function resolveLastChanceCard(s: GameState, _card: Card, choiceId: strin
         s.policies = s.policies.filter((p) => p !== 'mandatory_evals' && p !== 'compute_licensing');
       } else if (st === 'hawk') {
         s.programs.defense = 3;
-        changeResource(s, 'tension', 10, 'Militarized AI');
+        changeResource(s, 'tension', 10, t('Militarized AI'));
       } else if (st === 'cautious') {
-        changeMeter(s, 'economy', -6, 'Deployment freeze');
+        changeMeter(s, 'economy', -6, t('Deployment freeze'));
         s.adoptionTarget.business = Math.max(0, s.adoptionTarget.business - 10);
       } else {
         if (!s.policies.includes('ai_dividend')) s.policies.push('ai_dividend');
-        changeMeter(s, 'economy', -5, 'AI levy');
+        changeMeter(s, 'economy', -5, t('AI levy'));
       }
-      changeMeter(s, 'confidence', 14, 'Major concession');
-      addLog(s, `Made a major concession to keep your job: ${CONCESSION[st].label}.`, true, 'mixed');
-      return { ok: true, text: `The ${s.government.leaderTitle} accepts. You survive — on their terms.` };
+      changeMeter(s, 'confidence', 14, t('Major concession'));
+      addLog(s, t('Made a major concession to keep your job: {concession}.', { concession: concession(st).label }), true, 'mixed');
+      return { ok: true, text: t('The {leaderTitle} accepts. You survive — on their terms.', { leaderTitle: s.government.leaderTitle }) };
     }
     case 'pr': {
       const block = costBlock(s, { budget: 8 });
       if (block) return { ok: false, error: block, text: '' };
-      payCost(s, { budget: 8 }, 'PR campaign');
-      changeMeter(s, 'confidence', 10, 'PR campaign');
-      return { ok: true, text: 'Op-eds, interviews, a well-timed photo-op. The pressure eases.' };
+      payCost(s, { budget: 8 }, t('PR campaign'));
+      changeMeter(s, 'confidence', 10, t('PR campaign'));
+      return { ok: true, text: t('Op-eds, interviews, a well-timed photo-op. The pressure eases.') };
     }
     case 'gamble':
       if (rng(s).chance(0.55)) {
-        changeMeter(s, 'confidence', 18, 'Bold promise pays off');
-        addLog(s, 'Staked your job on a bold promise — and won.', true, 'good');
-        return { ok: true, success: true, text: 'The gamble pays off spectacularly. You are untouchable — for now.' };
+        changeMeter(s, 'confidence', 18, t('Bold promise pays off'));
+        addLog(s, t('Staked your job on a bold promise — and won.'), true, 'good');
+        return { ok: true, success: true, text: t('The gamble pays off spectacularly. You are untouchable — for now.') };
       }
-      changeMeter(s, 'confidence', -10, 'Bold promise backfires');
-      addLog(s, 'Staked your job on a bold promise — and lost.', true, 'bad');
-      return { ok: true, success: false, text: 'It backfires in public. Your days look numbered.' };
+      changeMeter(s, 'confidence', -10, t('Bold promise backfires'));
+      addLog(s, t('Staked your job on a bold promise — and lost.'), true, 'bad');
+      return { ok: true, success: false, text: t('It backfires in public. Your days look numbered.') };
   }
-  return { ok: false, error: 'Unknown choice', text: '' };
+  return { ok: false, error: t('Unknown choice'), text: '' };
 }
 
 /** Keeps negotiation and election odds current when meters change mid-quarter. */
@@ -723,13 +772,15 @@ export function refreshGovernmentCard(s: GameState, card: Card): void {
       }
     }
   } else if (card.templateId === ELECTION_CARD) {
-    const kind = card.title.includes('Congress') ? 'congress' : 'election';
+    // The review kind comes from the calendar entry that created the card (never from its text).
+    const kind = s.government.calendar.find((c) => c.turn === card.createdTurn)?.kind ?? 'election';
     const p = electionChance(s, kind);
     for (const ch of card.choices) {
       ch.chance = ch.id === 'campaign' ? clamp(p + 0.08, 0, 0.97) : p;
       if (ch.cost) ch.disabled = costBlock(s, ch.cost);
     }
-    const line = card.evidence?.find((e) => e.label === "Incumbent's chances");
+    // Evidence lines: Prosperity, Stability, Incumbent's chances (see electionCard).
+    const line = card.evidence?.[2];
     if (line) line.value = `${Math.round(p * 100)}%`;
   } else {
     for (const ch of card.choices) if (ch.cost) ch.disabled = costBlock(s, ch.cost);

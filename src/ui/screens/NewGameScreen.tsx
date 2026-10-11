@@ -5,20 +5,21 @@ import type { JSX } from 'preact';
 import { useState } from 'preact/hooks';
 import type { CountryId, Difficulty } from '../../engine/types';
 import { COUNTRY_ORDER } from '../../content/countries';
+import { t } from '../../i18n';
 import { Icon, Svg, artCached } from '../components/Icon';
 import { countryCard } from '../countries';
-import { cx, dailySeed } from '../util';
+import { DIFF_LABEL, cx, dailySeed } from '../util';
 import { useHeightVar } from '../hooks';
 
 const DIFFICULTIES: { id: Difficulty; name: string; desc: string }[] = [
-  { id: 'analyst', name: 'Analyst', desc: 'Clearer signals, gentler politics, slower risk.' },
-  { id: 'director', name: 'Director', desc: 'The intended experience. Hard but fair.' },
-  { id: 'doomer', name: 'Doomer', desc: 'Noisy evidence, relentless demands, faster risk.' },
+  { id: 'analyst', name: DIFF_LABEL.analyst, desc: t('Clearer signals, gentler politics, slower risk.') },
+  { id: 'director', name: DIFF_LABEL.director, desc: t('The intended experience. Hard but fair.') },
+  { id: 'doomer', name: DIFF_LABEL.doomer, desc: t('Noisy evidence, relentless demands, faster risk.') },
 ];
 
 const ORDER: CountryId[] = COUNTRY_ORDER.length ? COUNTRY_ORDER : ['atlantic', 'hanzhou', 'commonwealth', 'meridian'];
 
-const START_LABEL = { confidence: 'Conf', economy: 'Pros', stability: 'Stab', security: 'Sec' } as const;
+const START_LABEL = { confidence: t('Conf'), economy: t('Pros'), stability: t('Stab'), security: t('Sec') };
 
 export function NewGameScreen({ daily, onBack, onStart }: { daily: boolean; onBack(): void; onStart(c: CountryId, d: Difficulty): void }): JSX.Element {
   const [country, setCountry] = useState<CountryId | null>(null);
@@ -29,16 +30,16 @@ export function NewGameScreen({ daily, onBack, onStart }: { daily: boolean; onBa
   return (
     <div class="screen newgame">
       <header class="screen-head">
-        <button type="button" class="iconbtn" onClick={onBack} aria-label="Back to title">
+        <button type="button" class="iconbtn" onClick={onBack} aria-label={t('Back to title')}>
           <Icon name="back" size={20} />
         </button>
         <div>
-          <p class="eyebrow">{daily ? `Daily Run · seed #${dailySeed()}` : 'New run'}</p>
-          <h1 class="screen-head__title">Choose your nation</h1>
+          <p class="eyebrow">{daily ? t('Daily Run · seed #{seed}', { seed: dailySeed() }) : t('New run')}</p>
+          <h1 class="screen-head__title">{t('Choose your nation')}</h1>
         </div>
       </header>
 
-      <div class="countries" role="radiogroup" aria-label="Country">
+      <div class="countries" role="radiogroup" aria-label={t('Country')}>
         {ORDER.map((id) => {
           const c = countryCard(id);
           const sel = id === country;
@@ -58,7 +59,7 @@ export function NewGameScreen({ daily, onBack, onStart }: { daily: boolean; onBa
                 <Svg class="country__emblem" html={artCached.emblem(id, 56)} />
                 <span class="country__id">
                   <span class="country__name">{c.name}</span>
-                  <span class="country__leader">Led by the {c.leaderTitle}</span>
+                  <span class="country__leader">{t('Led by the {title}', { title: c.leaderTitle })}</span>
                 </span>
                 <span class="country__check" aria-hidden="true">
                   <Icon name="check" size={16} />
@@ -78,7 +79,7 @@ export function NewGameScreen({ daily, onBack, onStart }: { daily: boolean; onBa
               <span class="country__more">
                 <span class="country__lists">
                   <span class="clist clist--pros">
-                    <span class="eyebrow">Strengths</span>
+                    <span class="eyebrow">{t('Strengths')}</span>
                     {c.strengths.slice(0, 4).map((s) => (
                       <span key={s} class="clist__item">
                         {s}
@@ -86,7 +87,7 @@ export function NewGameScreen({ daily, onBack, onStart }: { daily: boolean; onBa
                     ))}
                   </span>
                   <span class="clist clist--cons">
-                    <span class="eyebrow">Weaknesses</span>
+                    <span class="eyebrow">{t('Weaknesses')}</span>
                     {c.weaknesses.slice(0, 4).map((s) => (
                       <span key={s} class="clist__item">
                         {s}
@@ -112,9 +113,9 @@ export function NewGameScreen({ daily, onBack, onStart }: { daily: boolean; onBa
       </div>
 
       <div class="newgame__dock" ref={dockRef}>
-      <section class="difficulty" aria-label="Difficulty">
-        <h2 class="eyebrow">Difficulty</h2>
-        <div class="seg seg--diff" role="radiogroup" aria-label="Difficulty">
+      <section class="difficulty" aria-label={t('Difficulty')}>
+        <h2 class="eyebrow">{t('Difficulty')}</h2>
+        <div class="seg seg--diff" role="radiogroup" aria-label={t('Difficulty')}>
           {DIFFICULTIES.map((d) => (
             <button
               type="button"
@@ -131,7 +132,7 @@ export function NewGameScreen({ daily, onBack, onStart }: { daily: boolean; onBa
           ))}
         </div>
         {daily ? (
-          <p class="difficulty__daily">Daily runs are always played on Director, so everyone faces the same world.</p>
+          <p class="difficulty__daily">{t('Daily runs are always played on Director, so everyone faces the same world.')}</p>
         ) : (
           <p class="difficulty__desc">{diffDesc}</p>
         )}
@@ -139,7 +140,7 @@ export function NewGameScreen({ daily, onBack, onStart }: { daily: boolean; onBa
 
       <div class="newgame__start">
         <button type="button" class="btn btn--primary btn--xl btn--wide" disabled={!country} onClick={() => country && onStart(country, daily ? 'director' : diff)}>
-          {chosen ? `Take office — ${chosen.shortName ?? chosen.name}` : 'Select a nation'}
+          {chosen ? t('Take office — {country}', { country: chosen.shortName ?? chosen.name }) : t('Select a nation')}
           <Icon name="chevron_right" size={20} />
         </button>
       </div>

@@ -5,15 +5,16 @@
 import type { JSX } from 'preact';
 import type { TabId } from '../../engine/types';
 import { Icon, Portrait, Svg, artCached } from '../components/Icon';
-import { cx, hueOf } from '../util';
+import { t, tp } from '../../i18n';
+import { DIFF_LABEL, cx, hueOf } from '../util';
 import { useGame } from './context';
 
 export const TABS: { id: TabId; label: string; icon: string }[] = [
-  { id: 'inbox', label: 'Inbox', icon: 'inbox' },
-  { id: 'labs', label: 'Labs', icon: 'labs' },
-  { id: 'nation', label: 'Nation', icon: 'nation' },
-  { id: 'world', label: 'World', icon: 'world' },
-  { id: 'threats', label: 'Threats', icon: 'threats' },
+  { id: 'inbox', label: t('Inbox'), icon: 'inbox' },
+  { id: 'labs', label: t('Labs'), icon: 'labs' },
+  { id: 'nation', label: t('Nation'), icon: 'nation' },
+  { id: 'world', label: t('World'), icon: 'world' },
+  { id: 'threats', label: t('Threats'), icon: 'threats' },
 ];
 
 export function TabBar({ tab, onTab, fresh }: { tab: TabId; onTab(t: TabId): void; fresh: TabId[] }): JSX.Element {
@@ -29,34 +30,34 @@ export function TabBar({ tab, onTab, fresh }: { tab: TabId; onTab(t: TabId): voi
     return null;
   };
   return (
-    <nav class="tabbar" aria-label="Sections">
+    <nav class="tabbar" aria-label={t('Sections')}>
       <div class="tabbar__list" role="tablist">
-        {TABS.filter((t) => view.unlockedTabs.includes(t.id)).map((t) => {
-          const b = badge(t.id);
-          const isFresh = fresh.includes(t.id);
+        {TABS.filter((x) => view.unlockedTabs.includes(x.id)).map((x) => {
+          const b = badge(x.id);
+          const isFresh = fresh.includes(x.id);
           return (
             <button
-              key={t.id}
+              key={x.id}
               type="button"
               role="tab"
-              id={`tab-${t.id}`}
-              aria-selected={tab === t.id}
+              id={`tab-${x.id}`}
+              aria-selected={tab === x.id}
               aria-controls="main"
-              data-tab={t.id}
+              data-tab={x.id}
               data-nosfx
-              class={cx('tab', tab === t.id && 'is-active', isFresh && 'tab--fresh')}
-              onClick={() => onTab(t.id)}
+              class={cx('tab', tab === x.id && 'is-active', isFresh && 'tab--fresh')}
+              onClick={() => onTab(x.id)}
             >
               <span class="tab__icon">
-                <Icon name={t.icon} size={22} />
+                <Icon name={x.icon} size={22} />
                 {b && (
-                  <span class={cx('tab__badge num', `tab__badge--${b.tone}`)} aria-label={`${b.n} items`}>
+                  <span class={cx('tab__badge num', `tab__badge--${b.tone}`)} aria-label={tp(Number(b.n), '{n} item', '{n} items')}>
                     {b.n}
                   </span>
                 )}
               </span>
-              <span class="tab__label">{t.label}</span>
-              {isFresh && <span class="tab__new">New</span>}
+              <span class="tab__label">{x.label}</span>
+              {isFresh && <span class="tab__new">{t('New')}</span>}
             </button>
           );
         })}
@@ -68,7 +69,7 @@ export function TabBar({ tab, onTab, fresh }: { tab: TabId; onTab(t: TabId): voi
             <div>
               <div class="rail__cname">{view.country.name}</div>
               <div class="rail__seed num">
-                {view.difficulty} · #{view.seed}
+                {DIFF_LABEL[view.difficulty] ?? view.difficulty} · #{view.seed}
               </div>
             </div>
           </div>

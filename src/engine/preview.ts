@@ -2,10 +2,10 @@
  * Choice previews: icons for affected meters/resources with direction and magnitude (GDD §11).
  * Delayed/probabilistic consequences are never previewed — they only set `uncertain`.
  */
+import { listJoinL, t } from '../i18n';
 import { confidenceScale } from './changes';
 import { SECTOR_INFO } from './labels';
 import type { TemplateCtx } from './template';
-import { listJoin } from './util';
 import type { Effect, EffectPreview, GameState, MeterId, PreviewKey, SectorId } from './types';
 
 export function magnitude(delta: number): 1 | 2 | 3 {
@@ -118,7 +118,7 @@ export function previewEffect(effect: Effect | undefined, ctx: TemplateCtx, conf
     const sectors = Object.keys(effect.adoption) as SectorId[];
     let total = 0;
     for (const sec of sectors) total += effect.adoption[sec] ?? 0;
-    if (total !== 0) list.push(pvAdoption(total, listJoin(sectors.map((x) => SECTOR_INFO[x]?.name ?? x))));
+    if (total !== 0) list.push(pvAdoption(total, listJoinL(sectors.map((x) => SECTOR_INFO[x]?.name ?? x))));
   }
   if (effect.displacement) list.push(pv('displacement', effect.displacement));
   if (effect.tension) list.push(pv('tension', effect.tension));
@@ -132,7 +132,7 @@ export function previewEffect(effect: Effect | undefined, ctx: TemplateCtx, conf
     if (effect.rival.capability) uncertain = true; // foreign capability is fogged
   }
   if (effect.allRivals) {
-    if (effect.allRivals.trust) list.push(pv('rival', effect.allRivals.trust, 'All rivals'));
+    if (effect.allRivals.trust) list.push(pv('rival', effect.allRivals.trust, t('All rivals')));
     if (effect.allRivals.capability || effect.allRivals.aggression) uncertain = true;
   }
   if (effect.situation || effect.custom || effect.model) uncertain = true;

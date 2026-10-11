@@ -10,6 +10,7 @@
  *   <g class="map-links">                              ← arcs (player arcs carry class "is-player-link")
  */
 import type { CountryId } from '../engine/types';
+import { t } from '../i18n';
 import { uid } from './rng';
 import { inPoly, n, smooth, svgRoot, type Pt } from './util';
 
@@ -31,28 +32,28 @@ interface RegionDef {
 const REGIONS: RegionDef[] = [
   {
     id: 'atlantic',
-    name: 'ATLANTIC FEDERATION',
+    name: t('ATLANTIC FEDERATION'),
     shapes: [[[92, 96], [168, 68], [262, 72], [334, 108], [350, 158], [314, 196], [302, 248], [258, 292], [214, 300], [188, 268], [148, 232], [108, 200], [78, 150]]],
     capital: [262, 168],
     label: [214, 52],
   },
   {
     id: 'commonwealth',
-    name: 'EUROPEAN COMMONWEALTH',
+    name: t('EUROPEAN COMMONWEALTH'),
     shapes: [[[428, 94], [488, 70], [560, 76], [596, 108], [582, 150], [542, 176], [490, 186], [448, 170], [422, 134]]],
     capital: [512, 128],
     label: [510, 54],
   },
   {
     id: 'hanzhou',
-    name: 'HANZHOU REPUBLIC',
+    name: t('HANZHOU REPUBLIC'),
     shapes: [[[624, 84], [702, 62], [802, 68], [884, 96], [910, 142], [874, 190], [822, 214], [758, 230], [700, 220], [650, 190], [614, 140]]],
     capital: [768, 150],
     label: [766, 46],
   },
   {
     id: 'meridian',
-    name: 'MERIDIAN REPUBLIC',
+    name: t('MERIDIAN REPUBLIC'),
     shapes: [
       [[734, 262], [778, 258], [806, 282], [798, 320], [760, 334], [728, 308]],
       [[816, 296], [842, 290], [854, 312], [834, 330], [814, 318]],
@@ -195,7 +196,7 @@ export function worldMap(player: CountryId, width = 640): string {
     const label =
       `<text class="region-label" x="${lx}" y="${ly}" text-anchor="${r.anchor ?? 'middle'}" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="${me ? 14 : 12.5}" font-weight="600" letter-spacing="3" fill="currentColor" opacity="${me ? 1 : 0.8}" paint-order="stroke" stroke="#060b16" stroke-width="4">${r.name}</text>` +
       (me
-        ? `<text class="region-label region-tag" x="${lx}" y="${ly < 100 ? ly - 15 : ly + 17}" text-anchor="${r.anchor ?? 'middle'}" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="10" font-weight="600" letter-spacing="4" fill="currentColor" opacity=".75" paint-order="stroke" stroke="#060b16" stroke-width="4">◆ YOUR NATION</text>`
+        ? `<text class="region-label region-tag" x="${lx}" y="${ly < 100 ? ly - 15 : ly + 17}" text-anchor="${r.anchor ?? 'middle'}" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="10" font-weight="600" letter-spacing="4" fill="currentColor" opacity=".75" paint-order="stroke" stroke="#060b16" stroke-width="4">◆ ${t('YOUR NATION')}</text>`
         : '');
     regionEls +=
       `<g id="region-${r.id}" class="region${me ? ' is-player' : ''}" data-country="${r.id}" color="${me ? PLAYER : RIVAL}">` +
@@ -209,8 +210,8 @@ export function worldMap(player: CountryId, width = 640): string {
   const br = (x: number, y: number, dx: number, dy: number) => `M${x} ${y + dy * 22}V${y}H${x + dx * 22}`;
   const hud =
     `<path d="${br(10, 10, 1, 1)}${br(990, 10, -1, 1)}${br(10, 490, 1, -1)}${br(990, 490, -1, -1)}" fill="none" stroke="${PLAYER}" stroke-width="2" opacity=".5"/>` +
-    `<text x="40" y="482" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" letter-spacing="2" fill="#7f8ba3" opacity=".8">GLOBAL SITUATION // LIVE</text>` +
-    `<text x="960" y="482" text-anchor="end" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" letter-spacing="2" fill="#7f8ba3" opacity=".8">GRID 15° · PROJ. ABSTRACT</text>`;
+    `<text x="40" y="482" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" letter-spacing="2" fill="#7f8ba3" opacity=".8">${t('GLOBAL SITUATION // LIVE')}</text>` +
+    `<text x="960" y="482" text-anchor="end" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" letter-spacing="2" fill="#7f8ba3" opacity=".8">${t('GRID 15° · PROJ. ABSTRACT')}</text>`;
 
   const inner =
     defs +
@@ -222,5 +223,5 @@ export function worldMap(player: CountryId, width = 640): string {
     regionEls +
     hud +
     `<rect x=".5" y=".5" width="${W - 1}" height="${H - 1}" rx="18" fill="none" stroke="${PLAYER}" stroke-opacity=".14"/>`;
-  return svgRoot(width, width / 2, `0 0 ${W} ${H}`, inner, `role="img" aria-label="World map"`);
+  return svgRoot(width, width / 2, `0 0 ${W} ${H}`, inner, `role="img" aria-label="${t('World map')}"`);
 }

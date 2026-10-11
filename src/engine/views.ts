@@ -2,6 +2,7 @@
  * GameView construction (GDD §2.2, §4): everything the UI may see, fogged.
  * Never exposes hidden truth: true risk, traits, flaws of unconfirmed models, undetected situations.
  */
+import { t, tp } from '../i18n';
 import { getAdvisor, getCountry, getStanceText } from './content';
 import { POLICIES, POLICY_ORDER } from './data/policies';
 import { PROGRAMS, PROGRAM_ORDER } from './data/programs';
@@ -118,7 +119,7 @@ function modelView(s: GameState, m: AIModel): ModelView {
     id: m.id,
     name: m.name,
     companyId: m.companyId,
-    companyName: c?.name ?? 'Unknown',
+    companyName: c?.name ?? t('Unknown'),
     capability: modelCapEstimate(s, m),
     status,
     sectors: [...m.sectors],
@@ -160,7 +161,7 @@ function companyView(s: GameState, c: Company): CompanyView {
 }
 
 function rivalView(r: Rival): RivalView {
-  const t = r.trust;
+  const trust = r.trust;
   return {
     id: r.id,
     name: r.name,
@@ -171,8 +172,8 @@ function rivalView(r: Rival): RivalView {
     leadLab: r.leadLab,
     capability: rivalCapEstimate(r),
     safeguards: rivalSafeguardsEstimate(r),
-    trust: Math.round(t),
-    attitude: t >= 75 ? 'Ally' : t >= 55 ? 'Friendly' : t >= 40 ? 'Neutral' : t >= 25 ? 'Distrustful' : 'Hostile',
+    trust: Math.round(trust),
+    attitude: trust >= 75 ? 'Ally' : trust >= 55 ? 'Friendly' : trust >= 40 ? 'Neutral' : trust >= 25 ? 'Distrustful' : 'Hostile',
     aggressionLabel: rivalTraitView(r, 'aggression'),
     safetyLabel: rivalTraitView(r, 'safetyStance'),
     intel: round1(r.intel),
@@ -203,21 +204,19 @@ function situationView(s: GameState, x: Situation): SituationView {
     responses: x.resolved ? [] : responseViews(s, x),
     resolved: x.resolved,
   };
-  if (x.causeKnown) v.sourceLabel = model ? `${model.name} (${company?.name ?? 'unknown'})` : x.origin;
+  if (x.causeKnown) v.sourceLabel = model ? `${model.name} (${company?.name ?? t('unknown')})` : x.origin;
   if (x.detectedTurn !== undefined) v.detectedTurn = x.detectedTurn;
   if (x.outcome) v.outcome = x.outcome;
   return v;
 }
 
-const SETTLED_LABEL: Partial<Record<DemandView['status'], string>> = {
-  met: 'Promise kept',
-  failed: 'Promise broken',
-  refused: 'Refused',
-};
+function settledLabel(status: DemandView['status']): string | undefined {
+  return status === 'met' ? t('Promise kept') : status === 'failed' ? t('Promise broken') : status === 'refused' ? t('Refused') : undefined;
+}
 
 function demandView(s: GameState, d: GameState['demands'][number]): DemandView {
   const live = demandProgress(s, d);
-  const settled = SETTLED_LABEL[d.status];
+  const settled = settledLabel(d.status);
   const progress = settled ? (d.status === 'met' ? 1 : 0) : live.progress;
   const label = settled ?? live.label;
   const left = d.deadlineTurn - s.turn;
@@ -228,7 +227,12 @@ function demandView(s: GameState, d: GameState['demands'][number]): DemandView {
     text: d.text,
     status: d.status,
     deadlineTurn: d.deadlineTurn,
-    deadlineLabel: d.status === 'active' ? (left <= 0 ? `Due this quarter (${dateLabel(d.deadlineTurn)})` : `Due ${dateLabel(d.deadlineTurn)} · ${left + 1} quarters left`) : dateLabel(d.deadlineTurn),
+    deadlineLabel:
+      d.status === 'active'
+        ? left <= 0
+          ? t('Due this quarter ({date})', { date: dateLabel(d.deadlineTurn) })
+          : tp(left + 1, 'Due {date} · {n} quarter left', 'Due {date} · {n} quarters left', { date: dateLabel(d.deadlineTurn) })
+        : dateLabel(d.deadlineTurn),
     progress,
     progressLabel: label,
     reward: d.reward,
@@ -253,7 +257,10 @@ function governmentView(s: GameState): GovernmentView {
     mood: conf >= 65 ? 'Supportive' : conf >= 45 ? 'Satisfied' : conf >= 25 ? 'Impatient' : 'Hostile',
     demands: s.demands.filter((d) => d.status === 'active' || d.status === 'offered' || d.deadlineTurn >= s.turn - 1).map((d) => demandView(s, d)),
   };
-  if (next) view.nextReview = { turn: next.turn, kind: next.kind, label: `${next.kind === 'congress' ? 'Party Congress' : 'Election'} · ${dateLabel(next.turn)}` };
+  if (next) {
+    const date = dateLabel(next.turn);
+    view.nextReview = { turn: next.turn, kind: next.kind, label: next.kind === 'congress' ? t('Party Congress · {date}', { date }) : t('Election · {date}', { date }) };
+  }
   return view;
 }
 
@@ -292,16 +299,17 @@ export function currentWarnings(s: GameState): string[] {
   const w: string[] = [];
   for (const id of METERS) {
     const v = s.meters[id];
-    if (v <= 15) w.push(`${METER_INFO[id].name} critical (${Math.round(v)}) — ${METER_INFO[id].failText}`);
-    else if (v <= 30) w.push(`${METER_INFO[id].name} strained (${Math.round(v)})`);
+    const meter = METER_INFO[id].name;
+    if (v <= 15) w.push(t('{meter} critical ({value}) — {failText}', { meter, value: Math.round(v), failText: METER_INFO[id].failText }));
+    else if (v <= 30) w.push(t('{meter} strained ({value})', { meter, value: Math.round(v) }));
   }
-  if (s.meters.confidence <= 30) w.push(`The ${s.government.leaderTitle} is losing patience with you.`);
-  if (programUpkeep(s) > s.budget + computeIncome(s)) w.push('The treasury cannot cover program upkeep — programs will be cut.');
+  if (s.meters.confidence <= 30) w.push(t('The {leaderTitle} is losing patience with you.', { leaderTitle: s.government.leaderTitle }));
+  if (programUpkeep(s) > s.budget + computeIncome(s)) w.push(t('The treasury cannot cover program upkeep — programs will be cut.'));
   const risk = riskEstimate(s);
-  if (risk.estimate >= 70) w.push('The Risk Clock is close to midnight.');
-  for (const x of s.situations) if (escalationExpected(s, x)) w.push(`⚠ ${situationDisplayName(x)}: escalation expected next quarter`);
-  for (const d of s.demands) if (d.status === 'active' && d.deadlineTurn === s.turn && !demandSatisfied(s, d)) w.push(`Promise due this quarter: ${d.title}`);
-  if (s.tension >= 80) w.push('Race tension is near the breaking point.');
+  if (risk.estimate >= 70) w.push(t('The Risk Clock is close to midnight.'));
+  for (const x of s.situations) if (escalationExpected(s, x)) w.push(t('⚠ {situation}: escalation expected next quarter', { situation: situationDisplayName(x) }));
+  for (const d of s.demands) if (d.status === 'active' && d.deadlineTurn === s.turn && !demandSatisfied(s, d)) w.push(t('Promise due this quarter: {promise}', { promise: d.title }));
+  if (s.tension >= 80) w.push(t('Race tension is near the breaking point.'));
   return w;
 }
 

@@ -1,7 +1,8 @@
 /**
  * Small UI helpers: class joining, number formatting, polarity of preview keys, screen-reader announcements.
  */
-import type { Confidence, Cost, PreviewKey, Tone } from '../engine/types';
+import type { Confidence, Cost, Difficulty, PreviewKey, Tone } from '../engine/types';
+import { t } from '../i18n';
 
 export const cx = (...xs: (string | false | null | undefined | 0)[]): string => xs.filter(Boolean).join(' ');
 
@@ -16,10 +17,11 @@ export function signed(n: number, digits = 0): string {
   return (r > 0 ? '+' : MINUS) + Math.abs(r).toFixed(digits);
 }
 
+/** "$65B" / "−$3B" / "+$2B" (ru: «$65 млрд»). */
 export function money(n: number, withSign = false): string {
   const r = Math.round(n);
   const sign = r < 0 ? MINUS : withSign && r > 0 ? '+' : '';
-  return `${sign}$${Math.abs(r)}B`;
+  return t('{sign}${n}B', { sign, n: Math.abs(r) });
 }
 
 export const one = (n: number): string => n.toFixed(1);
@@ -69,12 +71,14 @@ export function toneClass(t: Tone | undefined): string {
 }
 
 export const CONF_LABEL: Record<Confidence, string> = {
-  verified: 'Verified',
-  high: 'High',
-  medium: 'Medium',
-  low: 'Low',
-  redacted: 'Redacted',
+  verified: t('Verified'),
+  high: t('High'),
+  medium: t('Medium'),
+  low: t('Low'),
+  redacted: t('Redacted'),
 };
+
+export const DIFF_LABEL: Record<Difficulty, string> = { analyst: t('Analyst'), director: t('Director'), doomer: t('Doomer') };
 
 export function hasCost(c?: Cost): boolean {
   return !!c && !!(c.capacity || c.budget || c.evidence || c.confidence);

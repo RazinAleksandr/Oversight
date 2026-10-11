@@ -1,53 +1,31 @@
 /**
- * Entry point. Chooses the backend:
- *  - the real engine when `ENGINE_READY` is true,
- *  - the UI's MockGame when the engine is not ready yet, or when the URL contains `?mock`
- *    (`?mock=full` additionally unlocks every tab from turn 1).
- * The mock is loaded only through dynamic import(), so production bundles never include it
- * unless it is actually needed (mock mode, or the engine failing to create a game).
+ * Bootstrap: installs the language before any other app module is evaluated (docs/I18N.md §1),
+ * so module-level t() calls see the active language. The rest of the app lives in boot.tsx and is
+ * imported dynamically afterwards. English needs no pack, so its path downloads nothing extra.
+ * Styles are imported here (not in boot.tsx) so they start loading in parallel with the pack.
  */
 import './styles/main.css';
 import './styles/ui-game.css';
 import './styles/ui-card.css';
 import './styles/ui-screens.css';
-import { render } from 'preact';
-import type { NewGameOptions } from './engine/types';
-import { ENGINE_READY, loadGame, newGame } from './engine/game';
-import { type Backend, isMockSave } from './ui/backend';
-import { App } from './ui/App';
+import { getLang, loadLangPack, setLang } from './i18n';
+import { bootLang } from './ui/lang';
 
-const params = new URLSearchParams(window.location.search);
-const useMock = !ENGINE_READY || params.has('mock');
-const mockOpts = { unlockAll: params.get('mock') === 'full' };
-
-const loadMock = () => import('./ui/mock');
-
-const mockBackend: Backend = {
-  kind: 'mock',
-  newGame: async (opts) => new (await loadMock()).MockGame(opts, mockOpts),
-  loadGame: async (json) => (await loadMock()).MockGame.load(json),
-  canLoad: (json) => isMockSave(json),
-};
-
-const engineBackend: Backend = {
-  kind: 'engine',
-  newGame: async (opts: NewGameOptions) => {
+async function start(): Promise<void> {
+  const lang = bootLang();
+  if (lang !== 'en') {
     try {
-      return newGame(opts);
+      const pack = await loadLangPack(lang);
+      setLang(lang, pack);
+      (await import('./engine/localize')).localizeContent();
     } catch (e) {
-      console.error('[ui] engine newGame failed — falling back to the mock game', e);
-      return new (await loadMock()).MockGame(opts, mockOpts);
+      // A missing/broken pack must never block the game: fall back to English.
+      console.error('[i18n] language pack failed to load — falling back to English', e);
+      setLang('en');
     }
-  },
-  loadGame: (json) => {
-    try {
-      return loadGame(json);
-    } catch (e) {
-      console.error('[ui] engine loadGame failed', e);
-      return null;
-    }
-  },
-  canLoad: (json) => !isMockSave(json),
-};
+  }
+  document.documentElement.lang = getLang();
+  await import('./boot');
+}
 
-render(<App backend={useMock ? mockBackend : engineBackend} />, document.getElementById('app')!);
+void start();

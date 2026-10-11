@@ -15,6 +15,10 @@ export default defineConfig({
         // Separate long-lived chunks so code updates don't invalidate the narrative/art caches.
         manualChunks(id: string) {
           if (id.includes('node_modules')) return 'vendor';
+          if (id.includes('/src/i18n/ru/')) return 'lang-ru';
+          // The i18n core must not share a chunk with modules that call t() at load time (art, content):
+          // the entry imports it before the language is set (see src/main.tsx).
+          if (id.includes('/src/i18n/')) return 'i18n';
           if (id.includes('/src/content/')) return 'content';
           if (id.includes('/src/art/')) return 'art';
           return undefined;

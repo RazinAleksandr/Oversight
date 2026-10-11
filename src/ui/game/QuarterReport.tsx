@@ -8,6 +8,7 @@ import type { MeterId, TurnReport } from '../../engine/types';
 import { METER_INFO, dateLabel } from '../../engine/labels';
 import { audio } from '../../audio';
 import { fx } from '../../fx';
+import { t, tp } from '../../i18n';
 import { Icon } from '../components/Icon';
 import { RiskClock } from '../components/RiskClock';
 import { Sheet } from '../components/Sheet';
@@ -20,15 +21,21 @@ import { cleanWarning } from './Inbox';
 function DelayedTween({ from, to, delay, format }: { from: number; to: number; delay: number; format?: (n: number) => string }): JSX.Element {
   const [v, setV] = useState(from);
   useEffect(() => {
-    const t = window.setTimeout(() => setV(to), delay);
-    return () => window.clearTimeout(t);
+    const timer = window.setTimeout(() => setV(to), delay);
+    return () => window.clearTimeout(timer);
   }, []);
   return <TweenNum value={v} format={format} ms={600} class="num" />;
 }
 
+/** "Q3 2028" → ["Q3", "2028"]; ru «3 кв. 2028» → ["3 кв.", "2028"] (the year is always the last word). */
+function splitDate(label: string): [string, string] {
+  const i = label.lastIndexOf(' ');
+  return i < 0 ? [label, ''] : [label.slice(0, i), label.slice(i + 1)];
+}
+
 function CalendarFlip({ from, to }: { from: string; to: string }): JSX.Element {
-  const [fq, fy] = from.split(' ');
-  const [tq, ty] = to.split(' ');
+  const [fq, fy] = splitDate(from);
+  const [tq, ty] = splitDate(to);
   return (
     <div class="calflip" aria-hidden="true">
       <div class="calflip__page calflip__page--new">
@@ -98,15 +105,15 @@ export function QuarterReport({ report, onContinue }: { report: TurnReport; onCo
   const riskUp = moved && report.risk.to > report.risk.from;
   const riskDown = moved && report.risk.to < report.risk.from;
   return (
-    <Sheet label={`Quarter report: ${report.dateLabel}`} size="overlay" class="report-sheet">
+    <Sheet label={t('Quarter report: {date}', { date: report.dateLabel })} size="overlay" class="report-sheet">
       <div class="report" ref={ref}>
         <header class="report__head">
           <CalendarFlip from={dateLabel(report.fromTurn)} to={report.dateLabel} />
           <div class="report__headtext">
-            <p class="eyebrow">Quarter report</p>
+            <p class="eyebrow">{t('Quarter report')}</p>
             <h2 class="report__title">{report.dateLabel}</h2>
             <p class="report__sub">
-              {report.gameOver ? 'The run has ended.' : `${report.newCards} new briefing${report.newCards === 1 ? '' : 's'} on your desk`}
+              {report.gameOver ? t('The run has ended.') : tp(report.newCards, '{n} new briefing on your desk', '{n} new briefings on your desk')}
             </p>
           </div>
         </header>
@@ -120,19 +127,19 @@ export function QuarterReport({ report, onContinue }: { report: TurnReport; onCo
         <div class="report__pair">
           <div class="qtile" data-fx="reveal">
             <span class="eyebrow">
-              <Icon name="budget" size={13} /> Budget
+              <Icon name="budget" size={13} /> {t('Budget')}
             </span>
             <span class="qtile__big">
               <DelayedTween from={b.from} to={b.to} delay={700} format={(v) => money(v)} />
             </span>
             <span class="qtile__sub num">
-              <span class="is-good">{money(b.income, true)} income</span>
-              <span class="is-bad">{money(-b.upkeep)} upkeep</span>
+              <span class="is-good">{t('{amount} income', { amount: money(b.income, true) })}</span>
+              <span class="is-bad">{t('{amount} upkeep', { amount: money(-b.upkeep) })}</span>
             </span>
           </div>
           <div class={cx('qtile qtile--risk', riskUp && 'is-up')} data-fx="reveal">
             <span class="eyebrow">
-              <Icon name="clock" size={13} /> Risk clock
+              <Icon name="clock" size={13} /> {t('Risk clock')}
             </span>
             <span class="qtile__risk">
               <RiskClock risk={{ estimate: report.risk.to, low: report.risk.to, high: report.risk.to, clock: report.risk.clock }} size={40} />
@@ -141,7 +148,7 @@ export function QuarterReport({ report, onContinue }: { report: TurnReport; onCo
               </span>
             </span>
             <span class={cx('qtile__sub', riskUp ? 'is-bad' : riskDown ? 'is-good' : '')}>
-              {riskUp ? '▲ Closer to midnight' : riskDown ? '▼ The clock moved back' : '◆ Holding steady'}
+              {riskUp ? '▲ ' + t('Closer to midnight') : riskDown ? '▼ ' + t('The clock moved back') : '◆ ' + t('Holding steady')}
             </span>
           </div>
         </div>
@@ -159,7 +166,7 @@ export function QuarterReport({ report, onContinue }: { report: TurnReport; onCo
 
         {report.highlights.length > 0 && (
           <section class="report__sec" data-fx="reveal">
-            <h3 class="eyebrow">Highlights</h3>
+            <h3 class="eyebrow">{t('Highlights')}</h3>
             <ul class="highlights">
               {report.highlights.map((h, i) => (
                 <li key={i} class={cx('highlight', `highlight--${toneClass(h.tone)}`)}>
@@ -173,7 +180,7 @@ export function QuarterReport({ report, onContinue }: { report: TurnReport; onCo
 
         {report.headlines.length > 0 && (
           <section class="report__sec" data-fx="reveal">
-            <h3 class="eyebrow">Headlines</h3>
+            <h3 class="eyebrow">{t('Headlines')}</h3>
             <ul class="headlines">
               {report.headlines.map((h, i) => (
                 <li key={i} class={cx('headline', h.signal && 'headline--signal')}>
@@ -187,7 +194,7 @@ export function QuarterReport({ report, onContinue }: { report: TurnReport; onCo
 
         <div class="report__actions">
           <button type="button" class="btn btn--primary btn--wide" data-autofocus onClick={onContinue}>
-            {report.gameOver ? 'See what happened' : 'To the desk'}
+            {report.gameOver ? t('See what happened') : t('To the desk')}
             <Icon name="chevron_right" size={18} />
           </button>
         </div>

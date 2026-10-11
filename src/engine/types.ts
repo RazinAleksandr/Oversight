@@ -520,6 +520,8 @@ export interface Violation {
   description: string;
   discovered: boolean;
   discoveredTurn?: number;
+  /** (engine) the model of an unauthorized deployment */
+  modelId?: string;
 }
 
 export interface AIModel {
@@ -668,6 +670,10 @@ export interface LogEntry {
   key: boolean; // decisive-moment candidate
   tone?: Tone;
   refs?: CardContext;
+  /** (engine) debrief weight from the English source; set only for translated text */
+  w?: number;
+  /** (engine) explicit debrief title; set only for translated text */
+  title?: string;
 }
 
 export interface NewsItem {
