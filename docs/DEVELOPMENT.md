@@ -19,13 +19,18 @@ npm run preview    # serve dist/ locally
 `dist/` is fully self-contained and uses relative paths (`base: './'`), so it works from any static host or sub-path:
 
 - **Any server:** copy `dist/` and serve it, e.g. `npx serve dist`, nginx `root /path/to/dist;`, or `python3 -m http.server -d dist 8080`.
-- **GitHub Pages (automatic):**
-
-  ```bash
-  git push origin main
-  ```
-
-  Then, in the repository, open **Settings → Pages → Build and deployment** and set Source to **GitHub Actions**. The workflow [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) tests, builds and publishes on every push to `main`. The game appears at `https://<user>.github.io/<repo>/`.
+- **Production server (continuous deploy):** the files in [`deploy/`](../deploy) set up a server that checks GitHub every minute. When `main` moves, it runs the tests, builds the game, switches to the new release atomically and serves it through nginx in Docker.
+  - **One-time setup** (as root on the server): `git clone https://github.com/RazinAleksandr/Oversight.git /tmp/ov && bash /tmp/ov/deploy/setup.sh`. `PORT=8080` overrides the default port 80.
+  - **Layout:**
+    - `/srv/oversight/repo` is the deploy checkout;
+    - `releases/<sha>` holds the builds;
+    - `current` points to the live release;
+    - `deployed` / `failed` record the last good and the last broken commit.
+  - **Operations:**
+    - deploy log: `journalctl -u oversight-deploy -f`;
+    - force a redeploy: `/srv/oversight/repo/deploy/deploy.sh --force`;
+    - roll back: `ln -sfn releases/<sha> /srv/oversight/current`.
+  - GitHub Actions ([`ci.yml`](../.github/workflows/ci.yml)) only runs the tests and the build.
 
 ## Tests and tools
 
