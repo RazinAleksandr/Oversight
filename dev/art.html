@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Art Gallery — Oversight</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600;700&family=Special+Elite&display=swap" rel="stylesheet" />
+    <style>
+      :root { --bg:#070b14; --panel:#0d1424; --panel-2:#121b30; --line:#1f2b45; --text:#d8e1f0; --text-dim:#7f8ba3; --accent:#3fd0ff; --good:#3ee08f; --warn:#ffb547; --bad:#ff4d5e; --ai:#a77bff; --gov:#e8c169; --paper:#ece6d8; --ink:#1b1a17; --stamp:#c8312b; }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 Inter, system-ui, sans-serif; padding: 24px 28px 60px; }
+      h1 { font: 700 22px 'Space Grotesk', sans-serif; letter-spacing: .06em; margin: 0 0 4px; }
+      h2 { font: 600 13px 'JetBrains Mono', monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); margin: 34px 0 12px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+      .row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
+      .icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 6px; }
+      .ic { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 6px 6px; display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text); }
+      .ic .sizes { display: flex; align-items: center; gap: 10px; height: 42px; }
+      .ic .nm { font: 10px 'JetBrains Mono', monospace; color: var(--text-dim); }
+      .ic.missing { outline: 2px solid var(--bad); }
+      .paper { background: var(--paper); color: var(--ink); border-radius: 10px; padding: 14px; }
+      .paper .ic { background: transparent; border-color: #cfc6b2; color: var(--ink); }
+      .tint-row span { display: inline-flex; }
+      .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+      .card .cap { font: 10px 'JetBrains Mono', monospace; color: var(--text-dim); text-align: center; }
+      .round svg { border-radius: 50%; }
+      .wide { width: 100%; }
+      .scenes { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .scenes .card svg { width: 100%; height: auto; border-radius: 8px; }
+      .maps { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .maps .card svg { width: 100%; height: auto; }
+      /* demo: UI recoloring map regions via CSS */
+      .recolor .region path { fill: #ffb547; }
+      .recolor .region.is-player path { fill: #3ee08f; }
+    </style>
+  </head>
+  <body>
+    <h1>OVERSIGHT — ART GALLERY</h1>
+    <div style="color:var(--text-dim)">src/art · procedural SVG · dev only</div>
+    <div id="root"></div>
+    <script type="module" src="./art.ts"></script>
+  </body>
+</html>
