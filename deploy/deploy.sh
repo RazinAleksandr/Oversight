@@ -36,6 +36,11 @@ main() {
   mv -T "$base/current.tmp" "$base/current"
   echo "$sha" >"$base/deployed"
   rm -f "$base/failed"
+  # nginx config lives in the repo too; apply it when it changed
+  if ! cmp -s deploy/nginx.conf "$base/nginx.conf"; then
+    cp deploy/nginx.conf "$base/nginx.conf"
+    docker exec oversight-web nginx -s reload || echo "warning: nginx reload failed"
+  fi
   # keep the 3 newest releases
   ls -1dt "$base"/releases/* | tail -n +4 | xargs -r rm -rf
   echo "deployed ${sha:0:7}"
