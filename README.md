@@ -2,6 +2,8 @@
 
 *Oversight (n.): 1. watchful supervision. 2. a mistake made by failing to notice something.*
 
+### [▶ Play](http://46.225.104.43/)
+
 It's 2027 and you run your country's AI department. Labs race to ship ever more capable models. The government wants growth, and rival powers want the lead. Some risks stay invisible until it's too late. You have 16 quarters to steer the nation to *the Threshold*.
 
 **How far can you push AI before you lose control?**
