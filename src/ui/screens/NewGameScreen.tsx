@@ -9,7 +9,6 @@ import { t } from '../../i18n';
 import { Icon, Svg, artCached } from '../components/Icon';
 import { countryCard } from '../countries';
 import { DIFF_LABEL, cx, dailySeed } from '../util';
-import { useHeightVar } from '../hooks';
 
 const DIFFICULTIES: { id: Difficulty; name: string; desc: string }[] = [
   { id: 'analyst', name: DIFF_LABEL.analyst, desc: t('Clearer signals, gentler politics, slower risk.') },
@@ -22,10 +21,9 @@ const ORDER: CountryId[] = COUNTRY_ORDER.length ? COUNTRY_ORDER : ['atlantic', '
 const START_LABEL = { confidence: t('Conf'), economy: t('Pros'), stability: t('Stab'), security: t('Sec') };
 
 export function NewGameScreen({ daily, onBack, onStart }: { daily: boolean; onBack(): void; onStart(c: CountryId, d: Difficulty): void }): JSX.Element {
-  const [country, setCountry] = useState<CountryId | null>(null);
-  const [diff, setDiff] = useState<Difficulty>('director');
+  const [country, setCountry] = useState<CountryId | null>('commonwealth');
+  const [diff, setDiff] = useState<Difficulty>(daily ? 'director' : 'analyst');
   const chosen = country ? countryCard(country) : null;
-  const dockRef = useHeightVar<HTMLDivElement>('--dock-h');
   const diffDesc = DIFFICULTIES.find((d) => d.id === (daily ? 'director' : diff))?.desc;
   return (
     <div class="screen newgame">
@@ -39,8 +37,9 @@ export function NewGameScreen({ daily, onBack, onStart }: { daily: boolean; onBa
         </div>
       </header>
 
+      {!daily && <p class="newgame__guidance">{t('First run? Commonwealth on Analyst gives you more room to learn. You can change either below.')}</p>}
       <div class="countries" role="radiogroup" aria-label={t('Country')}>
-        {ORDER.map((id) => {
+        {[...ORDER].sort((a,b) => Number(b === 'commonwealth') - Number(a === 'commonwealth')).map((id) => {
           const c = countryCard(id);
           const sel = id === country;
           return (
@@ -66,53 +65,20 @@ export function NewGameScreen({ daily, onBack, onStart }: { daily: boolean; onBa
                 </span>
               </span>
               <span class="country__tagline">{c.tagline}</span>
-              <span class="country__traits">
-                <span class="ctrait ctrait--plus">
-                  <b>+ {c.traitPlus.name}</b>
-                  <span>{c.traitPlus.text}</span>
-                </span>
-                <span class="ctrait ctrait--minus">
-                  <b>− {c.traitMinus.name}</b>
-                  <span>{c.traitMinus.text}</span>
-                </span>
-              </span>
-              <span class="country__more">
-                <span class="country__lists">
-                  <span class="clist clist--pros">
-                    <span class="eyebrow">{t('Strengths')}</span>
-                    {c.strengths.slice(0, 4).map((s) => (
-                      <span key={s} class="clist__item">
-                        {s}
-                      </span>
-                    ))}
-                  </span>
-                  <span class="clist clist--cons">
-                    <span class="eyebrow">{t('Weaknesses')}</span>
-                    {c.weaknesses.slice(0, 4).map((s) => (
-                      <span key={s} class="clist__item">
-                        {s}
-                      </span>
-                    ))}
-                  </span>
-                </span>
-                <span class="country__start">
-                  {(Object.keys(START_LABEL) as (keyof typeof START_LABEL)[]).map((k) => (
-                    <span key={k} class="cstart">
-                      <span class="cstart__k">{START_LABEL[k]}</span>
-                      <span class="cstart__v num">{c.start[k]}</span>
-                      <span class="cstart__bar">
-                        <i style={{ width: `${c.start[k]}%` }} />
-                      </span>
-                    </span>
-                  ))}
-                </span>
-              </span>
+
             </button>
           );
         })}
       </div>
 
-      <div class="newgame__dock" ref={dockRef}>
+      {chosen && <details class="country-detail"><summary>{t('Nation details')} · {chosen.shortName ?? chosen.name}</summary>
+        <p><strong>{chosen.traitPlus.name}</strong> — {chosen.traitPlus.text}</p>
+        <p><strong>{chosen.traitMinus.name}</strong> — {chosen.traitMinus.text}</p>
+        <h3>{t('Strengths')}</h3><ul>{chosen.strengths.map(x => <li key={x}>{x}</li>)}</ul>
+        <h3>{t('Weaknesses')}</h3><ul>{chosen.weaknesses.map(x => <li key={x}>{x}</li>)}</ul>
+        <div class="country__start">{(Object.keys(START_LABEL) as (keyof typeof START_LABEL)[]).map(k => <span key={k}>{START_LABEL[k]} {chosen.start[k]}</span>)}</div>
+      </details>}
+      <div class="newgame__dock">
       <section class="difficulty" aria-label={t('Difficulty')}>
         <h2 class="eyebrow">{t('Difficulty')}</h2>
         <div class="seg seg--diff" role="radiogroup" aria-label={t('Difficulty')}>

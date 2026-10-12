@@ -34,7 +34,7 @@ export function previewLabel(p: { key: PreviewKey; label?: string }): string {
   return p.label ? `${SHORT[p.key]} · ${p.label}` : SHORT[p.key];
 }
 
-export function PreviewChip({ p }: { p: EffectPreview }): JSX.Element {
+export function PreviewChip({ p, adoptionTarget = false }: { p: EffectPreview; adoptionTarget?: boolean }): JSX.Element {
   const unknown = p.dir === 0;
   // Risk effects show direction only (GDD §11).
   const mag = p.key === 'risk' ? 1 : p.magnitude;
@@ -42,8 +42,8 @@ export function PreviewChip({ p }: { p: EffectPreview }): JSX.Element {
   const arrows = unknown ? '?' : (p.dir > 0 ? '\u25b2' : '\u25bc').repeat(mag);
   // Exact amount when the engine knows it (guaranteed to equal what is applied).
   const exact = !unknown && typeof p.amount === 'number' && p.amount !== 0 ? changeText(p.key, p.amount) : null;
-  const label = previewLabel(p);
-  const name = `${PREVIEW_INFO[p.key].label}${p.label ? ' ' + p.label : ''}`;
+  const label = adoptionTarget && p.key === 'adoption' ? `${t('Adoption target')}${p.label ? ` · ${p.label}` : ''}` : previewLabel(p);
+  const name = `${adoptionTarget && p.key === 'adoption' ? t('Adoption target') : PREVIEW_INFO[p.key].label}${p.label ? ' ' + p.label : ''}`;
   const sr = unknown
     ? t('{name}: unknown effect', { name })
     : exact
@@ -55,7 +55,7 @@ export function PreviewChip({ p }: { p: EffectPreview }): JSX.Element {
       <span class="chip__label">{label}</span>
       {exact && <span class="chip__num">{exact}</span>}
       <span class="chip__dir" aria-hidden="true">
-        {arrows}
+        {exact ? null : arrows}
       </span>
     </span>
   );

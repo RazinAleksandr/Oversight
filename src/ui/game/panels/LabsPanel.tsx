@@ -47,14 +47,17 @@ export const ATTITUDE_TEXT: Record<string, string> = {
 
 export const relTone = (v: number) => (v >= 60 ? 'good' : v >= 35 ? 'warn' : 'bad');
 
-export function LabsPanel(): JSX.Element {
+export function LabsPanel({ embedded = false }: { embedded?: boolean }): JSX.Element {
   const { view } = useGame();
   return (
     <div class="page page--labs">
-      <PageHead title={t('Labs')} sub={t('Domestic AI companies — what they report, and what you actually know.')} />
+      {!embedded && <PageHead title={t('Companies')} sub={t('Domestic AI companies — what they report, and what you actually know.')} />}
       <div class="cardgrid">
         {view.companies.map((c) => (
-          <CompanyCard key={c.id} c={c} />
+          <details key={c.id} class="company-record">
+            <summary><strong>{c.name}</strong><span>{t('Capability')} {one(c.capability.low)}–{one(c.capability.high)}</span><span class={cx('is-' + ATTITUDE_TONE[c.attitude])}>{ATTITUDE_TEXT[c.attitude] ?? c.attitude}</span></summary>
+            <CompanyCard c={c} />
+          </details>
         ))}
       </div>
     </div>

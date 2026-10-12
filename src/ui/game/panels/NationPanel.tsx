@@ -2,6 +2,7 @@
  * Nation: government (leader, priorities, demands, reviews), safety gap, programs (budget levels),
  * policies (laws) and society (adoption by sector, dependence, displacement).
  */
+import { LabsPanel } from './LabsPanel';
 import type { JSX } from 'preact';
 import type { DemandView, PolicyView, ProgramView, SectorId } from '../../../engine/types';
 import { SECTOR_INFO, dateLabel } from '../../../engine/labels';
@@ -23,18 +24,19 @@ const MOOD_TEXT: Record<string, string> = { Supportive: t('Mood: Supportive'), S
 
 const SUPPORT_TEXT: Record<string, string> = { '-2': t('Strongly opposes'), '-1': t('Opposes'), '0': t('Indifferent'), '1': t('Supports'), '2': t('Champions') };
 
-export function NationPanel(): JSX.Element {
-  const { view, sections, selectSection } = useGame();
-  const section = sections.nation ?? 'government';
+export function NationPanel({ companies = false }: { companies?: boolean }): JSX.Element {
+  const { view, sections, selectSection, goTab } = useGame();
+  const section = companies ? 'companies' : sections.nation ?? 'government';
   return (
     <div class="page page--nation">
       <PageHead title={t('Nation')} sub={t('{country} — your levers at home.', { country: view.country.name })} />
       <nav class="panel-sections" aria-label={t('Nation sections')}>
-        {[['government', t('Government')], ['programs', t('Programs')], ['policies', t('Laws')], ['society', t('Society')]].map(([id, label]) =>
-          <button type="button" class={cx('btn', section === id && 'btn--accent')} aria-pressed={section === id} onClick={() => selectSection('nation', id)}>{label}</button>)}
+        {[...(view.unlockedTabs.includes('nation') ? [['government', t('Government')], ['programs', t('Programs')], ['policies', t('Laws')], ['society', t('Society')]] : []), ...(view.unlockedTabs.includes('labs') ? [['companies', t('Companies')]] : [])].map(([id, label]) =>
+          <button type="button" class={cx('btn', section === id && 'btn--accent')} aria-pressed={section === id} data-section={id} onClick={() => { if (id === 'companies') goTab('labs'); else { selectSection('nation', id); goTab('nation'); } }}>{label}</button>)}
       </nav>
       <div class="nation">
         <div class="nation__col">
+          {section === 'companies' && <LabsPanel embedded />}
           {section === 'government' && <GovernmentPanel />}
           {section === 'programs' && <><Programs /><SafetyGap /></>}
           {section === 'policies' && <Policies />}
@@ -260,14 +262,14 @@ function Law({ p }: { p: PolicyView }): JSX.Element {
   const supportTone = p.leaderSupport > 0 ? 'good' : p.leaderSupport < 0 ? 'bad' : 'neutral';
   const cost = p.active ? Math.ceil(p.politicalCost / 2) : p.politicalCost;
   return (
-    <article class={cx('law', p.active && 'law--active')}>
-      <header class="law__head">
+    <details class={cx('law', p.active && 'law--active')}>
+      <summary class="law__head">
         <span class="law__icon">
           <Icon name={p.icon} size={18} />
         </span>
         <h3 class="law__name">{p.name}</h3>
         {p.active && <span class="law__inforce">{t('In force')}</span>}
-      </header>
+      </summary>
       <p class="law__desc">{p.description}</p>
       <ul class="law__fx">
         {p.effectsText.map((t) => (
@@ -289,7 +291,7 @@ function Law({ p }: { p: PolicyView }): JSX.Element {
           {p.active ? t('Repeal') : t('Enact')} · 1◆
         </button>
       </footer>
-    </article>
+    </details>
   );
 }
 

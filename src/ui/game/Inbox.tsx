@@ -119,7 +119,7 @@ export function InboxPanel(): JSX.Element {
         <PageHead title={t('The Threshold')} sub={t('The transition has reached its decisive moment. One decision remains.')} />
       ) : (
         <PageHead
-          title={t('Inbox')}
+          title={t('Desk')}
           sub={`${view.dateLabel} · ${view.inbox.length ? tp(view.inbox.length, '{n} briefing awaiting decision', '{n} briefings awaiting decision') : t('desk clear')}`}
         />
       )}
@@ -140,7 +140,7 @@ export function InboxPanel(): JSX.Element {
           ))}
         </ul>
       ) : (
-        <EmptyState icon="check" title={t('Desk clear')} text={t('Every briefing is resolved. Spend your remaining actions in Labs, Nation or World — then end the quarter.')} />
+        <EmptyState icon="check" title={t('Desk clear')} text={t('Every briefing is resolved. Use Nation to investigate companies or fund programs, and World to negotiate. Then end the quarter.')} />
       )}
       <DeskSummary />
     </div>

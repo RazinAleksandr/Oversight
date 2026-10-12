@@ -36,13 +36,13 @@ for(const lang of ['en','ru']) {
   }
   if(await p.locator('.tip__ok').count()){await p.locator('.tip__ok').click();continue;}
   if(await p.locator('[data-choice]').count()) {
-   const choices=p.locator('[data-choice]:not(:disabled)'); const labels=await choices.locator('.choice__label').allTextContents();
+   const choices=p.locator('[data-choice][data-blocked="false"]'); const labels=await choices.locator('.choice__label').allTextContents();
    let index=labels.findIndex(x=>/Safety first|Approve with limits|Release with safeguards|Demand international oversight|Sign the Accord|Emergency shutdown|Безопасность прежде всего|Одобрить с ограничениями|Выпустить с мерами|Подписать Соглашение|Аварийное отключение/.test(x));if(index<0)index=0;
    trace.push({turns,title:await p.locator('.dossier__title').innerText(),choice:labels[index]});
-   await choices.nth(index).click();continue;
+   await choices.nth(index).click();await p.locator('[data-confirm-choice]').click();continue;
   }
   if(!prepared && turns>=1) {
-   await p.locator('#tab-nation').click();await p.locator('.panel-sections button').nth(1).click();
+   await p.locator('#tab-nation').click();await p.locator('[data-section="programs"]').click();
    for(const [idx,level] of [[0,2],[1,2],[3,1],[4,1]]) await p.locator('.stepper').nth(idx).locator('button').nth(level).click();
    await p.locator('#tab-inbox').click();prepared=true;continue;
   }
@@ -52,9 +52,9 @@ for(const lang of ['en','ru']) {
  await p.locator('.ending').waitFor();
  assert.equal(await p.evaluate(()=>typeof window.__ato),'undefined','release exposes QA hooks');
  const title=await p.locator('.ending__title').innerText();assert.equal(await p.evaluate(()=>localStorage.getItem('ato.save.v1')),null);assert(await p.evaluate(()=>localStorage.getItem('ato.completed.v1')));
- await p.locator('.ending__nav button').nth(1).click();await p.waitForTimeout(1200);await p.locator('.ending__nav').scrollIntoViewIfNeeded();await p.screenshot({path:`${out}/${lang}-ending-rating.png`});
+ await p.locator('#debrief-section').selectOption('rating');await p.waitForTimeout(1200);await p.locator('.ending__nav').scrollIntoViewIfNeeded();await p.screenshot({path:`${out}/${lang}-ending-rating.png`});
  assert.equal(await p.locator('.scorecard').count(),1);
- for(const button of await p.locator('.ending__nav button').all()) await button.click();
+ for(const value of await p.locator('#debrief-section option').evaluateAll(xs=>xs.map(x=>x.value))) await p.locator('#debrief-section').selectOption(value);
  await p.reload({waitUntil:'networkidle'});await p.getByRole('button',{name:lang==='en'?'Last debrief':'Последний разбор',exact:true}).click();
  assert.equal(await p.locator('.ending__title').innerText(),title);assert.deepEqual(errors,[]);
  outcomes.push({lang,turns,title,restoredChoice,restoredReport,errors,trace});fs.writeFileSync(`${out}/full-run-results.json`,JSON.stringify(outcomes,null,2));

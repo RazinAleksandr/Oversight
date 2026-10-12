@@ -2,8 +2,8 @@
  * Result overlays: the stamped outcome of a briefing choice, and the result of a department action
  * (with revealed intel styled as declassified text). Meter changes float up from the HUD.
  */
-import type { JSX } from 'preact';
-import { useEffect, useRef } from 'preact/hooks';
+import type { ComponentChildren, JSX } from 'preact';
+import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
 import type { ActionResult, ChoiceResult, MeterChange, Stamp } from '../../engine/types';
 import { audio } from '../../audio';
 import { fx } from '../../fx';
@@ -12,36 +12,26 @@ import { ChangeChip, mergeChanges } from '../components/Chips';
 import { StampMark } from '../components/Common';
 import { Icon } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
-import { changeText, cx, valence } from '../util';
+import { cx } from '../util';
 
 const STAMP_SFX: Partial<Record<Stamp, 'approve' | 'reject'>> = { approved: 'approve', signed: 'approve', rejected: 'reject', denied: 'reject' };
 
-const VALENCE_COLOR = { good: '#3ee08f', bad: '#ff4d5e', neutral: '#3fd0ff' } as const;
 
 /** Styling heuristic on engine-provided revealed lines (alarming findings in red); covers the Russian wording too. */
 const ALERT_LINE = /violation|flaw|warning|наруш|изъян|дефект|тревож/i;
 
-/** Float "+3" chips from the HUD element that represents each change. */
+/** Changes are recorded in the receipt. Avoid floating HUD feedback across a new document. */
 export function floatChanges(changes: MeterChange[]): void {
-  let delay = 0;
-  for (const c of mergeChanges(changes)) {
-    const sel = c.key === 'budget' ? '[data-hud="budget"]' : c.key === 'capacity' ? '[data-hud="capacity"]' : `[data-meter="${c.key}"]`;
-    const el = document.querySelector<HTMLElement>(sel);
-    if (!el) continue;
-    const r = el.getBoundingClientRect();
-    if (!r.width) continue;
-    const d = delay;
-    window.setTimeout(() => {
-      try {
-        fx.floatText(r.left + r.width / 2, r.top + r.height * 0.6, changeText(c.key, c.delta), VALENCE_COLOR[valence(c.key, c.delta)]);
-        if (c.key !== 'budget' && c.key !== 'capacity') fx.pulse(el, VALENCE_COLOR[valence(c.key, c.delta)]);
-      } catch {
-        /* fx optional */
-      }
-    }, d);
-    delay += 140;
-  }
-  if (changes.some((c) => c.key === 'budget' && c.delta > 0)) window.setTimeout(() => audio.play('coin'), 300);
+  if (changes.some(c => c.key === 'budget' && c.delta > 0)) audio.play('coin');
+}
+
+function ResultFrame({ inline, label, children }: { inline?: boolean; label: string; children: ComponentChildren }): JSX.Element {
+  const ref = useRef<HTMLElement>(null);
+  useLayoutEffect(() => {
+    if (inline) { ref.current?.scrollIntoView({ block: 'start' }); ref.current?.focus({ preventScroll: true }); }
+  }, []);
+  return inline ? <section ref={ref} tabIndex={-1} class="result-sheet result-receipt" aria-label={label}>{children}</section>
+    : <Sheet label={label} size="page" class="result-sheet result-page">{children}</Sheet>;
 }
 
 function ChangeList({ changes }: { changes: MeterChange[] }): JSX.Element | null {
@@ -70,11 +60,13 @@ function ChangeList({ changes }: { changes: MeterChange[] }): JSX.Element | null
 
 export function ChoiceResultOverlay({
   result,
+  inline,
   remaining,
   onNext,
   onDesk,
 }: {
   result: ChoiceResult;
+  inline?: boolean;
   remaining: number;
   onNext(): void;
   onDesk(): void;
@@ -86,11 +78,7 @@ export function ChoiceResultOverlay({
     if (sfx) audio.play(sfx);
     const t1 = window.setTimeout(() => {
       audio.play('stamp');
-      try {
-        fx.shake(0.25, 160);
-      } catch {
-        /* fx optional */
-      }
+
     }, 260);
     const t2 = window.setTimeout(() => {
       if (result.success === true) audio.play('success');
@@ -110,7 +98,7 @@ export function ChoiceResultOverlay({
         ? t('Next briefing ({n})', { n: remaining })
         : t('Back to desk');
   return (
-    <Sheet label={t('Decision recorded')} size="overlay" class="result-sheet">
+    <ResultFrame label={t('Decision recorded')} inline={inline}>
       <div class={cx('result', `result--${tone}`)}>
         <div class="result__stampzone">
           <StampMark stamp={stamp} size="lg" class="result__stamp" />
@@ -135,11 +123,11 @@ export function ChoiceResultOverlay({
           )}
         </div>
       </div>
-    </Sheet>
+    </ResultFrame>
   );
 }
 
-export function ActionResultOverlay({ result, onClose }: { result: ActionResult; onClose(): void }): JSX.Element {
+export function ActionResultOverlay({ result, inline, onClose }: { result: ActionResult; inline?: boolean; onClose(): void }): JSX.Element {
   const revealed = result.revealed ?? [];
   const tone = result.success === false ? 'bad' : 'good';
   const listRef = useRef<HTMLUListElement>(null);
@@ -156,7 +144,7 @@ export function ActionResultOverlay({ result, onClose }: { result: ActionResult;
     }
   }, []);
   return (
-    <Sheet label={t('Action result')} size="overlay" class="result-sheet">
+    <ResultFrame label={t('Action result')} inline={inline}>
       <div class={cx('result', `result--${tone}`, 'result--action')}>
         <div class="result__stampzone">
           <StampMark text={result.success === false ? t('Compromised') : revealed.length ? t('Declassified') : t('Complete')} size="lg" class={cx('result__stamp', result.success === false ? 'stamp--denied' : revealed.length ? 'stamp--classified' : 'stamp--approved')} />
@@ -183,6 +171,6 @@ export function ActionResultOverlay({ result, onClose }: { result: ActionResult;
           </button>
         </div>
       </div>
-    </Sheet>
+    </ResultFrame>
   );
 }

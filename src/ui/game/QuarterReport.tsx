@@ -5,7 +5,7 @@
 import type { JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { MeterId, TurnReport } from '../../engine/types';
-import { METER_INFO, dateLabel } from '../../engine/labels';
+import { METER_INFO } from '../../engine/labels';
 import { audio } from '../../audio';
 import { fx } from '../../fx';
 import { t, tp } from '../../i18n';
@@ -27,34 +27,11 @@ function DelayedTween({ from, to, delay, format }: { from: number; to: number; d
   return <TweenNum value={v} format={format} ms={600} class="num" />;
 }
 
-/** "Q3 2028" → ["Q3", "2028"]; ru «3 кв. 2028» → ["3 кв.", "2028"] (the year is always the last word). */
-function splitDate(label: string): [string, string] {
-  const i = label.lastIndexOf(' ');
-  return i < 0 ? [label, ''] : [label.slice(0, i), label.slice(i + 1)];
-}
-
-function CalendarFlip({ from, to }: { from: string; to: string }): JSX.Element {
-  const [fq, fy] = splitDate(from);
-  const [tq, ty] = splitDate(to);
-  return (
-    <div class="calflip" aria-hidden="true">
-      <div class="calflip__page calflip__page--new">
-        <span class="calflip__year">{ty}</span>
-        <span class="calflip__q">{tq}</span>
-      </div>
-      <div class="calflip__page calflip__page--old">
-        <span class="calflip__year">{fy}</span>
-        <span class="calflip__q">{fq}</span>
-      </div>
-    </div>
-  );
-}
-
 function MeterRow({ id, r, i }: { id: MeterId; r: TurnReport['meters'][MeterId]; i: number }): JSX.Element {
   // Delta from the displayed (rounded) endpoints so "67 > 67" never reads "−1".
   const d = Math.round(r.to) - Math.round(r.from);
   const status = r.to <= 15 ? 'bad' : r.to <= 30 ? 'warn' : 'ok';
-  const reasons = [...r.reasons].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 3);
+  const reasons = [...r.reasons].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
   return (
     <li class={cx('qrow', `qrow--${status}`)} data-fx="reveal">
       <span class="qrow__icon">
@@ -70,14 +47,14 @@ function MeterRow({ id, r, i }: { id: MeterId; r: TurnReport['meters'][MeterId];
       </span>
       <span class={cx('qrow__delta num', d > 0 ? 'is-good' : d < 0 ? 'is-bad' : 'is-flat')}>{signed(d)}</span>
       {reasons.length > 0 && (
-        <ul class="qrow__reasons">
+        <details class="qrow__explanation"><summary>{t('Why it changed')}</summary><ul class="qrow__reasons">
           {reasons.map((x, k) => (
             <li key={k}>
               <span>{x.reason}</span>
               <span class={cx('num', x.delta > 0 ? 'is-good' : x.delta < 0 ? 'is-bad' : '')}>{signed(x.delta, Math.abs(x.delta) < 1 && x.delta !== 0 ? 1 : 0)}</span>
             </li>
           ))}
-        </ul>
+        </ul></details>
       )}
     </li>
   );
@@ -105,10 +82,10 @@ export function QuarterReport({ report, onContinue }: { report: TurnReport; onCo
   const riskUp = moved && report.risk.to > report.risk.from;
   const riskDown = moved && report.risk.to < report.risk.from;
   return (
-    <Sheet label={t('Quarter report: {date}', { date: report.dateLabel })} size="overlay" class="report-sheet">
+    <Sheet label={t('Quarter report: {date}', { date: report.dateLabel })} size="page" class="report-sheet">
       <div class="report" ref={ref}>
         <header class="report__head">
-          <CalendarFlip from={dateLabel(report.fromTurn)} to={report.dateLabel} />
+
           <div class="report__headtext">
             <p class="eyebrow">{t('Quarter report')}</p>
             <h2 class="report__title">{report.dateLabel}</h2>
@@ -179,8 +156,7 @@ export function QuarterReport({ report, onContinue }: { report: TurnReport; onCo
         )}
 
         {report.headlines.length > 0 && (
-          <section class="report__sec" data-fx="reveal">
-            <h3 class="eyebrow">{t('Headlines')}</h3>
+          <details class="report__sec"><summary>{t('Headlines')}</summary>
             <ul class="headlines">
               {report.headlines.map((h, i) => (
                 <li key={i} class={cx('headline', h.signal && 'headline--signal')}>
@@ -189,16 +165,15 @@ export function QuarterReport({ report, onContinue }: { report: TurnReport; onCo
                 </li>
               ))}
             </ul>
-          </section>
+          </details>
         )}
-
+      </div>
         <div class="report__actions">
           <button type="button" class="btn btn--primary btn--wide" data-autofocus onClick={onContinue}>
             {report.gameOver ? t('See what happened') : t('To the desk')}
             <Icon name="chevron_right" size={18} />
           </button>
         </div>
-      </div>
     </Sheet>
   );
 }

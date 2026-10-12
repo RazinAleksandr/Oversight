@@ -19,6 +19,12 @@ export const TABS: { id: TabId; label: string; icon: string }[] = [
 
 export function TabBar({ tab, onTab, fresh }: { tab: TabId; onTab(t: TabId): void; fresh: TabId[] }): JSX.Element {
   const { view, desktop } = useGame();
+  const group = tab === 'labs' ? 'nation' : tab === 'threats' ? 'inbox' : tab;
+  const destinations = [
+    { id: 'inbox' as TabId, route: 'inbox' as TabId, label: t('Desk'), icon: 'inbox' },
+    ...(view.unlockedTabs.includes('labs') || view.unlockedTabs.includes('nation') ? [{ id: 'nation' as TabId, route: (view.unlockedTabs.includes('nation') ? 'nation' : 'labs') as TabId, label: t('Nation'), icon: 'nation' }] : []),
+    ...(view.unlockedTabs.includes('world') ? [{ id: 'world' as TabId, route: 'world' as TabId, label: t('World'), icon: 'world' }] : []),
+  ];
   const active = view.situations.filter((s) => !s.resolved);
   const escalating = active.some((s) => s.escalationWarning || s.stage >= 3);
   const badge = (id: TabId): { n: number | string; tone: string } | null => {
@@ -32,21 +38,21 @@ export function TabBar({ tab, onTab, fresh }: { tab: TabId; onTab(t: TabId): voi
   return (
     <nav class="tabbar" aria-label={t('Sections')}>
       <div class="tabbar__list" role="tablist">
-        {TABS.filter((x) => view.unlockedTabs.includes(x.id)).map((x) => {
-          const b = badge(x.id);
-          const isFresh = fresh.includes(x.id);
+        {destinations.map((x) => {
+          const b = badge(x.id) ?? (x.id === 'inbox' ? badge('threats') : null);
+          const isFresh = fresh.some(id => (id === 'labs' ? 'nation' : id === 'threats' ? 'inbox' : id) === x.id);
           return (
             <button
               key={x.id}
               type="button"
               role="tab"
               id={`tab-${x.id}`}
-              aria-selected={tab === x.id}
+              aria-selected={group === x.id}
               aria-controls="main"
               data-tab={x.id}
               data-nosfx
-              class={cx('tab', tab === x.id && 'is-active', isFresh && 'tab--fresh')}
-              onClick={() => onTab(x.id)}
+              class={cx('tab', group === x.id && 'is-active', isFresh && 'tab--fresh')}
+              onClick={() => onTab(x.route)}
             >
               <span class="tab__icon">
                 <Icon name={x.icon} size={22} />

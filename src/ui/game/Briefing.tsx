@@ -1,25 +1,15 @@
-/**
- * Briefing card sheet — a paper dossier (typewriter header, stamp, redaction bars, advisor notes)
- * above a dark "decision tray" of large choice buttons with previews, costs and chances.
- * Keys 1–4 pick a choice; tapping the paper skips the typewriter.
- */
+/** A focused decision: inspect the evidence, compare options, then commit explicitly. */
 import type { JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Card, Choice, EvidenceLine } from '../../engine/types';
 import { SOURCE_INFO } from '../../engine/labels';
 import { getLang, t } from '../../i18n';
-import { audio } from '../../audio';
-import { fx } from '../../fx';
-import { Icon, Portrait } from '../components/Icon';
+import { Icon } from '../components/Icon';
 import { ChanceBadge, ConfBadge, CostChips, PreviewChip, UncertainChip } from '../components/Chips';
-import { Kbd, StampMark } from '../components/Common';
-import { RiskClock } from '../components/RiskClock';
 import { Sheet } from '../components/Sheet';
-import { typeCps, useSettings } from '../settings';
 import { clamp, cx, hash, money } from '../util';
 import { advisorInfo, useGame } from './context';
 import { DemandForecast } from './DemandForecast';
-import { KIND_LABEL, isAiCard, isCrisisCard } from './Inbox';
 
 /** Reason a choice can't be taken right now (engine-provided, or an affordability check). */
 export function choiceBlock(ch: Choice, res: { capacity: number; budget: number; evidence: number }): string | null {
@@ -62,219 +52,98 @@ function ControlMeter({ low, high }: { low: number; high: number }): JSX.Element
 
 export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose(): void; onChoose(ch: Choice): void }): JSX.Element {
   const { view } = useGame();
-  const { settings } = useSettings();
-  const bodyRef = useRef<HTMLParagraphElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  const paperRef = useRef<HTMLElement>(null);
-  const evidenceRef = useRef<HTMLElement>(null);
-  const advisorsRef = useRef<HTMLElement>(null);
-  const decisionRef = useRef<HTMLElement>(null);
-  const [atChoices, setAtChoices] = useState(false);
-  const typer = useRef<{ skip(): void } | null>(null);
-  const [revealing, setRevealing] = useState(typeCps(settings) > 0);
-  const ai = isAiCard(card);
-  const crisis = isCrisisCard(card);
-  const finale = card.kind === 'threshold';
+  const [selected, setSelected] = useState<string | null>(null);
+  const detailRef = useRef<HTMLElement>(null);
   const res = { capacity: view.nation.capacity, budget: view.nation.budget, evidence: view.nation.evidence.length };
-
-  useEffect(() => {
-    const decision = decisionRef.current;
-    if (!decision) return;
-    const observer = new IntersectionObserver(([entry]) => setAtChoices(entry.isIntersecting), {
-      root: decision.closest('.sheet'), rootMargin: '0px 0px -80px 0px', threshold: 0,
-    });
-    observer.observe(decision);
-    return () => observer.disconnect();
-  }, [card.uid]);
-
-  const jumpTo = (target: HTMLElement | null) => {
-    typer.current?.skip();
-    target?.scrollIntoView({ block: 'start', behavior: 'instant' });
-    target?.focus({ preventScroll: true });
+  const choice = card.choices.find(c => c.id === selected);
+  const blocked = choice ? choiceBlock(choice, res) : null;
+  const forecast = view.government.demands.find(d => d.id === card.ctx.demandId)?.forecast;
+  const paragraphs = card.body.split(/\n\s*\n/).filter(Boolean);
+  const summary = card.kind === 'intro'
+    ? t('You lead the national AI department. Keep your job, protect the country, and guide the transition. What will you prioritize?')
+    : paragraphs[0] ?? card.body;
+  const extraStory = card.kind === 'intro' || paragraphs.length > 1;
+  const lowEvidence = card.evidence?.some(e => e.confidence === 'low' || e.confidence === 'redacted');
+  const pick = (id: string) => {
+    setSelected(id);
   };
-
-  // Entrance: sound, glitch / pulse, typewriter body.
   useEffect(() => {
-    let active = true;
-    audio.play('card_in');
-    if (finale) {
-      audio.play('critical');
-      try {
-        fx.vignette('#ff4d5e', 1800);
-      } catch {
-        /* fx optional */
-      }
-    }
-    const body = bodyRef.current;
-    if (ai && titleRef.current) {
-      try {
-        fx.glitch(titleRef.current, 700);
-        audio.play('glitch', { volume: 0.5 });
-      } catch {
-        /* fx optional */
-      }
-    }
-    if (crisis && paperRef.current) {
-      try {
-        fx.pulse(paperRef.current, '#ff4d5e');
-      } catch {
-        /* fx optional */
-      }
-    }
-    if (body) {
-      const cps = typeCps(settings);
-      if (cps > 0) {
-        try {
-          // fx throttles onTick (~22/s), so every tick may click.
-          const job = fx.typewriter(body, card.body, cps, () => audio.play('type', { volume: 0.4 }));
-          typer.current = job;
-          setRevealing(true);
-          void job.done.then(() => { if (active) setRevealing(false); });
-        } catch {
-          body.textContent = card.body;
-          setRevealing(false);
-        }
-      } else {
-        body.textContent = card.body;
-        setRevealing(false);
-      }
-    }
-    return () => {
-      active = false;
-      typer.current?.skip();
-      typer.current = null;
-    };
-  }, [card.uid]);
-
-  // Keyboard 1–4.
+    if (selected) detailRef.current?.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+  }, [selected]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (paperRef.current?.closest('[inert]')) return;
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (detailRef.current?.closest('[inert]') || e.ctrlKey || e.metaKey || e.altKey) return;
       const i = Number(e.key) - 1;
       if (!Number.isInteger(i) || i < 0 || i >= card.choices.length) return;
-      const ch = card.choices[i];
-      if (choiceBlock(ch, res)) return;
-      e.preventDefault();
-      onChoose(ch);
+      e.preventDefault(); pick(card.choices[i].id);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  });
-
-  const forecast = view.government.demands.find(d => d.id === card.ctx.demandId)?.forecast;
-  const src = SOURCE_INFO[card.source.type];
-  const headStamp = finale ? t('Top secret') : card.urgency === 'critical' ? t('Urgent') : card.kind === 'demand' ? t('Priority') : t('Classified');
-  const docNo = `${view.year}-Q${view.quarter}-${String(hash(card.uid) % 900 + 100)}`;
-
+  }, [card.uid]);
+  const control = parseControl(choice?.hint);
   return (
-    <Sheet label={t('Briefing: {title}', { title: card.title })} onClose={onClose} size="full" class="briefing-sheet">
-      {/* Any tap inside the briefing completes the typewriter instantly (choices still register). */}
-      <div class={cx('briefing', finale && 'briefing--finale')} onPointerDown={() => typer.current?.skip()}>
-        {finale && (
-          <header class="finale">
-            <RiskClock risk={view.risk} size={112} showLabel class="finale__clock" />
-            <div class="finale__text">
-              <p class="finale__kicker">{t('Final decision · {date}', { date: view.dateLabel })}</p>
-              <h2 class="finale__title fx-glitch" data-text={t('The Threshold')}>
-                {t('The Threshold')}
-              </h2>
-              <p class="finale__sub">{t('Everything you did led here. One choice remains.')}</p>
-            </div>
+    <Sheet label={t('Briefing: {title}', { title: card.title })} onClose={onClose} size="page" closeButton={false} class="briefing-sheet decision-page">
+      <header class="decision-page__bar">
+        <button type="button" class="linkbtn" onClick={onClose}><Icon name="back" size={18} />{t('Desk')}</button>
+        <span>{view.dateLabel}</span>
+        <span>{t('{n} remaining', { n: view.inbox.length })}</span>
+      </header>
+      <div class="decision-page__scroll">
+        <div class="decision-page__context">
+          <header class="decision-page__heading">
+            <p class="decision-page__source">{card.source.name} · {SOURCE_INFO[card.source.type].label}</p>
+            <h1 class="dossier__title">{card.title}</h1>
+            {card.urgency === 'critical' && <p class="decision-page__urgent"><Icon name="warning" size={16} />{t('Urgent')}</p>}
           </header>
-        )}
-        <p class="briefing__count">
-          <Icon name="inbox" size={14} /> {t('Briefing {n} of {total}', { n: Math.max(1, view.inbox.findIndex((c) => c.uid === card.uid) + 1), total: view.inbox.length })}
-          <span class="briefing__date num">{view.dateLabel}</span>
-        </p>
-        <article
-          ref={paperRef}
-          tabIndex={-1}
-          class={cx('dossier', `dossier--${card.urgency}`, ai && !finale && 'dossier--ai', crisis && 'dossier--crisis', finale && 'dossier--threshold')}
-        >
-          {card.urgency !== 'routine' && <div class="dossier__strip" aria-hidden="true" />}
-          <header class="dossier__head">
-            <div class="dossier__meta">
-              <span>{t('File {no}', { no: docNo })}</span>
-            </div>
-            <div class="dossier__src" style={card.source.color ? { '--src': card.source.color } : undefined}>
-              <Icon name={src.icon} size={15} />
-              <span class="dossier__srcname">{card.source.name}</span>
-              <span class="dossier__srctype">{src.label}</span>
-            </div>
-            <h2 class={cx('dossier__title', ai && !finale && 'fx-glitch')} ref={titleRef} data-text={card.title}>
-              {card.title}
-            </h2>
-            <p class="dossier__sub">{card.subtitle ?? KIND_LABEL[card.kind]}</p>
-            <StampMark text={headStamp} size="md" class={cx('dossier__stamp', card.urgency === 'critical' && 'stamp--urgent')} />
-          </header>
-
-          <div class="dossier__reveal">
-            <button type="button" class="linkbtn" onClick={() => typer.current?.skip()} disabled={!revealing}>
-              {revealing ? t('Show full text') : t('Full text shown')}
-            </button>
-          </div>
-          <p class="dossier__body" ref={bodyRef} aria-hidden="true" />
-          <p class="sr-only">{card.body}</p>
-
-          {card.evidence && card.evidence.length > 0 && (
-            <section ref={evidenceRef} tabIndex={-1} class="evidence" aria-label={t('Evidence')}>
-              <h3 class="dossier__h">{t('Evidence')}</h3>
-              <dl class="evidence__list">
-                {card.evidence.map((e, i) => (
-                  <EvidenceRow key={i} e={e} seed={hash(card.uid + i)} />
-                ))}
-              </dl>
+          <p class="decision-page__summary">{summary}</p>
+          {extraStory && <details class="briefing-detail"><summary>{t('Full briefing')}</summary><div>{paragraphs.map((p,i) => <p key={i}>{p}</p>)}</div></details>}
+          {!!card.evidence?.length && <details class="briefing-detail briefing-detail--evidence">
+            <summary>{t('Evidence')}<span>{lowEvidence ? t('Incomplete picture') : t('{n} findings', { n: card.evidence.length })}</span></summary>
+            <section class="evidence" aria-label={t('Evidence')}>
+              <dl class="evidence__list">{card.evidence.map((e,i)=><EvidenceRow key={i} e={e} seed={hash(card.uid+i)} />)}</dl>
+              {card.kind === 'deployment' && <><p class="briefing-note">{t('A negative result is not proof of safety.')}</p><p class="briefing-note">{t('Approval raises an adoption target. Actual use grows over later quarters. Investigating costs time and resources, but can reveal missed problems.')}</p></>}
             </section>
-          )}
-
-          {card.advisors && card.advisors.length > 0 && (
-            <section ref={advisorsRef} tabIndex={-1} class="advisors" aria-label={t('Advisor notes')}>
-              <h3 class="dossier__h">{t('Advisors')}</h3>
-              {card.advisors.map((n) => {
-                const a = advisorInfo(view, n.advisor);
-                return (
-                  <figure key={n.advisor} class={cx('advisor', `advisor--${n.advisor}`)}>
-                    <Portrait seed={a.portraitSeed} role="advisor" size={44} name={a.name} />
-                    <figcaption class="advisor__body">
-                      <span class="advisor__who">
-                        <strong>{a.name}</strong>
-                        <span class="advisor__role">{a.role}</span>
-                      </span>
-                      <blockquote class="advisor__quote">{t('“{text}”', { text: n.text })}</blockquote>
-                    </figcaption>
-                  </figure>
-                );
-              })}
-            </section>
-          )}
-        </article>
-
-        <section ref={decisionRef} tabIndex={-1} class="decision" aria-label={t('Your decision')}>
-          <h3 class="decision__title">
-            <span>{t('Your decision')}</span>
-            <span class="decision__keys">
-              <Kbd>1</Kbd>–<Kbd>{card.choices.length}</Kbd>
-            </span>
-          </h3>
-          <nav class="decision__sources" aria-label={t('Briefing sources')}>
-            {!!card.evidence?.length && <button type="button" class="btn btn--small" onClick={() => jumpTo(evidenceRef.current)}>{t('Evidence')}</button>}
-            {!!card.advisors?.length && <button type="button" class="btn btn--small" onClick={() => jumpTo(advisorsRef.current)}>{t('Advisors')}</button>}
-          </nav>
+          </details>}
+          {!!card.advisors?.length && <details class="briefing-detail">
+            <summary>{t('Advisors')}<span>{t('Different priorities')}</span></summary>
+            <section class="advisors" aria-label={t('Advisor notes')}>{card.advisors.map(n=>{
+              const a=advisorInfo(view,n.advisor);
+              return <figure key={n.advisor}><figcaption><strong>{a.role}</strong><blockquote>{n.text}</blockquote></figcaption></figure>;
+            })}</section>
+          </details>}
+          {card.kind === 'threshold' && <p class="briefing-note">{t('Control is uncertain even after strong preparation. The range is an estimate; this decision can end the run.')}</p>}
           {forecast && <DemandForecast forecast={forecast} />}
-          <ol class="choices">
-            {card.choices.map((ch, i) => (
-              <ChoiceButton key={ch.id} ch={ch} index={i} blocked={choiceBlock(ch, res)} onPick={() => onChoose(ch)} finale={finale} />
-            ))}
-          </ol>
+        </div>
+        <section class="decision" aria-label={t('Your decision')}>
+          <h2 class="decision__title">{t('Your decision')}</h2>
+          <div class="choices" role="radiogroup" aria-label={t('Your decision')}>
+            {card.choices.map((ch,i)=>{
+              const reason=choiceBlock(ch,res);
+              return <button key={ch.id} type="button" role="radio" aria-checked={selected===ch.id} aria-controls="decision-detail" data-choice={i+1} data-blocked={!!reason}
+                class={cx('choice',selected===ch.id && 'is-selected',reason && 'is-blocked')} onClick={()=>pick(ch.id)}>
+                <span class="choice__radio" aria-hidden="true" /><span class="choice__label">{ch.label}</span>
+                {reason && <Icon name="lock" size={16} />}
+              </button>;
+            })}
+          </div>
+          <section ref={detailRef} id="decision-detail" class="decision-detail" aria-live="polite" aria-atomic="true">
+            {choice ? <>
+              <h3>{choice.label}</h3>
+              {(control?.rest ?? choice.hint) && <p>{control?.rest ?? choice.hint}</p>}
+              {control && <ControlMeter low={control.low} high={control.high} />}
+              {choice.chance!==undefined && <p><ChanceBadge chance={choice.chance} /></p>}
+              <div class="choice__chips">{choice.preview.map((p,i)=><PreviewChip key={i} p={p} adoptionTarget={card.kind==='deployment'} />)}</div>
+              {choice.uncertain && <UncertainChip />}
+              {choice.cost && <p class="decision-detail__cost"><CostChips cost={choice.cost} /></p>}
+              {blocked && <p class="choice__blocked"><Icon name="lock" size={16} />{blocked}</p>}
+            </> : <p class="decision-detail__hint">{t('Select an option to compare its effects. Nothing is committed yet.')}</p>}
+          </section>
         </section>
       </div>
-      <div class="briefing__dock">
-        <button type="button" class={cx('btn btn--wide', atChoices ? 'btn--ghost' : 'btn--primary')} onClick={() => jumpTo(atChoices ? paperRef.current : decisionRef.current)}>
-          {atChoices ? t('Read dossier') : t('Review choices')}
-          <Icon name={atChoices ? 'back' : 'chevron_right'} size={18} />
-        </button>
-      </div>
+      <footer class="decision-page__footer">
+        <div class="decision-page__resources"><span>{t('Available')}</span><span>{money(res.budget)}</span><span>{t('{n} actions', { n: res.capacity })}</span></div>
+        {choice && <button type="button" data-confirm-choice class="btn btn--primary btn--wide" disabled={!!blocked} onClick={()=>!blocked && onChoose(choice)}>{t('Confirm: {choice}',{choice:choice.label})}<Icon name="chevron_right" size={18} /></button>}
+      </footer>
     </Sheet>
   );
 }
@@ -299,46 +168,3 @@ function EvidenceRow({ e, seed }: { e: EvidenceLine; seed: number }): JSX.Elemen
   );
 }
 
-function ChoiceButton({ ch, index, blocked, onPick, finale }: { ch: Choice; index: number; blocked: string | null; onPick(): void; finale?: boolean }): JSX.Element {
-  const control = parseControl(ch.hint);
-  const hint = control ? control.rest : ch.hint;
-  return (
-    <li>
-      <button
-        type="button"
-        data-nosfx
-        data-choice={index + 1}
-        class={cx('choice', `choice--${ch.tone ?? 'neutral'}`, blocked && 'is-blocked', finale && 'choice--finale')}
-        disabled={!!blocked}
-        onClick={onPick}
-        aria-keyshortcuts={String(index + 1)}
-      >
-        <span class="choice__key num" aria-hidden="true">
-          {index + 1}
-        </span>
-        <span class="choice__main">
-          <span class="choice__top">
-            <span class="choice__label">{ch.label}</span>
-            {ch.chance !== undefined && <ChanceBadge chance={ch.chance} />}
-          </span>
-          {hint && <span class="choice__hint">{hint}</span>}
-          {control && <ControlMeter low={control.low} high={control.high} />}
-          {(ch.preview.length > 0 || ch.uncertain || ch.cost) && (
-            <span class="choice__chips">
-              {ch.preview.map((p, i) => (
-                <PreviewChip key={i} p={p} />
-              ))}
-              {ch.uncertain && <UncertainChip />}
-              <CostChips cost={ch.cost} />
-            </span>
-          )}
-          {blocked && (
-            <span class="choice__blocked">
-              <Icon name="lock" size={13} /> {blocked}
-            </span>
-          )}
-        </span>
-      </button>
-    </li>
-  );
-}

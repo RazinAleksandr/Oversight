@@ -73,15 +73,6 @@ export function App({ backend }: { backend: Backend }): JSX.Element {
       if (b && !b.hasAttribute('data-nosfx') && !(b as HTMLButtonElement).disabled) audio.play('click');
     };
     document.addEventListener('click', click, true);
-    const canvas = document.getElementById('bg-canvas') as HTMLCanvasElement | null;
-    if (canvas) {
-      try {
-        fx.startBackground(canvas);
-        fx.setBackgroundTension(0.1);
-      } catch (e) {
-        console.warn('[ui] background failed', e);
-      }
-    }
     audio.setMood('menu');
     return () => {
       document.removeEventListener('click', click, true);

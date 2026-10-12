@@ -19,7 +19,7 @@ function prefersReducedMotion(): boolean {
 }
 
 export function defaultSettings(): Settings {
-  return { sound: true, music: true, volume: 0.7, reducedMotion: prefersReducedMotion(), textSpeed: 'fast' };
+  return { sound: true, music: true, volume: 0.7, reducedMotion: prefersReducedMotion(), textSpeed: 'instant' };
 }
 
 export function loadSettings(): Settings {

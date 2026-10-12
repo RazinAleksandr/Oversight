@@ -29,7 +29,7 @@ function syncModalInert(): void {
 }
 
 function focusableControls(dialog: HTMLElement): HTMLElement[] {
-  return Array.from(dialog.querySelectorAll<HTMLElement>('button, a[href], input, select, textarea, [tabindex]'))
+  return Array.from(dialog.querySelectorAll<HTMLElement>('button, summary, a[href], input, select, textarea, [tabindex]'))
     .filter((el) => el.tabIndex >= 0 && !el.matches(':disabled') && !el.closest('[inert]') && el.getClientRects().length > 0
       && getComputedStyle(el).visibility !== 'hidden');
 }
@@ -76,8 +76,8 @@ export function closeTopSheet(): boolean {
 export interface SheetProps {
   label: string;
   onClose?: () => void;
-  /** 'full' = full-height sheet on phone; 'auto' = content height; 'overlay' = full-screen, not dismissable by backdrop */
-  size?: 'full' | 'auto' | 'overlay';
+  /** 'full' = full-height sheet on phone; 'auto' = content height; 'overlay' = centered non-dismissable result; 'page' = edge-to-edge task */
+  size?: 'full' | 'auto' | 'overlay' | 'page';
   class?: string;
   /** Show the close (×) button. */
   closeButton?: boolean;

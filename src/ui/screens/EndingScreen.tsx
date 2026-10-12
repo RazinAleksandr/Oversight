@@ -12,7 +12,6 @@ import { Bar } from '../components/Bars';
 import { Section } from '../components/Common';
 import { Icon, Svg, artCached, isPlaceholder } from '../components/Icon';
 import { countryCard } from '../countries';
-import { useSettings } from '../settings';
 import { DIFF_LABEL, cx, toneClass } from '../util';
 
 const SCORE_LABEL = { control: t('Control'), prosperity: t('Prosperity'), security: t('Security'), legitimacy: t('Legitimacy') };
@@ -22,9 +21,8 @@ const TRUTH_LABEL = { company: t('Companies'), model: t('Models'), rival: t('Riv
 const gradeTone = (g: string) => (/^[SA]/.test(g) ? 'good' : /^B/.test(g) ? 'accent' : /^C/.test(g) ? 'warn' : 'bad');
 
 export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: EndingReport; onReplay(): void; onNew(): void; onTitle(): void }): JSX.Element {
-  const { settings } = useSettings();
   const good = ending.category === 'survival' && ending.tone !== 'bad';
-  const [shown, setShown] = useState(settings.reducedMotion ? ending.epilogue.length : 1);
+  const [shown, setShown] = useState(ending.epilogue.length);
   const [section, setSection] = useState('epilogue');
   const navigationRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -84,6 +82,8 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
         </header>
 
         <nav ref={navigationRef} tabIndex={-1} class="panel-sections ending__nav" aria-label={t('Debrief sections')}>
+          <label for="debrief-section">{t('Debrief sections')}</label>
+          <select id="debrief-section" value={section} onChange={e => { setNavigated(true); setSection(e.currentTarget.value); }}>
           {[
             ['epilogue', t('Epilogue')], ['rating', t('Rating')],
             ...(ending.decisiveMoments.length ? [['moments', t('Decisive moments')]] : []),
@@ -91,7 +91,8 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
             ...(ending.warningSigns.length ? [['warnings', t('Warning signs')]] : []),
             ...(ending.missed.length ? [['missed', t('Missed opportunities')]] : []),
             ...(ending.stats.length ? [['stats', t('By the numbers')]] : []),
-          ].map(([id, label]) => <button type="button" class={cx('btn', section === id && 'btn--accent')} aria-pressed={section === id} onClick={() => { setNavigated(true); setSection(id); contentRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' }); }}>{label}</button>)}
+          ].map(([id, label]) => <option value={id}>{label}</option>)}
+          </select>
         </nav>
 
         <div ref={contentRef} tabIndex={-1} class="ending__section">

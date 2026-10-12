@@ -18,12 +18,11 @@ import { BriefingSheet } from './Briefing';
 import { GameCtx, type GameCtxValue } from './context';
 import { Hud, MeterSheet, RiskSheet, METER_ORDER } from './Hud';
 import { EndQuarterButton, InboxPanel, InboxStack, isCrisisCard } from './Inbox';
-import { NewsList, NewsSheet, NewsTicker } from './News';
+import { NewsList, NewsSheet } from './News';
 import { QuarterReport } from './QuarterReport';
 import { ActionResultOverlay, ChoiceResultOverlay } from './Results';
 import { TabBar, TABS } from './TabBar';
 import { TipPopup } from './Tips';
-import { LabsPanel } from './panels/LabsPanel';
 import { NationPanel } from './panels/NationPanel';
 import { ThreatsPanel } from './panels/ThreatsPanel';
 import { WorldPanel } from './panels/WorldPanel';
@@ -166,10 +165,11 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
   const goTab = useCallback((t: TabId) => {
     audio.play('tab');
     setTab(t);
-    setFresh((f) => f.filter((x) => x !== t));
+    setFresh((f) => f.filter((x) => x !== t && !(t === 'nation' && x === 'labs') && !(t === 'inbox' && x === 'threats')));
   }, []);
 
   const openCard = useCallback((uid: string) => {
+    clearPending();
     setSheet(null);
     setOverlay({ type: 'card', uid });
   }, []);
@@ -193,6 +193,8 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     }
     save({ type: 'choice', result: r });
     announce(`${card.title}: ${ch.label}. ${r.text}`);
+    setTab('inbox');
+    mainRef.current?.scrollTo({ top: 0 });
     setOverlay({ type: 'choice', result: r });
   };
 
@@ -217,6 +219,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     }
     save({ type: 'action', result: r });
     announce(`${r.title}. ${r.text}`);
+    mainRef.current?.scrollTo({ top: 0 });
     setOverlay({ type: 'action', result: r });
   };
 
@@ -227,6 +230,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
       toast(r.reason ?? t('Cannot change that program now.'));
       return;
     }
+    setOverlay(null);
     save();
   };
 
@@ -303,10 +307,16 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
   };
 
   // Tips show only when nothing else demands attention.
-  const tip = !overlay && !sheet ? view.pendingTips[0] : undefined;
+  const tip = !overlay && !sheet ? view.pendingTips.find(id =>
+    ['welcome', 'inbox', 'capacity', 'end_turn', 'low_confidence'].includes(id) ? tab === 'inbox' :
+    id === 'labs' || id === 'first_deployment' ? tab === 'labs' :
+    id === 'nation' || id === 'first_demand' ? tab === 'nation' :
+    id === 'world' ? tab === 'world' : id === 'threats' || id === 'first_situation' || id === 'evidence' ? tab === 'threats' : false) : undefined;
+  const inlineChoice = overlay?.type === 'choice' && !overlay.result.gameOver && !overlay.result.nextCardUid;
+  const inlineAction = overlay?.type === 'action' && !overlay.result.gameOver;
 
   const panel =
-    tab === 'labs' ? <LabsPanel /> : tab === 'nation' ? <NationPanel /> : tab === 'world' ? <WorldPanel /> : tab === 'threats' ? <ThreatsPanel /> : <InboxPanel />;
+    tab === 'labs' ? <NationPanel companies /> : tab === 'nation' ? <NationPanel /> : tab === 'world' ? <WorldPanel /> : tab === 'threats' ? <ThreatsPanel /> : <InboxPanel />;
 
   const openCardObj = overlay?.type === 'card' ? view.inbox.find((c) => c.uid === overlay.uid) : undefined;
 
@@ -314,10 +324,17 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     <GameCtx.Provider value={ctx}>
       <div class={cx('game', desktop ? 'game--desktop' : 'game--phone', tip && 'has-tip')} data-country={view.country.id}>
         <Hud hudRef={hudRef} onMeter={(id) => setSheet({ type: 'meter', id })} onRisk={() => setSheet({ type: 'risk' })} onMenu={() => onMenu()} />
-        {!desktop && <NewsTicker news={view.news} onOpen={() => setSheet({ type: 'news' })} />}
         <TabBar tab={tab} onTab={goTab} fresh={fresh} />
-        <main class="main" id="main" ref={mainRef} role="tabpanel" aria-labelledby={`tab-${tab}`} key={tab} onScroll={() => { scrollPositions.current[tab] = mainRef.current?.scrollTop ?? 0; }}>
+        <main class="main" id="main" ref={mainRef} role="tabpanel" aria-labelledby={`tab-${tab === 'labs' ? 'nation' : tab === 'threats' ? 'inbox' : tab}`} key={tab} onScroll={() => { scrollPositions.current[tab] = mainRef.current?.scrollTop ?? 0; }}>
+          {(tab === 'inbox' || tab === 'threats') && <nav class="desk-nav" aria-label={t('Desk')}>
+            <button type="button" class={cx('btn', tab === 'inbox' && 'btn--accent')} onClick={() => goTab('inbox')}>{t('Briefings')}</button>
+            {view.unlockedTabs.includes('threats') && <button type="button" class={cx('btn', tab === 'threats' && 'btn--accent')} data-panel="threats" onClick={() => goTab('threats')}>{t('Threats')} · {view.situations.filter(s => !s.resolved).length}</button>}
+            <button type="button" class="btn" onClick={() => setSheet({ type: 'news' })}>{t('News')}</button>
+          </nav>}
+          {inlineChoice && overlay?.type === 'choice' && <ChoiceResultOverlay inline result={overlay.result} remaining={view.inbox.length} onNext={() => afterChoice(overlay.result)} onDesk={() => { clearPending(); setOverlay(null); }} />}
+          {inlineAction && overlay?.type === 'action' && <ActionResultOverlay inline result={overlay.result} onClose={() => { clearPending(); setOverlay(null); }} />}
           {panel}
+          {tip && <TipPopup id={tip} onDismiss={() => { game.dismissTip(tip); save(); }} />}
         </main>
         {desktop ? (
           <aside class="side" aria-label={t('Desk')}>
@@ -332,13 +349,11 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
               <NewsList news={view.news} limit={14} />
             </section>
           </aside>
-        ) : (
+        ) : tab === 'inbox' && (
           <div class="endbar">
             <EndQuarterButton wide />
           </div>
         )}
-
-        {tip && <TipPopup id={tip} onDismiss={() => { game.dismissTip(tip); save(); }} />}
 
         {toastMsg && (
           <div class="toast" role="status">
@@ -383,10 +398,10 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
             onChoose={(ch) => choose(openCardObj, ch)}
           />
         )}
-        {overlay?.type === 'choice' && (
+        {overlay?.type === 'choice' && !inlineChoice && (
           <ChoiceResultOverlay result={overlay.result} remaining={view.inbox.length} onNext={() => afterChoice(overlay.result)} onDesk={() => afterChoice(overlay.result, true)} />
         )}
-        {overlay?.type === 'action' && (
+        {overlay?.type === 'action' && !inlineAction && (
           <ActionResultOverlay
             result={overlay.result}
             onClose={() => {

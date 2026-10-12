@@ -3,21 +3,13 @@
  */
 import type { JSX } from 'preact';
 import { LANGS, getLang, locale, t } from '../../i18n';
-import { Icon, Svg, artCached, isPlaceholder } from '../components/Icon';
+import { Icon } from '../components/Icon';
 import { RiskClock } from '../components/RiskClock';
 import { switchLang } from '../lang';
 import { cx, dailySeed } from '../util';
 
 export function Logo(): JSX.Element {
-  // The art module drops the tagline below 420px, which keeps the logo legible on phones.
-  const svg = artCached.logo2(typeof window !== 'undefined' && window.innerWidth < 520 ? 400 : 560);
-  if (!isPlaceholder(svg)) return <Svg class="logo" html={svg} label="Oversight" />;
-  return (
-    <h1 class="logo logo--type" aria-label="Oversight">
-      <span class="logo__over">Over</span>
-      <span class="logo__sight">sight</span>
-    </h1>
-  );
+  return <h1 class="logo logo--type" aria-label="Oversight">OVERSIGHT<span class="logo__rule" aria-hidden="true" /></h1>;
 }
 
 /** Compact EN | RU switch in the title screen corner. Switching saves the choice and reloads. */
