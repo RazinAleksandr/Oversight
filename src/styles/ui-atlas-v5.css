@@ -1,0 +1,110 @@
+/* The atlas owns its geography; markers stay in screen pixels, above the SVG artwork. */
+.strategic-map { position:relative; width:100%; height:100%; min-width:0; min-height:180px; isolation:isolate; overflow:hidden; background:#0b293b; }
+.strategic-map__geography,.strategic-map__geography>svg,.strategic-map__links { position:absolute; inset:0; width:100%; height:100%; }
+.strategic-map__geography { pointer-events:none; }
+.strategic-map__links { fill:none; stroke:#e1c27f; stroke-width:2; stroke-dasharray:5 5; opacity:.8; pointer-events:none; }
+.strategic-map__country { position:absolute; z-index:1; transform:translate(-50%,-50%); display:grid; grid-template-columns:30px minmax(0,1fr); align-items:center; column-gap:7px; min-height:48px; max-width:160px; width:max-content; padding:5px 9px 5px 6px; border:1px solid #8c9c9c; border-radius:2px; background:#102b3bec; color:#f5efdF; box-shadow:0 3px 0 #06192380; font:600 14px/1.2 var(--font-body,Inter,sans-serif); text-align:left; touch-action:manipulation; cursor:pointer; }
+.strategic-map__country.is-player { border-color:#d7ae66; }
+.strategic-map__country.is-selected { outline:2px solid #f3ead4; outline-offset:3px; background:#244455; }
+.strategic-map__country:focus-visible { outline:3px solid #fff2bb; outline-offset:3px; }
+.strategic-map__crest { grid-column:1; grid-row:1/3; display:block; width:30px; height:36px; }
+.strategic-map__crest svg { width:100%; height:100%; }
+.strategic-map__name { grid-column:2; max-width:120px; overflow-wrap:normal; }
+.strategic-map__you { grid-column:2; font-size:11px; font-weight:400; color:#ead9b2; }
+.strategic-map__attention { position:absolute; right:-7px; top:-9px; display:grid; place-items:center; min-width:22px; min-height:22px; padding:2px 4px; background:#ab4035; border:1px solid #f4c2a0; color:#fff4e6; font-size:12px; }
+.strategic-map__member { position:absolute; bottom:-7px; right:-5px; color:#f5d486; font-size:14px; text-shadow:0 1px #071b2b; }
+.strategic-map--still .strategic-map__country { cursor:default; }
+.strategic-map--compact .strategic-map__country { max-width:145px; grid-template-columns:26px minmax(0,1fr); column-gap:5px; padding:4px 7px 4px 5px; }
+.strategic-map--compact .strategic-map__crest { width:26px; height:30px; }
+.atlas-world { display:flex; flex-direction:column; height:100%; min-height:0; min-width:0; color:#f0eadb; background:#071b2b; }
+.atlas-world__nav { flex:none; display:flex; align-items:center; gap:0; min-height:44px; border-bottom:1px solid #57737a; }
+.atlas-world__nav button { min-height:44px; padding:8px 14px; border:0; border-bottom:3px solid transparent; border-radius:0; color:#c2cdd0; background:transparent; font:600 14px/1.2 var(--font-body,Inter,sans-serif); }
+.atlas-world__nav button.is-active { border-bottom-color:#d7ae66; color:#fff5de; }
+.atlas-world__nav .atlas-world__back { color:#f3dbab; display:flex; align-items:center; gap:6px; margin-right:auto; }
+.atlas-world__board { flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) 220px; }
+.atlas-world__canvas { min-height:0; min-width:0; display:flex; flex-direction:column; }
+.atlas-world__canvas .strategic-map { flex:1; }
+.atlas-world__key { flex:none; display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 10px; background:#102f40; padding:7px 12px; color:#c9d5d4; font-size:12px; }
+.atlas-world__key strong { color:#f0ddb1; }
+.atlas-world__summary { display:flex; flex-direction:column; gap:12px; overflow:auto; padding:14px; border-left:1px solid #45626d; background:#102938; }
+.atlas-world h2 { margin:0; font:650 22px/1.15 var(--font-head,var(--font-body)); }
+.atlas-world h3 { margin:18px 0 9px; font:650 17px/1.25 var(--font-body); }
+.atlas-world p { margin:0 0 12px; line-height:1.5; }
+.atlas-world__summary>p { font-size:14px; color:#c3d2d5; }
+.atlas-world__summary .atlas-world__accord-value { color:#dfbd7c; font:500 36px/1 var(--font-head,var(--font-body)); }
+.atlas-world__button { display:flex; justify-content:space-between; align-items:center; gap:8px; min-height:44px; padding:10px 12px; background:#e5cf9f; color:#102534; border:1px solid #e5cf9f; border-radius:2px; font:600 14px/1.3 var(--font-body); text-align:left; }
+.atlas-world__reading { flex:1; min-height:0; overflow:auto; background:#f0eadb; color:#172b35; padding:20px 24px; --text:#172b35; --text-dim:#4a5b60; --text-faint:#526166; --line:#b6b8ab; --panel:#f0eadb; --accent:#1e5570; --good:#326b56; --bad-text:#a43229; --warn:#8a541a; }
+.atlas-world__reading .panel { background:transparent; border:0; padding:0; box-shadow:none; }
+.atlas-world__reading .rival::before,.atlas-world__reading .rival::after { display:none; }
+.atlas-world__reading .entity__name { color:#172b35; font:650 24px/1.15 var(--font-head,var(--font-body)); margin:0; }
+.atlas-world__reading .entity__head { border:0; padding:0; margin:0 0 14px; }
+.atlas-world__reading .entity__sub { margin:5px 0 0; color:#4a5b60; }
+.atlas-world__reading .actrow { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 20px; }
+.atlas-world__reading .actbtn,.atlas-world__reading .management-operation { color:#102534; background:#d9e0d9; border:1px solid #8d9f9d; box-shadow:none; border-radius:2px; min-height:44px; }
+.atlas-world__reading .management-operation { padding:12px; display:flex; flex-direction:column; align-items:flex-start; gap:6px; text-align:left; }
+.atlas-world__reading .management-operation span,.atlas-world__reading .management-operation small { color:#405862; }
+.atlas-world__reading .management-operation strong { color:#172b35; }
+.atlas-world__reading .management-diplomacy-targets { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:16px 0; }
+.atlas-world__reading .management-identity { display:flex; gap:12px; align-items:center; }
+.atlas-world__reading .management-accord-progress { margin-left:auto; font-size:32px; color:#775521; }
+.atlas-world__reading .management-action-catalog>div { border-bottom:1px solid #b6b8ab; padding:12px 0; }
+.atlas-world__reading .management-action-catalog p { margin:8px 0; }
+.atlas-world button:focus-visible { outline:3px solid #ca923e; outline-offset:-3px; }
+@media (max-width:759px) and (orientation:landscape) {
+ .atlas-world__board { grid-template-columns:minmax(0,1fr); }
+ .atlas-world__summary { display:none; }
+ .atlas-world__nav { min-height:44px; }
+ .atlas-world__nav button { padding:8px 12px; }
+ .atlas-world__reading { padding:14px 18px; }
+ .atlas-world__reading .management-diplomacy-targets { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .atlas-world__key { padding:4px 10px; }
+ .strategic-map { min-height:160px; }
+}
+@media (orientation:portrait) {
+ .atlas-world__board { display:flex; flex-direction:column; overflow:auto; }
+ .atlas-world__canvas { flex:none; height:310px; }
+ .atlas-world__summary { border-left:0; border-top:1px solid #45626d; overflow:visible; }
+ .atlas-world__reading { padding:16px; }
+ .atlas-world__reading .management-diplomacy-targets { grid-template-columns:1fr; }
+ .strategic-map__country { font-size:12px; max-width:125px; grid-template-columns:24px minmax(0,1fr); gap:4px; padding:5px; }
+ .strategic-map__crest { width:24px; }
+}
+/* Compact Agenda geography uses national crests as tokens; its adjacent focus label names selection. */
+.strategic-map__country { max-width:180px; box-sizing:border-box; }
+.strategic-map__attention { right:auto; left:-8px; top:-9px; box-sizing:border-box; }
+.strategic-map--compact { min-height:120px; }
+.strategic-map--compact .strategic-map__country { display:flex; align-items:center; justify-content:center; width:44px; height:44px; min-height:44px; padding:4px; }
+.strategic-map--compact .strategic-map__crest { width:29px; height:34px; flex:none; }
+.strategic-map--compact .strategic-map__name,.strategic-map--compact .strategic-map__you { display:none; }
+.strategic-map--still .strategic-map__country { border:0; box-shadow:none; background:transparent; padding:3px; text-shadow:0 2px 3px #071b2b; }
+.strategic-map--still .strategic-map__crest { filter:drop-shadow(0 2px 2px #071b2b); }
+.atlas-world.page { width:100%; max-width:none; margin:0; padding:0; gap:0; flex:1; }
+
+@media (orientation:landscape) and (max-height:540px) {
+ .atlas-world__summary { padding:12px; gap:10px; }
+ .atlas-world__summary>p { margin-bottom:0; }
+ .atlas-world__reading .management-identity> .icon { display:none; }
+ .atlas-world__reading .management-identity p { font-size:12px; margin-bottom:4px; }
+ .atlas-world__reading .management-identity h2 { font-size:21px; }
+ .atlas-world__reading .management-identity { margin-bottom:8px; }
+ .atlas-world__initiatives-title { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+ .atlas-world__reading .management-diplomacy-targets { margin-top:12px; }
+}
+/* Markers are tappable national tokens; geography remains visible through their hit areas. */
+.strategic-map__country { background:transparent; border-color:transparent; box-shadow:none; padding:5px 2px; }
+.strategic-map__country.is-player { border-color:transparent; }
+.strategic-map__name { background:#092737ed; padding:4px 6px; border-bottom:1px solid var(--country-color,#c4b584); }
+.strategic-map__country.is-player .strategic-map__name { border-bottom-color:#ead39d; }
+.strategic-map__crest { filter:drop-shadow(0 1px 2px #041420); }
+.strategic-map__country.is-selected { background:#15384a70; outline-width:1px; }
+.strategic-map__you { padding-left:6px; color:#f1dfb4; text-shadow:0 1px 2px #041420; }
+.strategic-map--compact .strategic-map__country { background:#102b3bd9; border:1px solid #9dafaf; }
+.strategic-map--compact .strategic-map__country.is-player { border-color:#d7ae66; }
+.strategic-map--still .strategic-map__name { background:transparent; border:0; padding:0; }
+@media (orientation:portrait) {
+ .strategic-map:not(.strategic-map--compact) [data-country-select=commonwealth] { top:13%!important; }
+ .strategic-map:not(.strategic-map--compact) [data-country-select=atlantic] { top:39%!important; }
+}
+.strategic-map--still .strategic-map__country { display:flex; flex-direction:column; gap:2px; min-height:0; padding:0; width:auto; max-width:130px; text-align:center; }
+.strategic-map--still .strategic-map__crest { width:26px; height:29px; }
+.strategic-map--still .strategic-map__name { font-size:12px; line-height:1.15; }

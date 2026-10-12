@@ -50,7 +50,7 @@ export const relTone = (v: number) => (v >= 60 ? 'good' : v >= 35 ? 'warn' : 'ba
 export function LabsPanel({ embedded = false }: { embedded?: boolean }): JSX.Element {
   const { view, sections, selectSection } = useGame();
   const selected = view.companies.find(c=>c.id===sections.company) ?? view.companies[0];
-  return <div class={cx('page page--labs management-v4',embedded && 'management-embedded')}>
+  return <div class={cx('page page--labs management-v4 institutions-v5',embedded && 'management-embedded')}>
     {!embedded && <PageHead title={t('Companies')} sub={t('Domestic AI companies — what they report, and what you actually know.')} />}
     <div class="management-split">
       <nav class="management-roster" aria-label={t('Companies')}><h2>{t('Domestic companies')}</h2>{view.companies.map(c=><button type="button" key={c.id} class={cx('management-item',selected?.id===c.id && 'is-selected')} aria-pressed={selected?.id===c.id} data-company-select={c.id} onClick={()=>selectSection('company',c.id)}><Svg class="management-company-mark" html={artCached.logo(hash(c.id),c.color,c.archetype,32)}/><strong>{c.name}</strong><span>{t('Capability')} {one(c.capability.low)}–{one(c.capability.high)}</span><small>{ATTITUDE_TEXT[c.attitude] ?? c.attitude}</small></button>)}</nav>
@@ -66,8 +66,8 @@ function CompanyCard({ c }: { c: CompanyView }): JSX.Element {
   const revoke = actions.find((a) => a.id === 'revoke_model');
   return (
     <article class="panel company" style={{ '--brand': c.color }}>
-      <header class="entity__head">
-        <Svg class="entity__logo" html={artCached.logo(hash(c.id), c.color, c.archetype, 48)} />
+      <header class="entity__head institution-heading">
+        <Svg class="entity__logo" html={artCached.logo(hash(c.id), c.color, c.archetype, 76)} />
         <div class="entity__id">
           <h3 class="entity__name">{c.name}</h3>
           <p class="entity__sub">
@@ -79,13 +79,6 @@ function CompanyCard({ c }: { c: CompanyView }): JSX.Element {
         </div>
         <span class={cx('att', `att--${ATTITUDE_TONE[c.attitude]}`)}>{ATTITUDE_TEXT[c.attitude] ?? c.attitude}</span>
       </header>
-      {acts.length > 0 && (
-        <div class="actrow">
-          {acts.map((a) => (
-            <ActionChip key={a.id} action={a} targetId={c.id} onOpen={openAction} />
-          ))}
-        </div>
-      )}
       <p class="entity__tag">“{c.tagline}”</p>
       {c.status !== 'active' && (
         <p class="badge badge--bad">
@@ -93,6 +86,7 @@ function CompanyCard({ c }: { c: CompanyView }): JSX.Element {
         </p>
       )}
 
+      <div class="institution-evidence">
       <div class="kv">
         <span class="kv__k">{t('Relation')}</span>
         <Bar value={c.relation} tone={relTone(c.relation) as 'good'} label={t('Relation {n}', { n: c.relation })} />
@@ -129,6 +123,16 @@ function CompanyCard({ c }: { c: CompanyView }): JSX.Element {
         </span>
       </p>
 
+      </div>
+      <section class="institution-operations"><h4 class="eyebrow">{t('Company record')}</h4>
+      {acts.length > 0 && (
+        <div class="actrow">
+          {acts.map((a) => (
+            <ActionChip key={a.id} action={a} targetId={c.id} onOpen={openAction} />
+          ))}
+        </div>
+      )}
+      </section>
       {c.knownViolations.length > 0 && (
         <ul class="violations" aria-label={t('Known violations')}>
           {c.knownViolations.map((v) => (

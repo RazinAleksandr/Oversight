@@ -36,7 +36,7 @@ export function ThreatsPanel(): JSX.Element {
   const signals = view.news.filter(n=>n.signal);
   const followable = followableSignals(view,actions);
   const investigate = actions.find(a=>a.id==='investigate_situation');
-  return <div class="page page--threats management-v4">
+  return <div class="page page--threats management-v4 incidents-v5">
     <PageHead title={t('Threats')} sub={t('Detected situations. Undetected ones are still out there.')}/>
     <nav class="panel-sections" aria-label={t('Threats')}>{[['active',t('Active threats')],['signals',t('Warning signs')],['resolved',t('Resolved')]].map(([id,label])=><button type="button" key={id} class={cx('btn',mode===id && 'btn--accent')} aria-pressed={mode===id} onClick={()=>selectSection('threatView',id)}>{label}</button>)}</nav>
     {mode==='active' && (selected ? <div class="management-split"><nav class="management-roster" aria-label={t('Active threats')}><h2>{t('Needs attention')}</h2>{active.map(s=><button type="button" key={s.id} class={cx('management-item',selected.id===s.id && 'is-selected',s.escalationWarning && 'has-warning')} aria-pressed={selected.id===s.id} data-threat-select={s.id} onClick={()=>selectSection('threat',s.id)}><strong>{s.name}</strong><span>{s.stageLabel}{s.sourceLabel?` · ${s.sourceLabel}`:''}</span><small>{RESPONSE_LABEL[s.response]}</small>{s.escalationWarning && <small>{t('Escalation expected next quarter')}</small>}</button>)}</nav><div class="management-detail" key={selected.id}><SituationCard s={selected} canInvestigate={!!investigate?.targets?.some(target=>target.id===selected.id)} onInvestigate={()=>openAction('investigate_situation',selected.id)}/></div></div> : <div class="management-detail"><EmptyState icon="eye" title={t('No detected threats')} text={t('Quiet does not mean safe. Funding Evaluation & Oversight lets you see trouble sooner.')}/></div>)}
@@ -55,7 +55,7 @@ function SituationCard({ s, canInvestigate, onInvestigate }: { s: SituationView;
   const responses = [...s.responses].sort((a,b)=>Number(!!a.disabled)-Number(!!b.disabled));
   return (
     <article data-management-threat={s.id} class={cx('panel threat', `threat--${tone}`, s.escalationWarning && 'threat--escalating')}>
-      <header class="entity__head">
+      <header class="entity__head incident-heading">
         <span class={cx('threat__icon', `is-${tone}`)}>
           <Icon name={s.icon} size={24} />
         </span>
@@ -87,6 +87,7 @@ function SituationCard({ s, canInvestigate, onInvestigate }: { s: SituationView;
         {t('Current response:')} <strong>{RESPONSE_LABEL[s.response]}</strong>
       </p></div>
 
+      <div class="incident-progression"><StageStepper stage={s.stage}/></div>
       <h3 class="management-response-heading">{t('Available responses')}</h3>
       <div class="responses">
         {canInvestigate && !hasInvestigateResponse && (
@@ -129,7 +130,7 @@ function SituationCard({ s, canInvestigate, onInvestigate }: { s: SituationView;
           </button>
         ))}
       </div>
-      <section class="management-intelligence"><h3>{t('Situation report')}</h3>          <p class="entity__sub">
+      <section class="management-intelligence"><h3><Icon name="investigate" size={20}/>{t('Situation report')}</h3>          <p class="entity__sub">
             {s.detectedTurn === undefined
               ? s.causeKnown
                 ? t('Cause identified')
@@ -141,7 +142,7 @@ function SituationCard({ s, canInvestigate, onInvestigate }: { s: SituationView;
                 : s.causeKnown
                   ? t('Cause identified · detected before term')
                   : t('Cause unknown · detected before term')}
-          </p><StageStepper stage={s.stage}/>{!s.causeKnown && <p>{t('Source unknown — investigate to unlock targeted responses.')}</p>}
+          </p>{!s.causeKnown && <p>{t('Source unknown — investigate to unlock targeted responses.')}</p>}
       <p class="threat__text">{s.text}</p>
 
       <div class="kvs">

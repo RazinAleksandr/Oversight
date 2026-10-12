@@ -29,7 +29,7 @@ export function NationPanel({ companies = false }: { companies?: boolean }): JSX
   const { view, sections, selectSection, goTab } = useGame();
   const section = companies ? 'companies' : sections.nation ?? 'government';
   return (
-    <div class="page page--nation management-v4">
+    <div class="page page--nation management-v4 national-v5">
       <PageHead title={t('Nation')} sub={view.country.name} />
       <nav class="panel-sections" aria-label={t('Nation sections')}>
         {[...(view.unlockedTabs.includes('nation') ? [['government', t('Government')], ['programs', t('Programs')], ['policies', t('Laws')], ['society', t('Society')]] : [])].map(([id, label]) =>
@@ -53,8 +53,9 @@ function GovernmentPanel(): JSX.Element {
   const g = view.government;
   const demands = [...g.demands].sort((a,b) => Number(b.status === 'active' || b.status === 'offered') - Number(a.status === 'active' || a.status === 'offered') || a.deadlineTurn-b.deadlineTurn);
   const selected = sections.demand === 'government' ? undefined : demands.find(d => d.id === sections.demand) ?? demands[0];
-  return <div class="management-split">
+  return <div class="management-split government-v5">
     <nav class="management-roster" aria-label={t('Demands')}>
+      <button type="button" class="government-source" onClick={()=>selectSection('demand','government')}><Portrait seed={g.portraitSeed} role="leader" size={72} name={g.leaderName} hue={hueOf(view.country.color)}/><span><small>{g.leaderTitle}</small><strong>{g.leaderName}</strong><em>{g.stanceLabel}</em></span></button>
       <h2>{t('Commitments')}</h2>
       {demands.map(d => <button type="button" key={d.id} class={cx('management-item', selected?.id === d.id && 'is-selected')} aria-pressed={selected?.id === d.id} data-demand-select={d.id} onClick={() => selectSection('demand',d.id)}>
         <strong>{stripDeadline(d.title)}</strong><span>{d.deadlineLabel}</span><small>{d.progressLabel}</small>
@@ -80,6 +81,7 @@ function Demand({ d }: { d: DemandView }): JSX.Element {
   const st = d.status;
   return (
     <div data-demand-detail={d.id} class={cx('demand', `demand--${st}`)}>
+      <div class="commitment-origin"><Icon name="government" size={18}/><span>{view.government.leaderName}</span><span>{t('Commitments')}</span></div>
       <div class="demand__top">
         <span class="demand__title">{stripDeadline(d.title)}</span>
         <span class={cx('demand__status', st === 'met' ? 'is-good' : st === 'failed' || st === 'refused' ? 'is-bad' : '')}>
@@ -96,6 +98,7 @@ function Demand({ d }: { d: DemandView }): JSX.Element {
                   : t('Refused')}
         </span>
       </div>
+      {d.forecast && <DemandForecast forecast={d.forecast} />}
       <div class="management-actions">
         {card && <button type="button" class="btn btn--primary" onClick={() => openCard(card.uid)}>{t('Review demand')}</button>}
         {view.unlockedTabs.includes('nation') && !['cover_up','match_rival','approve_model'].includes(d.kind) && <button type="button" class="btn" onClick={() => { selectSection('nation','programs'); if (d.kind === 'defense_program') selectSection('program','defense'); if (d.kind === 'jobs_guarantee') selectSection('program','workforce'); goTab('nation'); }}>{t('Review funding')}</button>}
@@ -105,7 +108,6 @@ function Demand({ d }: { d: DemandView }): JSX.Element {
         {d.kind === 'deploy_sector' && <button type="button" class="btn" onClick={() => { selectSection('nation','society'); goTab('nation'); }}>{t('Inspect adoption')}</button>}
       </div>
       <p class="demand__text">{d.text}</p>
-      {d.forecast && <DemandForecast forecast={d.forecast} />}
       {!d.forecast && (st === 'active' || st === 'offered') && <p class="dim small">{t('No numeric projection is available for this demand. Review its current progress and conditions.')}</p>}
       <Bar value={d.progress * 100} tone={d.progress >= 1 ? 'good' : 'gov'} label={d.progressLabel} />
       <div class="demand__foot num">
@@ -160,7 +162,7 @@ function Programs(): JSX.Element {
   const { view, sections, selectSection } = useGame();
   const n = view.nation;
   const selected = n.programs.find(p => p.id === sections.program) ?? n.programs[0];
-  return <div class="management-split">
+  return <div class="management-split allocations-v5">
     <nav class="management-roster" aria-label={t('Programs')}>
       <h2>{t('Funding')}</h2>
       {n.programs.map(p=><button type="button" key={p.id} class={cx('management-item',selected?.id===p.id && 'is-selected')} aria-pressed={selected?.id===p.id} data-program-select={p.id} onClick={()=>selectSection('program',p.id)}><Icon name={p.icon} size={18}/><strong>{p.short}</strong><span>{t('L{n}',{n:p.level})} · {t('{amount}/q',{amount:money(p.costs[p.level])})}</span></button>)}
@@ -180,7 +182,8 @@ function ProgramEditor({ p }: { p: ProgramView }): JSX.Element {
   return <section class="management-program" data-program-editor={p.id}>
     <header class="management-identity"><Icon name={p.icon} size={28}/><div><p>{t('Free to change · upkeep each quarter')}</p><h2><span class="management-program-name-full">{p.name}</span><span class="management-program-name-short">{p.short}</span></h2></div></header>
     <div class="management-program-scroll">
-    <div class="management-levels" role="radiogroup" aria-label={t('{program} funding level',{program:p.name})}>{p.costs.map((cost,level)=><button type="button" key={level} role="radio" aria-checked={proposed===level} class={cx(proposed===level && 'is-selected')} data-propose-level={level} onClick={()=>setProposed(level)}><strong>{level===0?t('Off'):t('L{n}',{n:level})}{p.level===level && <span class="management-level-current" title={t('Current')} aria-label={t('Current')}>✓</span>}</strong><span>{t('{amount}/q',{amount:money(cost)})}</span>{p.level===level && <small class="management-level-current-text">{t('Current')}</small>}</button>)}</div>
+    <div class="allocation-scale-label"><span>{t('Funding')}</span><span>{t('Free to change · upkeep each quarter')}</span></div>
+    <div class="management-levels allocation-scale" role="radiogroup" aria-label={t('{program} funding level',{program:p.name})}>{p.costs.map((cost,level)=><button type="button" key={level} role="radio" aria-checked={proposed===level} class={cx(proposed===level && 'is-selected')} data-propose-level={level} onClick={()=>setProposed(level)}><strong class="allocation-stop">{level===0?t('Off'):t('L{n}',{n:level})}{p.level===level && <span class="management-level-current" title={t('Current')} aria-label={t('Current')}>✓</span>}</strong><span>{t('{amount}/q',{amount:money(cost)})}</span>{p.level===level && <small class="management-level-current-text">{t('Current')}</small>}</button>)}</div>
     <div class="management-funding-preview" aria-live="polite" aria-label={t('Proposed funding')}><h3>{t('Proposed funding')}</h3><p>{p.levelText[proposed]}</p>{unaffordable && <p class="management-warning">{t('Need {cost}; available {available}; shortfall {shortfall}.',{cost:money(p.costs[proposed]),available:money(view.nation.budget),shortfall:money(p.costs[proposed]-view.nation.budget)})}</p>}<dl><div><dt>{t('Listed upkeep')}</dt><dd>{money(p.costs[p.level])} → {money(p.costs[proposed])}</dd></div><div><dt>{t('Quarterly cost change')}</dt><dd>{money(delta,true)}</dd></div><div><dt>{t('Net income at listed costs')}</dt><dd>{money(view.nation.income-nominal,true)}</dd></div></dl><p class="management-secondary">{t('Upkeep is charged at the end of the quarter. Temporary waivers can change the actual charge.')}</p></div>
     <h3 class="management-program-name-short">{p.name}</h3><p class="management-secondary">{p.description}</p>
     {(p.id==='safety' || p.id==='oversight') && <SafetyGap/>}
@@ -193,7 +196,7 @@ function Policies(): JSX.Element {
   const { view, sections, selectSection } = useGame();
   const policies = [...view.nation.policies].sort((a,b)=>Number(b.active)-Number(a.active));
   const selected = policies.find(p=>p.id===sections.policy) ?? policies[0];
-  return <div class="management-split"><nav class="management-roster" aria-label={t('Laws')}><h2>{t('Laws')}</h2>{policies.map(p=><button type="button" key={p.id} class={cx('management-item',selected?.id===p.id && 'is-selected')} aria-pressed={selected?.id===p.id} data-policy-select={p.id} onClick={()=>selectSection('policy',p.id)}><strong>{p.short}</strong><span>{p.active?t('In force'):t('Available legislation')}</span></button>)}</nav><div class="management-detail">{selected && <Law p={selected}/>}</div></div>;
+  return <div class="management-split statutes-v5"><nav class="management-roster" aria-label={t('Laws')}><h2>{t('Laws')}</h2>{policies.map(p=><button type="button" key={p.id} class={cx('management-item',selected?.id===p.id && 'is-selected')} aria-pressed={selected?.id===p.id} data-policy-select={p.id} onClick={()=>selectSection('policy',p.id)}><strong>{p.short}</strong><span>{p.active?t('In force'):t('Available legislation')}</span></button>)}</nav><div class="management-detail">{selected && <Law p={selected}/>}</div></div>;
 }
 
 function Law({ p }: { p: PolicyView }): JSX.Element {
@@ -202,11 +205,12 @@ function Law({ p }: { p: PolicyView }): JSX.Element {
   const blocked = act?.disabled ?? act?.targets?.find(target=>target.id===p.id)?.disabled ?? null;
   const cost = p.active?Math.ceil(p.politicalCost/2):p.politicalCost;
   return <article class={cx('management-law',p.active && 'is-active')}>
-    <header class="management-identity"><Icon name={p.icon} size={26}/><div><p>{p.active?t('In force'):t('Available legislation')}</p><h2>{p.name}</h2></div></header>
+    <header class="management-identity statute-heading"><span class="statute-symbol" aria-hidden="true">§</span><div><p>{p.active?t('In force'):t('Available legislation')}</p><h2>{p.name}</h2></div></header>
+    {p.effectsText[0] && <p class="statute-lead-effect">{p.effectsText[0]}</p>}
     <div class="management-actions"><button type="button" class="btn btn--primary" onClick={()=>openAction(p.active?'repeal_policy':'enact_policy',p.id)}>{p.active?t('Review repeal'):t('Review enactment')}</button><span>{cost>0?t('−{n} conf.',{n:cost}):cost<0?t('+{n} conf.',{n:-cost}):t('No political cost')}</span></div>
     {blocked && <p class="management-warning">{blocked}</p>}
-    <p>{p.description}</p><ul class="management-effects">{p.effectsText.map(text=><li key={text}>{text}</li>)}</ul>
-    <p>{SUPPORT_TEXT[String(p.leaderSupport)] ?? t('Indifferent')}</p>
+    <p>{p.description}</p><ul class="management-effects">{p.effectsText.slice(1).map(text=><li key={text}>{text}</li>)}</ul>
+    <div class="statute-assent"><Icon name="government" size={20}/><span>{t('Government')}</span><strong>{SUPPORT_TEXT[String(p.leaderSupport)] ?? t('Indifferent')}</strong></div>
   </article>;
 }
 
@@ -214,7 +218,7 @@ function Society(): JSX.Element {
   const { view } = useGame();
   const n = view.nation;
   return (
-    <Section title={t('Society & economy')} icon="adoption" class="management-detail">
+    <Section title={t('Society & economy')} icon="adoption" class="management-detail society-v5">
       <div class="panel society">
         <h4 class="eyebrow">{t('AI adoption by sector')}</h4>
         <ul class="sectors">
@@ -222,14 +226,12 @@ function Society(): JSX.Element {
             const v = n.adoption[s];
             const tgt = n.adoptionTarget[s];
             return (
-              <li key={s} class="sectorrow">
+              <li key={s} class="sectorrow" data-sector={s}>
                 <span class="sectorrow__name">
-                  <Icon name={SECTOR_INFO[s].icon} size={15} /> {SECTOR_INFO[s].name}
+                  <Icon name={SECTOR_INFO[s].icon} size={30} /> <span>{SECTOR_INFO[s].name}</span>
                 </span>
                 <Bar value={v} ghost={tgt} tone="accent" label={t('{sector} adoption {n} percent, heading to {target}', { sector: SECTOR_INFO[s].name, n: Math.round(v), target: Math.round(tgt) })} />
-                <span class="sectorrow__v num">
-                  {Math.round(v)}%{Math.round(tgt) !== Math.round(v) && <span class="dim"> → {Math.round(tgt)}</span>}
-                </span>
+                <span class="sectorrow__v num"><span><small>{t('Current')}</small><strong>{Math.round(v)}%</strong></span><span class="sectorrow__arrow" aria-hidden="true">→</span><span><small>{t('Target')}</small><strong>{Math.round(tgt)}%</strong></span></span>
               </li>
             );
           })}

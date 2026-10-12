@@ -26,7 +26,7 @@ export function CompanyInspector({ card, onReturn, onInvestigate, error }: {
   const target = action?.targets?.find(t => t.id === company?.id);
   const deepEvaluation = card.choices.find(c => c.id === 'deep_eval' && !choiceBlock(c, { capacity: view.nation.capacity, budget: view.nation.budget, evidence: view.nation.evidence.length }));
   const blocked = action?.disabled ?? target?.disabled ?? (!action || !target ? t('That action is not available right now.') : null);
-  return <Sheet size="page" closeButton={false} label={t('Company investigation')} onClose={onReturn} class="pilot-inspector inspector-v4">
+  return <Sheet size="page" closeButton={false} label={t('Company investigation')} onClose={onReturn} class="pilot-inspector inspector-v4 casefile-v5">
     <header class="pilot-inspector__bar" data-company-inspector>
       <button type="button" data-return-decision onClick={onReturn}>← {t('Return to decision')}</button>
       <span>{model?.name}</span>
@@ -49,7 +49,7 @@ export function CompanyInspector({ card, onReturn, onInvestigate, error }: {
         </>}
       </section>
       <section class="pilot-inspector__purpose">
-        <Icon name="investigate" size={44} />
+        <p class="casefile-order">{t('Company investigation')}</p>
         <h2>{t('What this investigation tells you')}</h2>
         <p>{action?.description}</p>
         <p>{t('This checks the company. It does not repeat the model evaluation or guarantee that the model is safe.')}</p>

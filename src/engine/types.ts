@@ -784,6 +784,8 @@ export interface CardSource {
 }
 
 export interface EvidenceLine {
+  /** Optional presentation role; old saved cards remain valid without it. */
+  role?: 'evaluation' | 'government';
   label: string;
   value: string;
   confidence: Confidence;

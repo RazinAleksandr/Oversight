@@ -1,5 +1,7 @@
 /** Landscape command room: the quarter agenda and direct routes to its work. */
 import type { JSX } from 'preact';
+import { useState } from 'preact/hooks';
+import { StrategicMap } from '../components/StrategicMap';
 import type { Card, MeterId, TabId } from '../../engine/types';
 import { METER_INFO, SOURCE_INFO } from '../../engine/labels';
 import { t, tp } from '../../i18n';
@@ -37,39 +39,45 @@ export function CommandNav({ tab, onTab }: { tab: TabId; onTab(tab:TabId):void }
 
 function SourceMark({card}: {card:Card}):JSX.Element {
   const {view}=useGame();
-  const company=view.companies.find(c=>c.id===card.ctx.companyId || c.id===card.source.id);
+  const company=card.source.type==='company'?view.companies.find(c=>c.id===card.source.id || c.id===card.ctx.companyId):undefined;
   if(company) return <Svg html={artCached.logo(hash(company.id),company.color,company.archetype,48)} />;
+  const rival=card.source.type==='foreign'?view.rivals.find(c=>c.id===(card.source.id??card.ctx.rivalId)):undefined;
+  if(rival) return <Svg html={artCached.emblem(rival.id,48)}/>;
   if(card.source.type==='government') return <Portrait seed={view.government.portraitSeed} role="leader" size={48} name={view.government.leaderName}/>;
   return <Icon name={SOURCE_INFO[card.source.type].icon} size={30}/>;
 }
 
 export function QuarterAgenda(): JSX.Element {
-  const {view,openCard,openManagement}=useGame();
-  const demands=view.government.demands.filter(d=>d.status==='active').sort((a,b)=>a.deadlineTurn-b.deadlineTurn);
-  const threats=view.situations.filter(s=>!s.resolved).sort((a,b)=>Number(b.escalationWarning)-Number(a.escalationWarning));
-  const cards=[...view.inbox].sort((a,b)=>({critical:0,priority:1,routine:2}[a.urgency]-{critical:0,priority:1,routine:2}[b.urgency]));
-  return <div class="quarter-agenda" data-agenda>
-    <section class="agenda-decisions">
-      <header class="agenda-heading"><div><p>{view.eraLabel}</p><h1>{view.finale?t('The Threshold'):t('Your agenda')}</h1></div><span>{tp(cards.length,'{n} decision','{n} decisions')}</span></header>
-      <div class="agenda-decision-list">
-        {cards.map((card,i)=><button type="button" key={card.uid} data-card={card.uid} class={cx('agenda-case',i===0&&'agenda-case--lead',card.urgency==='critical'&&'is-critical')} onClick={()=>openCard(card.uid)}>
-          <span class="agenda-source-mark"><SourceMark card={card}/></span><span class="agenda-case-copy"><small>{card.source.name}</small><strong>{card.title}</strong><span>{card.subtitle??KIND_LABEL[card.kind]}</span></span><Icon name="chevron_right" size={22}/>
-        </button>)}
-        {!cards.length&&<div class="agenda-clear"><Icon name="check" size={35}/><h2>{t('Desk clear')}</h2><p>{t('Use your remaining actions, review your commitments, then advance the quarter.')}</p></div>}
-      </div>
-      <footer class="agenda-progress"><span>{view.turn}/{view.maxTurns} <span>{t('quarters')}</span></span><div aria-hidden="true">{Array.from({length:view.maxTurns},(_,i)=><i key={i} class={i<view.turn?'is-complete':''}/>)}</div><EndQuarterButton/></footer>
-    </section>
-    <aside class="agenda-attention">
-      <header><h2>{t('Watchlist')}</h2><Svg html={artCached.emblem(view.country.id,36)}/></header>
-      <div class="agenda-watch-scroll">
-        {threats.map(s=><button type="button" key={s.id} class="agenda-watch agenda-watch--threat" onClick={()=>openManagement('threats',undefined,s.id)}><Icon name="threats" size={18}/><span><strong>{s.name}</strong><small>{s.escalationWarning?t('Escalation expected next quarter'):s.stageLabel}</small></span><Icon name="chevron_right" size={16}/></button>)}
-        {demands.map(d=><button type="button" key={d.id} class="agenda-watch" onClick={()=>openManagement('nation','government',d.id)}><Icon name="government" size={18}/><span><strong>{stripDeadline(d.title)}</strong><small>{d.progressLabel} · {d.deadlineLabel}</small></span><Icon name="chevron_right" size={16}/></button>)}
-        {!threats.length&&!demands.length&&<p class="agenda-quiet">{t('No active threats or commitments. Read the briefings to prepare your next move.')}</p>}
-        {view.warnings.length>0&&<ul class="agenda-warnings">{[...new Set(view.warnings.map(cleanWarning))].map(w=><li key={w}><Icon name="warning" size={15}/>{w}</li>)}</ul>}
-      </div>
-      <div class="agenda-national">{METER_ORDER.map(id=><div key={id} class={cx(view.meters[id].status==='critical'&&'is-critical')}><span>{METER_INFO[id].short}</span><strong>{Math.round(view.meters[id].value)}</strong><i style={{'--level':`${Math.max(0,Math.min(100,view.meters[id].value))}%`}}/></div>)}</div>
-    </aside>
-  </div>;
+  const { view, openCard, openManagement } = useGame();
+  const [watch, setWatch] = useState(false);
+  const [focus, setFocus] = useState(view.country.id);
+  const demands = view.government.demands.filter(d => d.status === 'active').sort((a,b) => a.deadlineTurn-b.deadlineTurn);
+  const threats = view.situations.filter(s => !s.resolved).sort((a,b) => Number(b.escalationWarning)-Number(a.escalationWarning));
+  const cards = [...view.inbox].sort((a,b) => ({critical:0,priority:1,routine:2}[a.urgency]-{critical:0,priority:1,routine:2}[b.urgency]));
+  const countries = [{id:view.country.id,name:view.country.name,color:view.country.color,attention:threats.length}, ...view.rivals];
+  const focused = countries.find(c => c.id === focus) ?? countries[0];
+  const inspect = (tab:TabId, section?:string, target?:string) => { setWatch(false); openManagement(tab,section,target); };
+  return <>
+    <div class="quarter-agenda atlas-agenda" data-agenda>
+      <section class="agenda-atlas">
+        <header class="atlas-national-heading">
+          <Svg html={artCached.emblem(view.country.id,42)}/>
+          <div><strong>{view.country.name}</strong><span>{view.eraLabel} · {view.turn}/{view.maxTurns}</span></div>
+          {view.unlockedTabs.includes('world') && <button type="button" onClick={() => openManagement('world','map')}><Icon name="world" size={18}/>{t('World map')}</button>}
+        </header>
+        <div class="atlas-national-indicators">{METER_ORDER.map(id => <div key={id} class={cx(view.meters[id].status==='critical'&&'is-critical')}><span>{METER_INFO[id].short}</span><strong>{Math.round(view.meters[id].value)}</strong><i style={{'--level':`${Math.max(0,Math.min(100,view.meters[id].value))}%`}}/></div>)}</div>
+        <div class="agenda-map-stage"><StrategicMap player={view.country.id} selected={focus} countries={countries} accordSigned={view.nation.accord.signed} compact onSelect={id => {setFocus(id); if(id!==view.country.id && view.unlockedTabs.includes('world')) openManagement('world',undefined,id);}}/></div>
+        <div class="atlas-focus-label"><span>{focused.name}</span>{'trust' in focused && <strong>{t('Trust')} {Math.round(focused.trust as number)}</strong>}</div>
+        <footer class="atlas-alerts"><button type="button" onClick={() => setWatch(true)}><Icon name="threats" size={18}/><strong>{threats.length}</strong>{t('Threats')}</button><button type="button" onClick={() => setWatch(true)}><Icon name="government" size={18}/><strong>{demands.length}</strong>{t('Commitments')}</button>{view.warnings.length>0 && <span class="atlas-warning-count"><Icon name="warning" size={16}/>{view.warnings.length}</span>}</footer>
+      </section>
+      <section class="agenda-decisions agenda-dispatches">
+        <header class="agenda-heading"><div><p>{view.dateLabel}</p><h1>{view.finale?t('The Threshold'):t('Your agenda')}</h1></div><span>{tp(cards.length,'{n} decision','{n} decisions')}</span></header>
+        <div class="agenda-decision-list">{cards.map((card,i) => <button type="button" key={card.uid} data-card={card.uid} class={cx('agenda-case',i===0&&'agenda-case--lead',card.urgency==='critical'&&'is-critical')} onClick={() => openCard(card.uid)}><span class="agenda-source-mark"><SourceMark card={card}/></span><span class="agenda-case-copy"><small>{card.source.name}</small><strong>{card.title}</strong><span>{card.subtitle??KIND_LABEL[card.kind]}</span></span><Icon name="chevron_right" size={20}/></button>)}{!cards.length&&<div class="agenda-clear"><Icon name="check" size={35}/><h2>{t('Desk clear')}</h2><p>{t('Use your remaining actions, review your commitments, then advance the quarter.')}</p></div>}</div>
+        <footer class="agenda-progress"><EndQuarterButton/></footer>
+      </section>
+    </div>
+    {watch && <Sheet size="page" class="atlas-watchlist" label={t('Watchlist')} onClose={() => setWatch(false)}><h1>{t('Watchlist')}</h1><div class="atlas-watch-content">{threats.map(s => <button type="button" key={s.id} class="agenda-watch agenda-watch--threat" onClick={() => inspect('threats',undefined,s.id)}><Icon name="threats" size={22}/><span><strong>{s.name}</strong><small>{s.escalationWarning?t('Escalation expected next quarter'):s.stageLabel}</small></span><Icon name="chevron_right" size={20}/></button>)}{demands.map(d => <button type="button" key={d.id} class="agenda-watch" onClick={() => inspect('nation','government',d.id)}><Icon name="government" size={22}/><span><strong>{stripDeadline(d.title)}</strong><small>{d.progressLabel} · {d.deadlineLabel}</small></span><Icon name="chevron_right" size={20}/></button>)}{!threats.length&&!demands.length&&<p>{t('No active threats or commitments. Read the briefings to prepare your next move.')}</p>}{view.warnings.length>0&&<ul class="agenda-warnings">{[...new Set(view.warnings.map(cleanWarning))].map(w => <li key={w}><Icon name="warning" size={15}/>{w}</li>)}</ul>}</div></Sheet>}
+  </>;
 }
 
 export function NationalStatus({ onClose, onMeter }: {onClose():void;onMeter(id:MeterId):void}):JSX.Element {

@@ -1,0 +1,274 @@
+/* National work is made of institutions, appropriations, statutes and incidents.
+   Shared navigation stays predictable; the document inside has its own structure. */
+.national-v5,.institutions-v5,.incidents-v5 {
+ --text:#20343e;--text-dim:#53626a;--text-faint:#68767b;--line:#b8b8a8;
+ --accent:#9d6220;--good:#326f59;--bad-text:#a43536;--warn:#8b5820;
+ --panel:#eee9d9;--v4-raised:#dedfd4;--v4-bg:#e8e4d6;--v4-surface:#f1edde;
+}
+.national-v5 .management-split,.institutions-v5 .management-split,.incidents-v5 .management-split {border:0;border-radius:0;grid-template-columns:minmax(148px,26%) minmax(0,1fr);}
+.national-v5 .panel-sections,.incidents-v5 .panel-sections {border-bottom:0;background:transparent;gap:3px;}
+.national-v5 .panel-sections .btn,.incidents-v5 .panel-sections .btn {color:#bbc9cc;border:0;min-height:44px;border-radius:2px 2px 0 0;font-size:.875rem;}
+.national-v5 .panel-sections .btn--accent,.incidents-v5 .panel-sections .btn--accent {background:#eee9d9;color:#20343e;box-shadow:inset 0 3px #b18b4b;}
+.national-v5 .management-roster,.institutions-v5 .management-roster,.incidents-v5 .management-roster {background:#dcdccc;border-right:1px solid #b8b8a8;padding:6px;}
+.national-v5 .management-item,.institutions-v5 .management-item,.incidents-v5 .management-item {border-radius:0;}
+.national-v5 .management-item.is-selected,.institutions-v5 .management-item.is-selected,.incidents-v5 .management-item.is-selected {background:#f3efe1;box-shadow:inset 3px 0 #203f4e;}
+.national-v5 .management-detail,.institutions-v5 .management-detail,.incidents-v5 .management-detail {background:#f1edde;padding:16px 20px;}
+.national-v5 h2,.national-v5 .demand__title,.institutions-v5 .entity__name,.incidents-v5 .entity__name {font-family:Georgia,'Times New Roman',serif;font-weight:600;letter-spacing:-.025em;}
+.national-v5 .btn--primary,.institutions-v5 .btn--primary {background:#254755;border-color:#254755;color:#faf5e6;}
+.national-v5 .btn,.institutions-v5 .btn,.incidents-v5 .btn {border-radius:2px;}
+.national-v5 .bar,.institutions-v5 .bar,.incidents-v5 .bar {background:#d3d5c9;}
+.national-v5 .bar__fill,.institutions-v5 .bar__fill {background:#496d72;}
+.national-v5 .bar__ghost {background:#a06132;box-shadow:none;width:3px;}
+.national-v5 .range,.institutions-v5 .range,.incidents-v5 .range {background:#d8dacd;}
+.national-v5 .range__span,.institutions-v5 .range__span,.incidents-v5 .range__span {background:#73979570;border-color:#648584;}
+.national-v5 .range__mark,.institutions-v5 .range__mark,.incidents-v5 .range__mark {background:#284e59;}
+.national-v5 .is-good,.institutions-v5 .is-good,.incidents-v5 .is-good {color:#326f59;}
+.national-v5 .is-bad,.institutions-v5 .is-bad,.incidents-v5 .is-bad {color:#a43536;}
+/* Cabinet commitments: a real source in the margin, due dates on an official record. */
+.government-source {display:flex;gap:10px;width:100%;align-items:center;text-align:left;background:transparent;border:0;border-bottom:1px solid #aeb5a8;padding:5px 3px 13px;color:#20343e;}
+.government-source .portrait {flex:none;width:64px;height:72px;border-radius:2px;border:0;}
+.government-source>span {display:flex;flex-direction:column;min-width:0;gap:3px;}
+.government-source strong {font:600 1rem/1.2 Georgia,serif;}
+.government-source small,.government-source em {font-size:.75rem;line-height:1.25;font-style:normal;color:#53626a;}
+.government-v5 .management-roster .management-item {position:relative;padding-left:15px;border-left:1px solid #aeb5a8;margin-left:3px;width:calc(100% - 3px);}
+.government-v5 .management-roster .management-item::before {content:'';position:absolute;left:-4px;top:17px;width:7px;height:7px;background:#647e7f;border-radius:50%;}
+.commitment-origin {display:flex;align-items:center;gap:8px;color:#53626a;font-size:.75rem;border-bottom:1px solid #aeb5a8;padding-bottom:8px;margin-bottom:10px;}
+.commitment-origin span:last-child {margin-left:auto;}
+.national-v5 .demand__top {display:block;}
+.national-v5 .demand__title {display:block;font-size:1.6rem;line-height:1.13;}
+.national-v5 .demand__status {display:block;margin-top:8px;color:#8b5820;font-weight:600;}
+.national-v5 .forecast-v4 {border:0;border-block:1px solid #adb6a8;padding:12px 0;}
+.national-v5 .forecast-v4__values {gap:14px;}
+.national-v5 .forecast-v4__values dd {font-family:Georgia,serif;font-size:1.65rem;color:#244e59;}
+/* Appropriation instrument: connected level stops, visible cost ledger, stable commit. */
+.allocations-v5 .management-roster {background:#203b46;color:#eae8dc;--text:#eae8dc;--text-dim:#b8c9c7;--line:#476069;}
+.allocations-v5 .management-item.is-selected {background:#35515a;color:#fff4d9;box-shadow:inset 3px 0 #cbab72;}
+.allocations-v5 .management-item+.management-item {border-color:#405d66;}
+.allocations-v5 .management-ledger {border-top:1px solid #657a7d;}
+.allocations-v5 .management-ledger strong,.allocations-v5 .management-ledger-compact summary strong {color:#f3e8cc;}
+.allocation-scale-label {display:flex;justify-content:space-between;gap:12px;font-size:.75rem;color:#53626a;margin-bottom:6px;}
+.allocation-scale-label span:last-child {text-align:right;}
+.national-v5 .allocation-scale {position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));overflow:visible;border:0;border-radius:0;margin:0 0 12px;gap:0;background:linear-gradient(#859997,#859997) center 22px/calc(100% - 56px) 2px no-repeat;}
+.national-v5 .allocation-scale button {position:relative;align-items:center;gap:5px;padding:0 3px 8px;background:none;border:0;box-shadow:none;text-align:center;min-height:76px;}
+.national-v5 .allocation-stop {display:flex;justify-content:center;align-items:center;width:44px;min-height:44px;background:#e3e4d6;border:1px solid #91a39c;border-radius:50%;font:600 .875rem/1 Georgia,serif;}
+.national-v5 .allocation-scale button.is-selected .allocation-stop {background:#264b56;color:#faf4dc;border-color:#264b56;outline:3px solid #b4c5b6;outline-offset:2px;}
+.national-v5 .allocation-scale button span {font-size:.8125rem;color:#344f56;}
+.national-v5 .allocation-scale .management-level-current {display:none;}
+.national-v5 .allocation-scale .management-level-current-text {display:block;font-size:.6875rem;color:#506760;}
+.national-v5 .management-funding-preview {border-top:1px solid #aeb5a8;}
+.national-v5 .management-funding-preview>p:first-of-type {font-size:1rem;color:#244f55;font-weight:550;}
+.national-v5 .management-funding-preview dl>div {border-bottom:1px dotted #b8bfaf;}
+.national-v5 .management-funding-preview dd {font-weight:600;color:#244f55;}
+.national-v5 .management-program-commit {background:#f1edde;}
+/* Statutes: a legal register with operative effects and political assent. */
+.statutes-v5 .management-detail {background:#f7f1de;}
+.statutes-v5 .management-roster .management-item span {font-variant:small-caps;letter-spacing:.03em;}
+.statute-heading {border-bottom:3px double #8c998c;padding-bottom:14px;align-items:flex-start;}
+.statute-symbol {font:400 3.6rem/.9 Georgia,serif;color:#8f7655;}
+.statutes-v5 .management-law h2 {font-size:1.7rem;}
+.statutes-v5 .management-effects {list-style:none;padding:0;counter-reset:clause;}
+.statutes-v5 .management-effects li {counter-increment:clause;display:flex;gap:14px;padding:10px 0;border-bottom:1px solid #d0c8b1;margin:0;}
+.statutes-v5 .management-effects li::before {content:counter(clause,upper-roman) '.';font-family:Georgia,serif;min-width:22px;color:#8f7655;}
+.statute-assent {display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:20px;padding-top:10px;border-top:1px solid #b8b8a8;font-size:.875rem;}
+.statute-assent strong {margin-left:auto;}
+/* Sector adoption: current state and intended destination are separate quantities. */
+.national-v5 .society-v5 {padding:18px 22px;}
+.society-v5 .section__title {font-family:Georgia,serif;letter-spacing:0;text-transform:none;}
+.society-v5 .sectors {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;}
+.society-v5 .sectorrow {display:grid;grid-template-columns:1fr;gap:10px;padding:16px 0;border-top:1px solid #aeb5a8;}
+.society-v5 .sectorrow__name {display:flex;align-items:center;gap:12px;font-size:1rem;color:#20343e;}
+.society-v5 .sectorrow__name>.icon {color:#53736f;}
+.society-v5 .sectorrow>.bar {order:3;height:9px;width:100%;}
+.society-v5 .sectorrow__v {display:flex;align-items:center;gap:18px;color:#20343e;justify-content:flex-start;}
+.society-v5 .sectorrow__v>span {display:flex;flex-direction:column;gap:2px;text-align:left;}
+.society-v5 .sectorrow__v small {font:400 .6875rem/1.2 var(--font-body);color:#53626a;}
+.society-v5 .sectorrow__v strong {font:400 1.8rem/1 Georgia,serif;}
+.society-v5 .sectorrow__v>span:last-child strong {color:#946535;}
+.society-v5 .sectorrow__arrow {color:#7c8b82;}
+.society-v5 .society__tiles {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;border-top:3px double #aeb5a8;padding-top:16px;margin-top:20px;}
+.society-v5 .stat {border:0;background:none;padding:0;}
+.society-v5 .stat__v {font-family:Georgia,serif;color:#20343e;}
+/* Institution profiles: authored identity and evidence precede interventions. */
+.institutions-v5>.pagehead {color:#eee9d9;}
+.institutions-v5 .management-detail {border-top:4px solid #719398;}
+.institutions-v5 .institution-heading {display:grid;grid-template-columns:76px minmax(0,1fr);gap:8px 18px;margin-bottom:8px;}
+.institutions-v5 .institution-heading>.entity__logo {width:76px;height:76px;grid-row:1/3;}
+.institutions-v5 .institution-heading .entity__name {font-size:1.8rem;color:#20343e;}
+.institutions-v5 .institution-heading .att {grid-column:2;justify-self:start;border:0;padding:0;font-size:.75rem;background:none;color:#49685e;}
+.institutions-v5 .entity__tag {font:italic 1.125rem/1.4 Georgia,serif;color:#65746b;margin:10px 0 16px;padding-bottom:14px;border-bottom:1px solid #aeb5a8;}
+.institution-evidence {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 20px;}
+.institution-evidence>.kv {display:grid;grid-template-columns:1fr auto;gap:6px;margin:0;}
+.institution-evidence>.kv>.bar {grid-column:1/-1;grid-row:2;}
+.institution-evidence>.kvs {margin:0;}
+.institution-evidence>.traits,.institution-evidence>.entity__intel {grid-column:1/-1;}
+.institutions-v5 .traits {gap:10px;}
+.institutions-v5 .trait {background:none;border-left:2px solid #afbbaf;padding:5px 10px;}
+.institutions-v5 .trait__name,.institutions-v5 .trait__label {color:#53626a;}
+.institutions-v5 .entity__intel {display:flex;flex-wrap:wrap;border:0;color:#53626a;font-size:.8125rem;}
+.institution-operations {border-top:3px double #aeb5a8;padding-top:12px;}
+.institution-operations .actrow {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+.institutions-v5 .actbtn {background:#e0e3d7;border:1px solid #aab8ad;border-radius:2px;color:#20343e;}
+.institutions-v5 .actbtn__cost {color:#8b5820;}
+.institutions-v5 .model {border-top:1px solid #aeb5a8;}
+.institutions-v5 .model__name {font-family:Georgia,serif;color:#20343e;}
+/* Incidents have a visible progression, provenance and response record. */
+.incidents-v5 .management-roster {background:#293b44;--text:#eee9d9;--text-dim:#b9c5c4;}
+.incidents-v5 .management-roster .management-item.is-selected {background:#435157;box-shadow:inset 3px 0 #c37e62;}
+.incidents-v5 .management-detail {border-top:4px solid #9b5144;}
+.incidents-v5 .incident-heading {align-items:center;}
+.incidents-v5 .incident-heading .entity__name {font-size:1.6rem;}
+.incidents-v5 .threat__icon {background:#e1c8ae;color:#8a4234;border:0;border-radius:0;transform:none;}
+.incidents-v5 .stagepill {color:#8b4335;background:transparent;border:1px solid #a67763;border-radius:2px;}
+.incident-progression {padding:8px 0 4px;}
+.incident-progression .stages {margin:0;}
+.incident-progression .stages__step {color:#6a7978;}
+.incident-progression .stages__step.is-current {color:#93493c;}
+.incidents-v5 .management-threat-state {font-size:.875rem;border-color:#c6bcaa;}
+.incidents-v5 .management-intelligence {border-top:3px double #b8b8a8;padding-top:12px;}
+.incidents-v5 .management-intelligence h3 {display:flex;gap:8px;align-items:center;font-family:Georgia,serif;}
+.incidents-v5 .respbtn {background:transparent;border:1px solid #a9b2a5;border-radius:2px;}
+.incidents-v5 .respbtn.is-current {background:#dbe4d5;border-color:#68856e;}
+.incidents-v5 .respbtn.is-blocked {background:#e6e3d7;}
+.incidents-v5 .respbtn__cur {background:none;color:#426b52;border-color:#7d9782;}
+.incidents-v5 .threat__warn {background:#e7d4bc;border:0;border-left:3px solid #a2523c;color:#873c30;}
+/* Media monitor: a newspaper column system, with outlets and signal provenance. */
+.newspaper-v5 {--text:#25383f;--text-dim:#5d696a;--text-faint:#687574;--line:#bcbba9;--accent:#8a5b27;background:#efe9d6!important;color:#25383f;}
+.newspaper-v5 .newspaper-masthead {border-top:4px solid #253e48;border-bottom:3px double #889589;padding:12px 0;gap:16px;}
+.newspaper-v5 .newspaper-masthead .detail__icon {display:none;}
+.newspaper-v5 .newspaper-masthead h2 {font:700 2.3rem/1 Georgia,serif;letter-spacing:-.045em;color:#253e48;}
+.newspaper-v5 .newspaper-masthead .eyebrow {color:#6c766f;font-size:.75rem;letter-spacing:.14em;}
+.newspaper-v5 .newspaper-explainer {font-size:.8125rem;max-width:70ch;margin:12px 0 20px;}
+.newspaper-v5 .newslist {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;padding:0;}
+.newspaper-v5 .newsitem {display:flex;flex-direction:column;gap:8px;background:none;border:0;border-top:1px solid #b7bead;border-radius:0;padding:14px 0;}
+.newspaper-v5 .newsitem:first-child {grid-column:1/-1;border-top:0;}
+.newspaper-v5 .newsitem:first-child .newsitem__text {font-size:1.6rem;line-height:1.2;}
+.newspaper-v5 .newsitem__text {font:400 1.125rem/1.4 Georgia,serif;color:#253e48;}
+.newspaper-v5 .newsitem__date {position:static;color:#65736a;font-size:.75rem;}
+.newspaper-v5 .newsitem__outlet {color:#61756d;font-size:.75rem;letter-spacing:.05em;}
+.newspaper-v5 .newsitem__sig {color:#9b4a38;}
+.newspaper-v5 .followup {align-self:flex-start;background:#dce1d1;border:1px solid #95a697;color:#274b4e;min-height:44px;border-radius:2px;padding:9px 12px;}
+@media (orientation:landscape) and (max-height:540px) {
+ .national-v5,.incidents-v5 {gap:0;}
+ .national-v5 .panel-sections,.incidents-v5 .panel-sections {min-height:40px;}
+ .national-v5 .management-detail,.institutions-v5 .management-detail,.incidents-v5 .management-detail {padding:12px 16px;}
+ .government-source {align-items:flex-start;gap:8px;}
+ .government-source .portrait {width:44px;height:52px;}
+ .government-source strong {font-size:.875rem;}
+ .government-source em {display:none;}
+ .national-v5 .demand__title {font-size:1.35rem;}
+ .national-v5 .management-program>.management-identity {margin-bottom:6px;}
+ .allocation-scale-label {margin-bottom:3px;}
+ .allocation-scale-label span:last-child {display:none;}
+ .national-v5 .allocation-scale {margin-bottom:4px;}
+ .national-v5 .allocation-scale button {min-height:68px;gap:3px;padding-bottom:4px;}
+ .national-v5 .allocation-scale .management-level-current-text {display:none;}
+ .national-v5 .allocation-scale .management-level-current {display:inline;color:inherit;font-size:.7rem;margin-left:2px;}
+ .national-v5 .management-funding-preview {padding-top:7px;}
+ .national-v5 .management-funding-preview>h3 {display:none;}
+ .national-v5 .management-funding-preview>p:first-of-type {margin-bottom:10px;font-size:.875rem;}
+ .institutions-v5 .institution-heading {grid-template-columns:60px 1fr;gap:5px 14px;}
+ .institutions-v5 .institution-heading>.entity__logo {width:60px;height:60px;}
+ .institutions-v5 .institution-heading .entity__name {font-size:1.5rem;}
+ .institutions-v5 .entity__tag {margin:6px 0 12px;padding-bottom:10px;font-size:1rem;}
+ .society-v5 .sectorrow {padding:10px 0;gap:8px;}
+ .society-v5 .sectorrow__v strong {font-size:1.5rem;}
+ .incidents-v5 .incident-heading .entity__name {font-size:1.3rem;}
+ .incident-progression {padding:2px 0;}
+}
+@media (orientation:landscape) and (max-width:759px) {
+ .national-v5 .management-split,.institutions-v5 .management-split,.incidents-v5 .management-split {grid-template-columns:142px minmax(0,1fr);}
+ .national-v5 .management-detail,.institutions-v5 .management-detail,.incidents-v5 .management-detail {padding:10px 12px;}
+ .national-v5 .allocation-scale button {padding-inline:1px;}
+ .national-v5 .management-levels button span {font-size:.75rem;}
+ .national-v5 .management-program-commit .btn {font-size:.8125rem;}
+ .national-v5 .society-v5 {padding:12px;}
+ .society-v5 .sectors {gap:0 16px;}
+ .society-v5 .sectorrow__name {font-size:.875rem;gap:8px;}
+ .society-v5 .sectorrow__v {gap:10px;}
+ .institution-evidence {grid-template-columns:1fr;gap:12px;}
+ .incidents-v5 .responses {grid-template-columns:1fr;}
+ .incidents-v5 .stagepill {font-size:.6875rem;}
+}
+@media (orientation:portrait) {
+ .national-v5 .management-split,.institutions-v5 .management-split,.incidents-v5 .management-split {display:flex;}
+ .national-v5 .management-roster,.institutions-v5 .management-roster,.incidents-v5 .management-roster {max-height:132px;}
+ .government-source {min-width:190px;max-width:190px;border:0;padding:6px;}
+ .government-source .portrait {width:52px;height:64px;}
+ .government-v5 .management-roster .management-item {width:160px;margin:0;}
+ .national-v5 .panel-sections .btn,.incidents-v5 .panel-sections .btn {padding:8px 12px;}
+ .society-v5 .sectors,.society-v5 .society__tiles,.institution-evidence,.newspaper-v5 .newslist {grid-template-columns:1fr;}
+ .institution-operations .actrow {grid-template-columns:1fr;}
+ .newspaper-v5 .newsitem:first-child {grid-column:auto;}
+ .newspaper-v5 .newspaper-masthead h2 {font-size:2rem;}
+}
+@media (orientation:landscape) and (max-height:540px) {
+ .national-v5 .management-detail--program {padding:8px 14px 0;}
+ .national-v5 .management-program-commit {padding:4px 0;gap:6px;}
+ .national-v5 .management-program-commit .btn {min-height:44px;padding:5px 8px;}
+ .national-v5 .management-program-commit .btn span {display:inline;padding-left:4px;}
+ .national-v5 .allocation-scale-label {display:none;}
+ .national-v5 .management-program>.management-identity {margin-bottom:3px;}
+ .national-v5 .management-program>.management-identity>.icon {width:22px!important;height:22px!important;}
+ .national-v5 .management-program>.management-identity h2 {font-size:1.05rem;}
+ .national-v5 .allocation-scale button {min-height:65px;padding-bottom:2px;gap:2px;}
+ .national-v5 .allocation-scale {margin-bottom:2px;}
+ .national-v5 .management-funding-preview {padding-top:4px;}
+ .national-v5 .management-funding-preview>p:first-of-type {font-size:.875rem;line-height:1.25;}
+ .national-v5 .demand__top {margin-bottom:0;}
+ .national-v5 .forecast-v4 {margin:8px 0;padding:8px 0;}
+ .national-v5 .forecast-v4__values {margin-bottom:8px;gap:8px;}
+ .national-v5 .forecast-v4__values dd {font-size:1.4rem;margin-top:4px;}
+ .incident-progression .stages__label {white-space:normal;font-size:.625rem;}
+ .incident-progression .stages__dot {background:#d8d6c7;border-color:#a9b3a5;}
+ .incident-progression .stages__step::before {background:#abb7a8;}
+ .incident-progression .stages__step.is-current .stages__dot {background:#a56649;border-color:#a56649;box-shadow:0 0 0 3px #a5664926;}
+ .incident-progression .stages__step.is-current .stages__label {color:#8d4e39;}
+}
+.newspaper-v5 .newslist {margin:0;}
+.newspaper-v5 .sheet__close {background:#dbe0d0;color:#294a54;border:1px solid #899f95;}
+.newspaper-v5 .sigmark {color:#945237;}
+@media (orientation:landscape) and (max-height:540px) {
+ .sheet.newspaper-v5 {padding:12px max(24px,var(--safe-r)) max(12px,var(--safe-b)) max(24px,var(--safe-l));}
+ .newspaper-v5 .newspaper-masthead {padding:8px 50px 10px 0;margin-bottom:0;}
+ .newspaper-v5 .newspaper-masthead h2 {font-size:1.9rem;}
+ .newspaper-v5 .newspaper-explainer {margin:8px 0 10px;line-height:1.35;}
+ .newspaper-v5 .newsitem {padding:10px 0;gap:5px;}
+ .newspaper-v5 .newsitem:first-child .newsitem__text {font-size:1.35rem;}
+ .incidents-v5 .incident-heading {margin-bottom:4px!important;}
+ .incidents-v5 .management-threat-state {margin:4px 0;padding:4px 0;}
+ .incidents-v5 .incident-progression {padding:0;}
+ .incidents-v5 .management-response-heading {margin:6px 0 4px!important;font-size:.8125rem;}
+ .incidents-v5 .responses {padding:0;gap:6px;}
+ .incidents-v5 .respbtn {padding:6px 8px;}
+ .incidents-v5 .respbtn__chips {margin-top:3px;}
+}
+@media (orientation:landscape) and (max-width:759px) {
+ .national-v5 .management-split,.institutions-v5 .management-split,.incidents-v5 .management-split {grid-template-columns:166px minmax(0,1fr);}
+ .government-source .portrait {width:52px!important;height:62px!important;}
+ .government-source>span {overflow-wrap:normal;}
+ .national-v5 .management-roster h2,.incidents-v5 .management-roster h2 {font-size:.6875rem;overflow-wrap:normal;}
+ .national-v5 .management-item strong,.incidents-v5 .management-item strong {overflow-wrap:normal;word-break:normal;}
+ .incidents-v5 .incident-heading .entity__name {font-size:1.2rem;}
+ .incidents-v5 .incident-heading {column-gap:8px;}
+ .incidents-v5 .stagepill {font-size:.625rem;padding:3px 5px;}
+}
+@media (orientation:landscape) and (max-height:540px) {
+ .incidents-v5 .management-response-heading {position:absolute;width:1px;height:1px;padding:0!important;margin:-1px!important;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+ .incidents-v5 .responses {margin-top:8px;}
+}
+.national-v5>.pagehead,.incidents-v5>.pagehead {color:#eee9d9;}
+.national-v5 .management-item strong,.incidents-v5 .management-item strong {overflow-wrap:anywhere;hyphens:auto;}
+.national-v5>.pagehead .pagehead__title,.incidents-v5>.pagehead .pagehead__title {color:#eee9d9;}
+.statutes-v5 .statute-lead-effect {font-weight:600;color:#325f5c;margin:10px 0;}
+.statutes-v5 .management-effects {counter-reset:clause 1;}
+@media (orientation:landscape) and (max-width:759px) {
+ .statutes-v5 .management-law h2 {font-size:1.25rem;line-height:1.15;}
+ .statutes-v5 .statute-symbol {font-size:2.5rem;}
+ .statutes-v5 .statute-heading {gap:9px;padding-bottom:8px;margin-bottom:8px;}
+ .statutes-v5 .statute-lead-effect {font-size:.875rem;line-height:1.3;margin:8px 0;}
+ .statutes-v5 .management-actions {margin:8px 0 12px;}
+}
+@media (orientation:portrait) {
+ .national-v5 .management-program-commit .btn {display:block;padding:8px 6px;}
+ .national-v5 .management-program-commit .btn span {display:block;width:100%;margin-top:4px;padding:0;}
+}

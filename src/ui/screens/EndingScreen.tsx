@@ -29,7 +29,7 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
   const [navigated, setNavigated] = useState(false);
   useLayoutEffect(() => {
     if (navigated) {
-      contentRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' });
+      contentRef.current?.scrollTo({top:0});
       contentRef.current?.focus({ preventScroll: true });
     }
   }, [section, navigated]);
@@ -69,7 +69,7 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
   };
 
   return (
-    <div class={cx('screen ending', good ? 'ending--good' : 'ending--bad')}>
+    <div class={cx('screen ending ending-v5', good ? 'ending--good' : 'ending--bad')}>
       <div class="ending__sky" aria-hidden="true" />
       <article class="ending__inner">
         <header class="ending__hero">
@@ -81,7 +81,7 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
           <p class="ending__subtitle">{ending.subtitle}</p>
         </header>
 
-        <nav ref={navigationRef} tabIndex={-1} class="panel-sections ending__nav" aria-label={t('Debrief sections')}>
+        <div class="ending-record"><nav ref={navigationRef} tabIndex={-1} class="panel-sections ending__nav" aria-label={t('Debrief sections')}>
           <label for="debrief-section">{t('Debrief sections')}</label>
           <select id="debrief-section" value={section} onChange={e => { setNavigated(true); setSection(e.currentTarget.value); }}>
           {[
@@ -96,7 +96,6 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
         </nav>
 
         <div ref={contentRef} tabIndex={-1} class="ending__section">
-        {navigated && <button type="button" class="btn btn--small" onClick={() => { navigationRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' }); navigationRef.current?.focus({ preventScroll: true }); }}>{t('Debrief sections')}</button>}
         {section === 'epilogue' && <section class="epilogue" aria-label={t('Epilogue')} onClick={() => setShown(ending.epilogue.length)}>
           {ending.epilogue.slice(0, shown).map((p, i) => (
             <p key={i} class="epilogue__p">
@@ -219,7 +218,7 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
         )}
 
         </div>
-        <footer class="ending__foot">
+        </div><footer class="ending__foot">
           <button type="button" class="seed" onClick={copySeed} aria-label={t('Seed {seed}. Copy', { seed: ending.seed })}>
             <span class="eyebrow">{t('Seed')}</span>
             <span class="num">#{ending.seed}</span>

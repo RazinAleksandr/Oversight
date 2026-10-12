@@ -1,227 +1,76 @@
-/**
- * Stylised world map (2:1): abstract dot-grid continents (not real geography), a graticule,
- * connection arcs between capitals and the player's nation emphasised.
- *
- * Styling hooks for the UI (no global CSS is injected):
- *   <g id="region-<id>" class="region [is-player]" data-country="<id>" color="…">
- *     <path class="region-dots" fill="currentColor"/>   ← recolour with `.region path { fill }` or `.region { color }`
- *     <circle class="region-capital" …/>  <text class="region-label">…</text>
- *   <g class="region-focus" data-country="<player>">   ← glow + outline around the player's region
- *   <g class="map-links">                              ← arcs (player arcs carry class "is-player-link")
- */
+/** Authored fictional political atlas. Geometry is presentation only; live facts live in StrategicMap. */
 import type { CountryId } from '../engine/types';
 import { t } from '../i18n';
+import { n, poly, type Pt } from './util';
 import { uid } from './rng';
-import { inPoly, n, smooth, svgRoot, type Pt } from './util';
 
-const W = 1000;
-const H = 500;
-const PLAYER = '#3fd0ff';
-const RIVAL = '#6f83ab';
-const LAND = '#1d2b47';
-
-interface RegionDef {
-  id: CountryId;
-  name: string;
-  shapes: Pt[][];
-  capital: Pt;
-  label: Pt;
-  anchor?: 'start' | 'middle' | 'end';
-}
-
-const REGIONS: RegionDef[] = [
-  {
-    id: 'atlantic',
-    name: t('ATLANTIC FEDERATION'),
-    shapes: [[[92, 96], [168, 68], [262, 72], [334, 108], [350, 158], [314, 196], [302, 248], [258, 292], [214, 300], [188, 268], [148, 232], [108, 200], [78, 150]]],
-    capital: [262, 168],
-    label: [214, 52],
-  },
-  {
-    id: 'commonwealth',
-    name: t('EUROPEAN COMMONWEALTH'),
-    shapes: [[[428, 94], [488, 70], [560, 76], [596, 108], [582, 150], [542, 176], [490, 186], [448, 170], [422, 134]]],
-    capital: [512, 128],
-    label: [510, 54],
-  },
-  {
-    id: 'hanzhou',
-    name: t('HANZHOU REPUBLIC'),
-    shapes: [[[624, 84], [702, 62], [802, 68], [884, 96], [910, 142], [874, 190], [822, 214], [758, 230], [700, 220], [650, 190], [614, 140]]],
-    capital: [768, 150],
-    label: [766, 46],
-  },
-  {
-    id: 'meridian',
-    name: t('MERIDIAN REPUBLIC'),
-    shapes: [
-      [[734, 262], [778, 258], [806, 282], [798, 320], [760, 334], [728, 308]],
-      [[816, 296], [842, 290], [854, 312], [834, 330], [814, 318]],
-      [[694, 318], [718, 312], [726, 336], [706, 346], [690, 334]],
-    ],
-    capital: [766, 296],
-    label: [770, 372],
-  },
+export const MAP_ANCHORS: Record<CountryId, Pt> = {
+  atlantic:[205,156], commonwealth:[496,106], hanzhou:[796,156], meridian:[758,336],
+};
+export const MAP_COLORS: Record<CountryId,string> = {
+  atlantic:'#638bd0', commonwealth:'#d5b064', hanzhou:'#c66556', meridian:'#61b396',
+};
+const REGIONS: Record<CountryId,Pt[][]> = {
+  atlantic:[[[74,91],[112,72],[142,76],[159,49],[191,59],[224,40],[249,63],[295,65],[316,92],[349,100],[366,131],[347,152],[353,171],[326,177],[321,201],[295,206],[278,234],[251,237],[239,260],[218,266],[196,247],[185,220],[163,225],[146,203],[123,196],[114,169],[88,157],[94,133],[67,117]]],
+  commonwealth:[[[425,100],[440,83],[455,86],[470,60],[486,68],[504,49],[523,57],[530,76],[556,65],[576,88],[590,92],[597,112],[575,123],[570,146],[543,149],[525,168],[505,161],[484,178],[469,155],[446,158],[439,136],[418,129]]],
+  hanzhou:[[[614,92],[647,76],[675,81],[690,55],[721,59],[744,43],[782,58],[816,48],[838,70],[873,71],[903,96],[924,103],[933,132],[911,147],[920,165],[893,181],[864,178],[848,200],[818,207],[803,232],[779,238],[764,217],[735,214],[717,195],[687,200],[664,183],[653,157],[632,147],[637,121],[611,112]]],
+  meridian:[[[705,281],[728,269],[752,276],[771,266],[790,283],[804,286],[805,310],[784,323],[779,347],[760,354],[742,333],[719,332],[705,315]],[[822,310],[839,301],[852,313],[849,329],[827,338],[814,328]],[[681,332],[699,323],[707,338],[699,352],[684,355],[675,345]]],
+};
+const NEUTRAL:Pt[][]=[
+ [[216,284],[243,275],[264,287],[280,283],[300,303],[307,325],[290,348],[295,366],[271,394],[260,417],[243,409],[239,383],[225,366],[229,344],[211,323]],
+ [[441,205],[472,195],[491,204],[525,193],[551,205],[578,206],[591,229],[586,257],[565,277],[562,309],[546,329],[527,365],[510,366],[502,342],[481,327],[478,298],[459,282],[461,257],[443,239]],
+ [[849,359],[874,348],[897,351],[911,338],[938,358],[950,379],[930,389],[924,409],[895,416],[868,405],[846,408],[832,389]],
+ [[357,49],[377,34],[401,42],[413,60],[394,73],[368,66]],
+ [[604,218],[621,209],[638,218],[640,235],[622,246],[611,232]],
+ [[383,245],[397,232],[411,244],[405,266],[391,269]],
+ [[94,332],[113,322],[126,337],[116,352],[97,348]],
 ];
 
-const NEUTRAL: Pt[][] = [
-  [[226, 322], [288, 310], [324, 350], [308, 412], [272, 458], [246, 442], [236, 390], [214, 352]],
-  [[454, 214], [532, 204], [594, 226], [604, 282], [572, 352], [532, 412], [502, 400], [482, 342], [450, 282]],
-  [[842, 362], [910, 350], [944, 386], [918, 428], [862, 432], [830, 402]],
-  [[380, 52], [412, 44], [420, 62], [396, 72]],
-  [[612, 236], [640, 230], [650, 252], [626, 262]],
-  [[40, 300], [74, 292], [86, 316], [60, 330], [38, 320]],
-  [[352, 236], [372, 230], [378, 250], [360, 256]],
-];
-
-// ---------------------------------------------------------------- dot sampling (computed once)
-
-const SX = 11.5;
-const SY = SX * 0.866;
-const R = 3.2;
-
-const r1 = (v: number) => String(Math.round(v * 10) / 10);
-const dot = (x: number, y: number) => `M${r1(x - R)} ${r1(y)}a${R} ${R} 0 1 0 ${R * 2} 0a${R} ${R} 0 1 0 ${-R * 2} 0`;
-
-function sample(shapes: Pt[][]): string {
-  let d = '';
-  for (let row = 0, y = 20; y < H - 10; row++, y += SY) {
-    const off = row % 2 ? SX / 2 : 0;
-    for (let x = 14 + off; x < W - 10; x += SX) {
-      if (shapes.some((s) => inPoly(x, y, s))) d += dot(x, y);
-    }
+/** Fine irregular coves use fixed authored geometry, never simulation RNG or hidden state. */
+function coast(points:Pt[]):string {
+ const detailed:Pt[]=[];
+ points.forEach((p,i)=>{
+  const q=points[(i+1)%points.length],dx=q[0]-p[0],dy=q[1]-p[1],length=Math.hypot(dx,dy);
+  detailed.push(p);
+  const steps=Math.floor(length/10);
+  for(let j=1;j<steps;j++){
+   const f=j/steps,offset=Math.sin(i*2.71+j*3.83)*Math.min(2.7,length*.07);
+   detailed.push([p[0]+dx*f-dy/length*offset,p[1]+dy*f+dx/length*offset]);
   }
-  return d;
+ });
+ return poly(detailed);
+}
+const RELIEF:Record<CountryId,string>={
+ atlantic:'M131 107l7-13 7 14 5-8 8 16 6-10 8 17M139 138l8-11 7 14 6-7 8 19M153 168l7-10 8 16 5-7 7 13M247 110l6-8 5 10 5-7 7 10M268 163l6-9 7 13 5-6 5 9',
+ commonwealth:'M452 126l7-9 7 8 8-13 7 14 6-7 7 12 7-10 7 9 7-13 8 12 5-7 7 10M483 84l6-9 7 10M548 101l7-7 7 8',
+ hanzhou:'M646 104l9-12 9 17 7-12 8 15 8-11 11 21M660 137l9-13 10 16 7-7 9 16 8-14 10 18M687 172l9-12 9 15 8-9 9 16 6-8 9 12M828 99l8-10 9 12 7-8 8 10M844 143l7-9 8 10 6-8 9 10',
+ meridian:'M721 295l6-10 7 13 6-8 7 15 5-9 7 14 5-7 8 13M831 315l5-7 5 9',
+};
+const RIVERS:Record<CountryId,string>={
+ atlantic:'M198 83Q219 110 211 136T201 171Q209 196 243 225M245 144Q220 155 201 171',
+ commonwealth:'M526 84Q507 103 524 124T521 157M480 105Q491 113 501 127',
+ hanzhou:'M729 94Q745 114 766 115T807 139Q817 154 838 169M706 154Q738 164 760 155T798 170Q805 187 812 203',
+ meridian:'M756 280Q745 303 762 335',
+};
+
+/** Labels and interactive markers are HTML, so they never become illegible SVG microtype. */
+export function atlasBase(player?:CountryId,selected?:CountryId):string {
+ let graticule='';
+ for(let x=100;x<1000;x+=100)graticule+=`M${x} 0Q${500+(x-500)*1.15} 230 ${x} 460`;
+ for(let y=76;y<460;y+=76)graticule+=`M0 ${y}Q500 ${y+(y-230)*.07} 1000 ${y}`;
+ const neutral=NEUTRAL.map(p=>`<path d="${coast(p)}" fill="#536f76" stroke="#8aa19d" stroke-width="1.1"/>`).join('');
+ const regions=(Object.keys(REGIONS) as CountryId[]).map(id=>{
+  const chosen=id===selected,mine=id===player;
+  const outline=REGIONS[id].map(coast).join(''),clip=uid(`atlas-${id}`);
+  return `<defs><clipPath id="${clip}"><path d="${outline}"/></clipPath></defs><g class="atlas-region${mine?' is-player':''}${chosen?' is-selected':''}" data-country="${id}">`+
+  `<path d="${outline}" fill="${MAP_COLORS[id]}" fill-opacity="${chosen?'.8':mine?'.64':'.49'}" stroke="#071b2b" stroke-width="4"/><path d="${outline}" fill="none" stroke="${chosen?'#fff0ca':mine?'#d4c393':MAP_COLORS[id]}" stroke-width="${chosen?2.3:1.2}"/>`+
+  `<g clip-path="url(#${clip})"><path d="${RELIEF[id]}" fill="none" stroke="#d6decd" stroke-width="1.8" stroke-opacity=".37" stroke-linejoin="round"/><path d="${RIVERS[id]}" fill="none" stroke="#072738" stroke-opacity=".6" stroke-width="2"/></g></g>`;
+ }).join('');
+ const inner=`<rect width="1000" height="460" fill="#0b293b"/><path d="${graticule}" stroke="#718a91" stroke-opacity=".17" stroke-width="1" fill="none"/><path d="M0 230H1000" stroke="#8a9c9a" stroke-opacity=".25" stroke-dasharray="3 9"/>${neutral}<path d="M230 310l6-11 7 17 5-7 7 15 3 9 6 11 2 13 7 12M497 229l8-11 8 15 6-8 7 18 7-11 7 14M520 285l8-12 7 16 8-8 7 13M863 376l8-10 8 12 7-7 9 12" fill="none" stroke="#b2c0b5" stroke-opacity=".25" stroke-width="1.7"/>${regions}`;
+ return `<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="460" viewBox="0 0 1000 460" preserveAspectRatio="none" aria-hidden="true">${inner}</svg>`;
 }
 
-let cache: { regions: Record<string, string>; neutral: string } | null = null;
-function dots() {
-  if (!cache) {
-    const regions: Record<string, string> = {};
-    for (const r of REGIONS) regions[r.id] = sample(r.shapes);
-    cache = { regions, neutral: sample(NEUTRAL) };
-  }
-  return cache;
-}
-
-/** Outline (slightly inflated) used for the player's focus glow. */
-function inflate(pts: Pt[], k: number): Pt[] {
-  const cx = pts.reduce((s, p) => s + p[0], 0) / pts.length;
-  const cy = pts.reduce((s, p) => s + p[1], 0) / pts.length;
-  return pts.map(([x, y]) => {
-    const dx = x - cx;
-    const dy = y - cy;
-    const L = Math.hypot(dx, dy) || 1;
-    return [x + (dx / L) * k, y + (dy / L) * k];
-  });
-}
-
-// ---------------------------------------------------------------- render
-
-export function worldMap(player: CountryId, width = 640): string {
-  const ids: Record<string, string> = {};
-  const id = (s: string) => (ids[s] ??= uid(`map-${s}`));
-  const { regions, neutral } = dots();
-
-  const defs =
-    `<defs>` +
-    `<radialGradient id="${id('ocean')}" cx=".5" cy=".45" r=".75"><stop offset="0" stop-color="#0c1830"/><stop offset="1" stop-color="#060b16"/></radialGradient>` +
-    `<filter id="${id('glow')}" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="9"/></filter>` +
-    `<filter id="${id('soft')}" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2"/></filter>` +
-    `</defs>`;
-
-  // graticule: gently bowed meridians + parallels
-  let grat = '';
-  for (let i = 1; i < 16; i++) {
-    const x = (i * W) / 16;
-    grat += `M${n(x)} 14Q${n(500 + (x - 500) * 1.1)} 250 ${n(x)} 486`;
-  }
-  for (let j = 1; j < 8; j++) {
-    const y = (j * H) / 8;
-    grat += `M14 ${n(y)}Q500 ${n(y + (y - 250) * 0.06)} 986 ${n(y)}`;
-  }
-  const graticule =
-    `<path d="${grat}" fill="none" stroke="${PLAYER}" stroke-width="1" opacity=".07"/>` +
-    `<path d="M14 250H986" stroke="${PLAYER}" stroke-width="1" opacity=".16" stroke-dasharray="2 6"/>` +
-    `<path d="M14 165H986M14 335H986" stroke="${PLAYER}" stroke-width="1" opacity=".08" stroke-dasharray="10 8"/>`;
-
-  // links between capitals
-  const cap = Object.fromEntries(REGIONS.map((r) => [r.id, r.capital])) as Record<CountryId, Pt>;
-  const ids4 = REGIONS.map((r) => r.id);
-  let links = '';
-  for (let i = 0; i < ids4.length; i++)
-    for (let j = i + 1; j < ids4.length; j++) {
-      const a = cap[ids4[i]];
-      const b = cap[ids4[j]];
-      const mine = ids4[i] === player || ids4[j] === player;
-      const mx = (a[0] + b[0]) / 2;
-      const my = Math.min(a[1], b[1]) - Math.hypot(b[0] - a[0], b[1] - a[1]) * 0.28;
-      links += `<path class="map-link${mine ? ' is-player-link' : ''}" d="M${n(a[0])} ${n(a[1])}Q${n(mx)} ${n(my)} ${n(b[0])} ${n(b[1])}" fill="none" stroke="${mine ? PLAYER : RIVAL}" stroke-width="${mine ? 1.6 : 1}" stroke-dasharray="${mine ? '6 5' : '2 6'}" opacity="${mine ? 0.75 : 0.35}"/>`;
-      if (mine) {
-        // a "packet" two-thirds along each player link
-        const t = 0.66;
-        const s = ids4[i] === player ? a : b;
-        const e = ids4[i] === player ? b : a;
-        const px = (1 - t) ** 2 * s[0] + 2 * (1 - t) * t * mx + t * t * e[0];
-        const py = (1 - t) ** 2 * s[1] + 2 * (1 - t) * t * my + t * t * e[1];
-        links += `<circle cx="${n(px)}" cy="${n(py)}" r="3" fill="${PLAYER}"/>`;
-      }
-    }
-
-  // player focus (outside the .region group so `.region path` rules never fill it)
-  const pr = REGIONS.find((r) => r.id === player);
-  let focus = '';
-  if (pr) {
-    const outline = pr.shapes.map((s) => smooth(inflate(s, 9))).join('');
-    focus =
-      `<g class="region-focus" data-country="${pr.id}" color="${PLAYER}">` +
-      `<path d="${outline}" fill="currentColor" opacity=".16" filter="url(#${id('glow')})"/>` +
-      `<path d="${outline}" fill="currentColor" opacity=".05"/>` +
-      `<path d="${outline}" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="7 5" opacity=".7"/>` +
-      `</g>`;
-  }
-
-  let regionEls = '';
-  for (const r of REGIONS) {
-    const me = r.id === player;
-    const [cx, cy] = r.capital;
-    const [lx, ly] = r.label;
-    const marker = me
-      ? `<circle class="region-capital" cx="${cx}" cy="${cy}" r="16" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/>` +
-        `<circle class="region-capital" cx="${cx}" cy="${cy}" r="9" fill="#060b16" stroke="currentColor" stroke-width="2"/>` +
-        `<circle class="region-capital" cx="${cx}" cy="${cy}" r="3.5" fill="currentColor"/>` +
-        `<path class="region-tick" d="M${cx} ${cy - 24}v6M${cx} ${cy + 18}v6M${cx - 24} ${cy}h6M${cx + 18} ${cy}h6" stroke="currentColor" stroke-width="1.6"/>`
-      : `<circle class="region-capital" cx="${cx}" cy="${cy}" r="6" fill="#060b16" stroke="currentColor" stroke-width="1.6"/>` +
-        `<circle class="region-capital" cx="${cx}" cy="${cy}" r="2.2" fill="currentColor"/>`;
-    const label =
-      `<text class="region-label" x="${lx}" y="${ly}" text-anchor="${r.anchor ?? 'middle'}" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="${me ? 14 : 12.5}" font-weight="600" letter-spacing="3" fill="currentColor" opacity="${me ? 1 : 0.8}" paint-order="stroke" stroke="#060b16" stroke-width="4">${r.name}</text>` +
-      (me
-        ? `<text class="region-label region-tag" x="${lx}" y="${ly < 100 ? ly - 15 : ly + 17}" text-anchor="${r.anchor ?? 'middle'}" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="10" font-weight="600" letter-spacing="4" fill="currentColor" opacity=".75" paint-order="stroke" stroke="#060b16" stroke-width="4">◆ ${t('YOUR NATION')}</text>`
-        : '');
-    regionEls +=
-      `<g id="region-${r.id}" class="region${me ? ' is-player' : ''}" data-country="${r.id}" color="${me ? PLAYER : RIVAL}">` +
-      `<path class="region-dots" d="${regions[r.id]}" fill="currentColor" opacity="${me ? 1 : 0.85}"/>` +
-      marker +
-      label +
-      `</g>`;
-  }
-
-  // HUD frame: corner brackets + coordinates
-  const br = (x: number, y: number, dx: number, dy: number) => `M${x} ${y + dy * 22}V${y}H${x + dx * 22}`;
-  const hud =
-    `<path d="${br(10, 10, 1, 1)}${br(990, 10, -1, 1)}${br(10, 490, 1, -1)}${br(990, 490, -1, -1)}" fill="none" stroke="${PLAYER}" stroke-width="2" opacity=".5"/>` +
-    `<text x="40" y="482" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" letter-spacing="2" fill="#7f8ba3" opacity=".8">${t('GLOBAL SITUATION // LIVE')}</text>` +
-    `<text x="960" y="482" text-anchor="end" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" letter-spacing="2" fill="#7f8ba3" opacity=".8">${t('GRID 15° · PROJ. ABSTRACT')}</text>`;
-
-  const inner =
-    defs +
-    `<rect width="${W}" height="${H}" rx="18" fill="url(#${id('ocean')})"/>` +
-    graticule +
-    `<path class="map-land" d="${neutral}" fill="${LAND}"/>` +
-    focus +
-    `<g class="map-links">${links}</g>` +
-    regionEls +
-    hud +
-    `<rect x=".5" y=".5" width="${W - 1}" height="${H - 1}" rx="18" fill="none" stroke="${PLAYER}" stroke-opacity=".14"/>`;
-  return svgRoot(width, width / 2, `0 0 ${W} ${H}`, inner, `role="img" aria-label="${t('World map')}"`);
+/** Legacy ArtAPI entry point, now the same cartographic base used by the live atlas. */
+export function worldMap(player:CountryId,width=640):string {
+ return atlasBase(player).replace('width="1000" height="460"',`width="${n(width)}" height="${n(width*.46)}"`).replace('aria-hidden="true"',`role="img" aria-label="${t('World map')}"`);
 }

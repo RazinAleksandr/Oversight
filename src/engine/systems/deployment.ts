@@ -279,8 +279,8 @@ export function deploymentCard(s: GameState, m: AIModel, returning: boolean): Ca
     value: listJoinL((Object.keys(gains) as SectorId[]).map((k) => t('+{n} {sector}', { n: Math.round(gains[k] ?? 0), sector: SECTOR_INFO[k].name }))) || t('Saturated'),
     confidence: 'medium',
   });
-  evidence.push(...evalRes.lines);
-  evidence.push({ label: t('Government position'), value: t('The {leaderTitle} {stance}.', { leaderTitle: s.government.leaderTitle, stance: tr(stance.line) }), confidence: 'high' });
+  evidence.push(...evalRes.lines.map(line => ({ ...line, role: 'evaluation' as const })));
+  evidence.push({ role: 'government', label: t('Government position'), value: t('The {leaderTitle} {stance}.', { leaderTitle: s.government.leaderTitle, stance: tr(stance.line) }), confidence: 'high' });
 
   const model = m.name;
   const body = returning

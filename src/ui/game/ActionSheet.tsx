@@ -7,9 +7,9 @@ import { useState } from 'preact/hooks';
 import type { ActionView, ResponseView } from '../../engine/types';
 import { t, tp } from '../../i18n';
 import { CostChips, PreviewChip } from '../components/Chips';
-import { Icon } from '../components/Icon';
+import { Icon, Svg, artCached } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
-import { cx, hasCost, money } from '../util';
+import { cx, hash, hasCost, money } from '../util';
 import { useGame } from './context';
 
 const CATEGORY_LABEL: Record<ActionView['category'], string> = {
@@ -64,13 +64,16 @@ export function ActionSheet({
   const needs: 'target' | 'option' | null = hardBlock ? null : action.targets && !target ? 'target' : action.options && !option ? 'option' : null;
   const hardBlocked = hardBlock || (needs ? null : afford);
   const blocked = hardBlocked || needs;
+  const targetCompany = view.companies.find(c => c.id === target);
+  const targetCountry = view.rivals.find(r => r.id === target);
+  const hasConfiguration = !!action.targets?.length || !!action.options?.length || preview.length > 0;
 
-  return <Sheet label={action.name} size="page" closeButton={false} onClose={onClose} class="action-sheet action-v4">
+  return <Sheet label={action.name} size="page" closeButton={false} onClose={onClose} class="action-sheet action-v4 operation-v5">
     <div class="av4-shell">
       <header class="av4-command"><button type="button" onClick={onClose}><Icon name="back" size={18} />{t('Cancel')}</button><span>{CATEGORY_LABEL[action.category]}</span><div>{money(n.budget)} · {tp(n.capacity, '{n} action', '{n} actions')}</div></header>
-      <main class="av4-body">
+      <main class={cx('av4-body', !hasConfiguration && 'operation-single')}>
         <section class="av4-brief">
-          <div class="av4-action-symbol"><Icon name={action.icon} size={40} /></div>
+          <div class="av4-action-symbol">{targetCompany ? <Svg html={artCached.logo(hash(targetCompany.id), targetCompany.color, targetCompany.archetype, 64)} label={targetCompany.name} /> : targetCountry ? <Svg html={artCached.emblem(targetCountry.id, 64)} label={targetCountry.name} /> : <Icon name={action.icon} size={40} />}</div>
           <h1>{action.name}</h1>
           {subject && <p class="av4-subject">{subject}</p>}
           <p>{action.description}</p>
@@ -79,7 +82,7 @@ export function ActionSheet({
             : t('Available budget: {amount}', { amount: money(n.budget) })}</p>}
           {hardBlocked && <p class="av4-blocked" role="status"><Icon name="lock" size={16} />{hardBlocked}</p>}
         </section>
-        <section class="av4-configuration">
+        {hasConfiguration && <section class="av4-configuration">
           {action.targets && action.targets.length > 0 && !pickTarget && tgt && <div class="av4-fixed-target"><div><span>{t('Target')}</span><h2>{tgt.label}</h2>{tgt.sublabel && <p>{tgt.sublabel}</p>}{tgt.disabled && <p class="av4-blocked">{tgt.disabled}</p>}</div>{action.targets.length > 1 && <button type="button" onClick={() => setPickTarget(true)}>{t('Change')}</button>}</div>}
           {action.targets && action.targets.length > 0 && pickTarget && <fieldset class="av4-picker"><legend>{t('Target')}</legend><div class="picker__list" role="radiogroup" aria-label={t('Target')}>
             {action.targets.map(x => <button type="button" key={x.id} role="radio" aria-checked={x.id === target} data-action-target={x.id} class={cx('av4-pick', x.id === target && 'is-selected', x.disabled && 'is-blocked')} onClick={() => setTarget(x.id)}><span class="av4-pick-mark" aria-hidden="true" /><span><strong>{x.label}</strong>{x.sublabel && <small>{x.sublabel}</small>}{x.disabled && <small class="av4-blocked">{x.disabled}</small>}</span></button>)}
@@ -88,7 +91,7 @@ export function ActionSheet({
             {action.options.map(o => <button type="button" key={o.id} role="radio" aria-checked={o.id === option} data-action-option={o.id} class={cx('av4-pick', o.id === option && 'is-selected', o.disabled && 'is-blocked')} onClick={() => setOption(o.id)}><span class="av4-pick-mark" aria-hidden="true" /><span><strong>{o.label}</strong>{o.description && <small>{o.description}</small>}{(o.preview.length > 0 || hasCost(o.cost)) && <span class="av4-pick-effects"><CostChips cost={o.cost} />{o.preview.map((p, i) => <PreviewChip key={i} p={p} />)}</span>}{o.disabled && <small class="av4-blocked">{o.disabled}</small>}</span></button>)}
           </div></fieldset>}
           {preview.length > 0 && <section class="av4-expectations"><h2>{t('Expected')}</h2><div>{preview.map((p, i) => <PreviewChip key={i} p={p} />)}</div></section>}
-        </section>
+        </section>}
       </main>
       <footer class="av4-dock"><div><span>{t('Cost')}</span>{hasCost(cost) ? <CostChips cost={cost} /> : <span>{action.options && !opt ? t('Depends on the option') : t('Free')}</span>}</div><button type="button" class="av4-authorize btn--primary" data-confirm-action disabled={!!blocked} onClick={() => !blocked && onConfirm(target, option)}>{needs === 'target' ? t('Choose a target') : needs === 'option' ? t('Choose an option') : t('Authorize')}<Icon name="chevron_right" size={18} /></button></footer>
     </div>
