@@ -1,6 +1,8 @@
 # Oversight on iPhone — proposed plan
 
-Status: **Approved; iPhone candidate implemented and compiled. Signing and native device acceptance remain blocked.** Prepared 12 October 2026. The user selected **TestFlight first, with a shared web game**, then approved proceeding (“Lets roll”). Their next instruction was to update the required tools before implementation. TestFlight is already installed on their iPhone, and they report an active Apple Developer subscription.
+Current status, 12 October 2026: **Build 2 was signed and installed, but the user rejected its usability. A revised landscape-first task plan is awaiting agreement; see section 11.** Native installation was verified, not physical usability acceptance.
+
+Historical initial approval: The user selected **TestFlight first, with a shared web game**, then approved proceeding (“Lets roll”). Their next instruction was to update the required tools before implementation. TestFlight is already installed on their iPhone, and they report an active Apple Developer subscription.
 
 ## Recommendation
 
@@ -346,3 +348,38 @@ uncommitted files. Both orientations remain supported. This implementation chang
 presentation and contextual teaching; it does not change the finale rules, shorten
 the campaign, or automatically acknowledge threat decisions. See
 [UX_REDESIGN_IMPLEMENTATION.md](UX_REDESIGN_IMPLEMENTATION.md) for verification and rollback.
+
+
+## 11. Renewed task usability plan after build 2 feedback
+
+The user reports that the game remains difficult to play and content appears cut
+in both orientations. They explicitly rejected expanders as the solution, asked
+for serious task analysis, requested at most three collaborating agents, suggested
+landscape, and said they preferred the previous visual design.
+
+Three agents covered task research, planning review and implementation feasibility.
+Fresh production WebKit checks reproduce moving choice controls, evidence separated
+from decisions, lost tentative selection after a company detour, and a landscape
+breakpoint gap at 667 × 375. These are concrete usability defects even though the
+earlier engine and scripted completion checks passed. Exact physical-device clipping
+and human comprehension have not yet been reproduced in this session.
+
+**Proposed; awaiting renewed agreement.** The new recommendation and acceptance
+criteria are in [UX_REASSESSMENT_DECISION.md](UX_REASSESSMENT_DECISION.md):
+landscape-first task workspace, selective recovery of the earlier dossier identity,
+and sequential portrait/large-text fallback. This supersedes section 10's
+portrait-first direction if approved. A disposable interactive prototype is
+separate from production; it demonstrates the proposed flow with staged, fogged
+game data. Production source, installed app and player saves are unchanged.
+
+Start with one integrated deployment/investigation task, then review that task on
+the physical iPhone before implementing the remaining workflows. Keep simulation,
+choice costs, uncertainty, current campaign length and finale rules unchanged.
+The plan also preserves the existing Capacitor/native storage/signing work; a new
+port is not needed.
+
+Git: analysis/prototype branch `codex/iphone-ux-reassessment`; prior installed build
+at `iphone-ux-build-2` (`842c316`); earlier visual baseline at
+`backup/iphone-before-ux-2026-10-12` (`1883243`). Use selective restoration rather
+than a destructive reset. The local iOS instructions require this revised review
+gate because the earlier design assumption failed.

@@ -1,0 +1,182 @@
+[
+  {
+    "lang": "en",
+    "width": 844,
+    "height": 390,
+    "errors": [],
+    "overflow": false,
+    "selectionSurvivedCompanyAndFunding": true,
+    "choiceVisibility": [
+      {
+        "text": "Approve deployment\nTarget +13.3 · mandate −1\n$0\n0 actions",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Approve with limits\nTarget +6.7 · mandate +1 · slower flaw growth\n$0\n0 actions",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Order a deep evaluation\nDelay to next quarter · better evidence\n$2B\n1 action",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Reject\nNo rollout · company relations −12\n$0\n0 actions",
+        "fullyInside": true,
+        "hit": true
+      }
+    ]
+  },
+  {
+    "lang": "en",
+    "width": 667,
+    "height": 375,
+    "errors": [],
+    "overflow": false,
+    "selectionSurvivedCompanyAndFunding": true,
+    "choiceVisibility": [
+      {
+        "text": "Approve deployment\nTarget +13.3 · mandate −1\n$0 0 actions",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Approve with limits\nTarget +6.7 · mandate +1 · slower flaw growth\n$0 0 actions",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Order a deep evaluation\nDelay to next quarter · better evidence\n$2B 1 action",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Reject\nNo rollout · company relations −12\n$0 0 actions",
+        "fullyInside": true,
+        "hit": true
+      }
+    ]
+  },
+  {
+    "lang": "en",
+    "width": 390,
+    "height": 844,
+    "errors": [],
+    "overflow": false,
+    "selectionSurvivedCompanyAndFunding": true,
+    "choiceVisibility": [
+      {
+        "text": "Approve deployment\nTarget +13.3 · mandate −1\n$0\n0 actions",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Approve with limits\nTarget +6.7 · mandate +1 · slower flaw growth\n$0\n0 actions",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Order a deep evaluation\nDelay to next quarter · better evidence\n$2B\n1 action",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Reject\nNo rollout · company relations −12\n$0\n0 actions",
+        "fullyInside": true,
+        "hit": true
+      }
+    ]
+  },
+  {
+    "lang": "ru",
+    "width": 844,
+    "height": 390,
+    "errors": [],
+    "overflow": false,
+    "selectionSurvivedCompanyAndFunding": true,
+    "choiceVisibility": [
+      {
+        "text": "Одобрить развёртывание\nЦель +13,3 · мандат −1\n$0\n0 действий",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Одобрить с ограничениями\nЦель +6,7 · мандат +1 · медленнее рост угрозы\n$0\n0 действий",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Назначить углублённую проверку\nОтсрочка на квартал · точнее проверка\n$2 млрд\n1 действие",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Отклонить\nБез запуска · отношения −12\n$0\n0 действий",
+        "fullyInside": true,
+        "hit": true
+      }
+    ]
+  },
+  {
+    "lang": "ru",
+    "width": 667,
+    "height": 375,
+    "errors": [],
+    "overflow": false,
+    "selectionSurvivedCompanyAndFunding": true,
+    "choiceVisibility": [
+      {
+        "text": "Одобрить развёртывание\nЦель +13,3 · мандат −1\n$0 0 действий",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Одобрить с ограничениями\nЦель +6,7 · мандат +1 · медленнее рост угрозы\n$0 0 действий",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Назначить углублённую проверку\nОтсрочка на квартал · точнее проверка\n$2 млрд 1 действие",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Отклонить\nБез запуска · отношения −12\n$0 0 действий",
+        "fullyInside": true,
+        "hit": true
+      }
+    ]
+  },
+  {
+    "lang": "ru",
+    "width": 390,
+    "height": 844,
+    "errors": [],
+    "overflow": false,
+    "selectionSurvivedCompanyAndFunding": true,
+    "choiceVisibility": [
+      {
+        "text": "Одобрить развёртывание\nЦель +13,3 · мандат −1\n$0\n0 действий",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Одобрить с ограничениями\nЦель +6,7 · мандат +1 · медленнее рост угрозы\n$0\n0 действий",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Назначить углублённую проверку\nОтсрочка на квартал · точнее проверка\n$2 млрд\n1 действие",
+        "fullyInside": true,
+        "hit": true
+      },
+      {
+        "text": "Отклонить\nБез запуска · отношения −12\n$0\n0 действий",
+        "fullyInside": true,
+        "hit": true
+      }
+    ]
+  }
+]

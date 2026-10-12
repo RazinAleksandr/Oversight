@@ -1,0 +1,344 @@
+[
+  {
+    "width": 667,
+    "height": 375,
+    "controls": [
+      " Audit · 1◆",
+      " Restrict / Suspend",
+      "Investigate company1◆",
+      "Safety grant1◆ · $4B",
+      "Compute contract1◆ · $5B",
+      "Enforcement action1◆ · 1 ev."
+    ],
+    "action": {
+      "text": "LABS ACTION\n\nInvestigate company\n\nSend inspectors in. Reveals true traits and capability; may uncover hidden violations (Evidence).\n\nTARGET\nChange\nNovacène Labs\nRelation 52\nCOST\n−1 action\nEXPECTED\nNo immediate visible effects\nCancel\nAuthorize",
+      "rect": {
+        "x": 0,
+        "y": 24,
+        "width": 667,
+        "height": 351,
+        "top": 24,
+        "right": 667,
+        "bottom": 375,
+        "left": 0
+      },
+      "scrollTop": 0,
+      "clientHeight": 350,
+      "scrollHeight": 462,
+      "children": [
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "rect": {
+            "x": 612,
+            "y": 49,
+            "width": 44,
+            "height": 44,
+            "top": 49,
+            "right": 656,
+            "bottom": 93,
+            "left": 612
+          }
+        },
+        {
+          "tag": "P",
+          "text": "LABS ACTION",
+          "rect": {
+            "x": 77,
+            "y": 61.265625,
+            "width": 89.328125,
+            "height": 14.390625,
+            "top": 61.265625,
+            "right": 166.328125,
+            "bottom": 75.65625,
+            "left": 77
+          }
+        },
+        {
+          "tag": "P",
+          "text": "Send inspectors in. Reveals true traits and capability; may uncover hidden violations (Evidence).",
+          "rect": {
+            "x": 17,
+            "y": 123.390625,
+            "width": 633,
+            "height": 49.59375,
+            "top": 123.390625,
+            "right": 650,
+            "bottom": 172.984375,
+            "left": 17
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Change",
+          "rect": {
+            "x": 587.34375,
+            "y": 188.984375,
+            "width": 62.65625,
+            "height": 44,
+            "top": 188.984375,
+            "right": 650,
+            "bottom": 232.984375,
+            "left": 587.34375
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Cancel",
+          "rect": {
+            "x": 17,
+            "y": 421.234375,
+            "width": 89.28125,
+            "height": 46,
+            "top": 421.234375,
+            "right": 106.28125,
+            "bottom": 467.234375,
+            "left": 17
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Authorize",
+          "rect": {
+            "x": 118.28125,
+            "y": 421.234375,
+            "width": 531.71875,
+            "height": 46,
+            "top": 421.234375,
+            "right": 650,
+            "bottom": 467.234375,
+            "left": 118.28125
+          }
+        }
+      ]
+    }
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "controls": [
+      " Audit · 1◆",
+      " Restrict / Suspend",
+      "Investigate company1◆",
+      "Safety grant1◆ · $4B",
+      "Compute contract1◆ · $5B",
+      "Enforcement action1◆ · 1 ev."
+    ],
+    "action": {
+      "text": "LABS ACTION\n\nInvestigate company\n\nSend inspectors in. Reveals true traits and capability; may uncover hidden violations (Evidence).\n\nTARGET\nChange\nNovacène Labs\nRelation 52\nCOST\n−1 action\nEXPECTED\nNo immediate visible effects\nCancel\nAuthorize",
+      "rect": {
+        "x": 132,
+        "y": 12,
+        "width": 580,
+        "height": 366,
+        "top": 12,
+        "right": 712,
+        "bottom": 378,
+        "left": 132
+      },
+      "scrollTop": 0,
+      "clientHeight": 364,
+      "scrollHeight": 460,
+      "children": [
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "rect": {
+            "x": 649,
+            "y": 31,
+            "width": 44,
+            "height": 44,
+            "top": 31,
+            "right": 693,
+            "bottom": 75,
+            "left": 649
+          }
+        },
+        {
+          "tag": "P",
+          "text": "LABS ACTION",
+          "rect": {
+            "x": 217,
+            "y": 43.265625,
+            "width": 89.328125,
+            "height": 14.390625,
+            "top": 43.265625,
+            "right": 306.328125,
+            "bottom": 57.65625,
+            "left": 217
+          }
+        },
+        {
+          "tag": "P",
+          "text": "Send inspectors in. Reveals true traits and capability; may uncover hidden violations (Evidence).",
+          "rect": {
+            "x": 157,
+            "y": 105.390625,
+            "width": 530,
+            "height": 49.59375,
+            "top": 105.390625,
+            "right": 687,
+            "bottom": 154.984375,
+            "left": 157
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Change",
+          "rect": {
+            "x": 624.34375,
+            "y": 170.984375,
+            "width": 62.65625,
+            "height": 44,
+            "top": 170.984375,
+            "right": 687,
+            "bottom": 214.984375,
+            "left": 624.34375
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Cancel",
+          "rect": {
+            "x": 405.71875,
+            "y": 403.234375,
+            "width": 89.28125,
+            "height": 46,
+            "top": 403.234375,
+            "right": 495,
+            "bottom": 449.234375,
+            "left": 405.71875
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Authorize",
+          "rect": {
+            "x": 507,
+            "y": 403.234375,
+            "width": 180,
+            "height": 46,
+            "top": 403.234375,
+            "right": 687,
+            "bottom": 449.234375,
+            "left": 507
+          }
+        }
+      ]
+    }
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "controls": [
+      " Audit · 1◆",
+      " Restrict / Suspend",
+      "Investigate company1◆",
+      "Safety grant1◆ · $4B",
+      "Compute contract1◆ · $5B",
+      "Enforcement action1◆ · 1 ev."
+    ],
+    "action": {
+      "text": "LABS ACTION\n\nInvestigate company\n\nSend inspectors in. Reveals true traits and capability; may uncover hidden violations (Evidence).\n\nTARGET\nChange\nNovacène Labs\nRelation 52\nCOST\n−1 action\nEXPECTED\nNo immediate visible effects\nCancel\nAuthorize",
+      "rect": {
+        "x": 0,
+        "y": 355.96875,
+        "width": 390,
+        "height": 488.03125,
+        "top": 355.96875,
+        "right": 390,
+        "bottom": 844,
+        "left": 0
+      },
+      "scrollTop": 0,
+      "clientHeight": 487,
+      "scrollHeight": 487,
+      "children": [
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "rect": {
+            "x": 335,
+            "y": 380.96875,
+            "width": 44,
+            "height": 44,
+            "top": 380.96875,
+            "right": 379,
+            "bottom": 424.96875,
+            "left": 335
+          }
+        },
+        {
+          "tag": "P",
+          "text": "LABS ACTION",
+          "rect": {
+            "x": 77,
+            "y": 393.234375,
+            "width": 89.328125,
+            "height": 14.390625,
+            "top": 393.234375,
+            "right": 166.328125,
+            "bottom": 407.625,
+            "left": 77
+          }
+        },
+        {
+          "tag": "P",
+          "text": "Send inspectors in. Reveals true traits and capability; may uncover hidden violations (Evidence).",
+          "rect": {
+            "x": 17,
+            "y": 455.359375,
+            "width": 356,
+            "height": 74.390625,
+            "top": 455.359375,
+            "right": 373,
+            "bottom": 529.75,
+            "left": 17
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Change",
+          "rect": {
+            "x": 310.34375,
+            "y": 545.75,
+            "width": 62.65625,
+            "height": 44,
+            "top": 545.75,
+            "right": 373,
+            "bottom": 589.75,
+            "left": 310.34375
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Cancel",
+          "rect": {
+            "x": 17,
+            "y": 778,
+            "width": 89.28125,
+            "height": 46,
+            "top": 778,
+            "right": 106.28125,
+            "bottom": 824,
+            "left": 17
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Authorize",
+          "rect": {
+            "x": 118.28125,
+            "y": 778,
+            "width": 254.71875,
+            "height": 46,
+            "top": 778,
+            "right": 373,
+            "bottom": 824,
+            "left": 118.28125
+          }
+        }
+      ]
+    }
+  }
+]

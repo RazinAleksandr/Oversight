@@ -1,0 +1,9 @@
+import {webkit} from 'playwright';import fs from 'node:fs';
+const browser=await webkit.launch();const results=[];
+try{for(const lang of ['en','ru'])for(const [width,height] of [[844,390],[667,375],[390,844]]){
+const context=await browser.newContext({viewport:{width,height},isMobile:true,hasTouch:true});const p=await context.newPage();
+await p.goto(`http://127.0.0.1:5179/artifacts/ux-reassessment/prototype/?lang=${lang}`);await p.locator('[data-choice]').first().waitFor({state:'attached'});
+if(width<740)await p.locator('[data-mobile=options]').click();
+const geometry=async()=>p.locator('[data-choice]').evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();let top=0,bottom=innerHeight,left=0,right=innerWidth;for(let parent=el.parentElement;parent;parent=parent.parentElement){const s=getComputedStyle(parent);if(/auto|hidden|scroll|clip/.test(s.overflowY)){const pr=parent.getBoundingClientRect();top=Math.max(top,pr.top);bottom=Math.min(bottom,pr.bottom)}if(/auto|hidden|scroll|clip/.test(s.overflowX)){const pr=parent.getBoundingClientRect();left=Math.max(left,pr.left);right=Math.min(right,pr.right)}}const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {text:el.innerText,rect:r.toJSON(),visible:r.top>=top-1&&r.bottom<=bottom+1&&r.left>=left-1&&r.right<=right+1,hit:hit===el||el.contains(hit)}}));
+const before=await geometry();const r=before[1].rect;await p.touchscreen.tap(r.x+r.width/2,r.y+r.height/2);const after=await geometry();results.push({lang,width,height,before,after,stable:before.every((r,i)=>r.rect.y===after[i].rect.y),state:await p.evaluate(()=>window.__study.state)});await context.close();
+}}finally{await browser.close();fs.writeFileSync('artifacts/ux-reassessment/prototype-review.json',JSON.stringify(results,null,2))}console.log(results.map(r=>({lang:r.lang,width:r.width,visible:r.after.map(r=>r.visible),hit:r.after.map(r=>r.hit),stable:r.stable})));

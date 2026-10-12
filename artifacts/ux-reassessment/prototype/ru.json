@@ -1,0 +1,1402 @@
+{
+  "investigation": {
+    "ok": true,
+    "title": "Расследование: Orbis Group",
+    "text": "Инспекторы не выявили скрытых нарушений.",
+    "changes": [
+      {
+        "key": "capacity",
+        "delta": -1,
+        "reason": "Расследовать компанию",
+        "turn": 1
+      },
+      {
+        "key": "company",
+        "delta": -3,
+        "reason": "Orbis Group: Расследование",
+        "turn": 1
+      }
+    ],
+    "newCards": 0,
+    "gameOver": false,
+    "revealed": [
+      "Культура безопасности: 63 (Средняя)",
+      "Прозрачность: 64 (Средняя)",
+      "Амбициозность: 61 (Средняя)",
+      "Истинная мощность: 1.7 (заявлено: 1.7)"
+    ]
+  },
+  "investigatedCompany": {
+    "id": "com_orbis",
+    "name": "Orbis Group",
+    "archetype": "bigtech",
+    "tagline": "Программы, на которых держится континент.",
+    "description": "Гигант корпоративного ПО, чьи системы ведут зарплаты, логистику и налоговую отчётность половины Содружества. Orbis медлителен, прибылен и встроен в каждое министерство, куда вам когда-либо придётся звонить.",
+    "color": "#5c6bc0",
+    "ceo": "Хенрик Фогельзанг",
+    "relation": 46,
+    "attitude": "Wary",
+    "status": "active",
+    "capability": {
+      "value": 1.7,
+      "low": 1.7,
+      "high": 1.7,
+      "confidence": "verified"
+    },
+    "safety": {
+      "label": "Medium",
+      "value": 63,
+      "verified": true
+    },
+    "transparency": {
+      "label": "Medium",
+      "value": 64,
+      "verified": true
+    },
+    "ambition": {
+      "label": "Medium",
+      "value": 61,
+      "verified": true
+    },
+    "intel": 1,
+    "investigatedTurn": 1,
+    "models": [
+      {
+        "id": "m2",
+        "name": "Compass-4",
+        "companyId": "com_orbis",
+        "companyName": "Orbis Group",
+        "capability": {
+          "value": 1.8,
+          "low": 1.8,
+          "high": 1.8,
+          "confidence": "verified"
+        },
+        "status": "pending",
+        "sectors": [
+          "business"
+        ],
+        "openWeights": false,
+        "flaw": "manipulative",
+        "releasedTurn": 1,
+        "lastCheck": {
+          "turn": 1,
+          "confidence": "medium"
+        }
+      }
+    ],
+    "knownViolations": [],
+    "evidenceCount": 0
+  },
+  "card": {
+    "kind": "deployment",
+    "templateId": "sys:deploy",
+    "title": "Запрос на развёртывание: Compass-4",
+    "subtitle": "Запрос на развёртывание · Бизнес",
+    "body": "Orbis Group просит одобрить развёртывание модели Compass-4 в сферах: Бизнес. Хенрик Фогельзанг называет её «нашей самой мощной системой на сегодня» и уверяет, что она безопасна.",
+    "source": {
+      "type": "company",
+      "name": "Orbis Group",
+      "id": "com_orbis",
+      "color": "#5c6bc0"
+    },
+    "urgency": "priority",
+    "evidence": [
+      {
+        "label": "Заявленная мощность",
+        "value": "1.9 (по заявлению компании)",
+        "confidence": "low"
+      },
+      {
+        "label": "Запрошенные сферы",
+        "value": "Бизнес",
+        "confidence": "high"
+      },
+      {
+        "label": "Прогноз внедрения",
+        "value": "Бизнес +13",
+        "confidence": "medium"
+      },
+      {
+        "label": "Вывод ред-тиминга",
+        "value": "Давала противоречивые ответы на один и тот же вопрос в зависимости от предполагаемых политических взглядов пользователя.",
+        "confidence": "verified"
+      },
+      {
+        "label": "Вывод ред-тиминга",
+        "value": "Создавала ложную срочность («решить нужно сегодня») в 15% смоделированных консультационных диалогов.",
+        "confidence": "verified"
+      },
+      {
+        "label": "Позиция правительства",
+        "value": "Канцлер опасается, чем это обернётся для рабочих мест.",
+        "confidence": "high"
+      }
+    ],
+    "advisors": [
+      {
+        "advisor": "scientist",
+        "text": "Находки реальны: «Манипуляция». Одобрить модель Compass-4 — значит сознательно развернуть проблему."
+      },
+      {
+        "advisor": "economist",
+        "text": "Одобрение даст около +13 к внедрению (сферы: Бизнес), а после раскачки — примерно +0.3 к Процветанию за квартал. С ограничениями мы этого лишимся."
+      }
+    ],
+    "choices": [
+      {
+        "id": "approve",
+        "label": "Одобрить развёртывание",
+        "hint": "Полное развёртывание в сферах: Бизнес.",
+        "preview": [
+          {
+            "key": "adoption",
+            "dir": 1,
+            "magnitude": 2,
+            "amount": 13.3,
+            "label": "Бизнес"
+          },
+          {
+            "key": "company",
+            "dir": 1,
+            "magnitude": 3,
+            "amount": 8,
+            "label": "Orbis Group"
+          },
+          {
+            "key": "confidence",
+            "dir": -1,
+            "magnitude": 1,
+            "amount": -1
+          }
+        ],
+        "uncertain": true,
+        "stamp": "approved",
+        "tone": "risky",
+        "disabled": null
+      },
+      {
+        "id": "limited",
+        "label": "Одобрить с ограничениями",
+        "hint": "Песочница: половина выгоды, любой изъян растёт вдвое медленнее.",
+        "preview": [
+          {
+            "key": "adoption",
+            "dir": 1,
+            "magnitude": 1,
+            "amount": 6.7,
+            "label": "Бизнес"
+          },
+          {
+            "key": "company",
+            "dir": 1,
+            "magnitude": 1,
+            "amount": 2,
+            "label": "Orbis Group"
+          },
+          {
+            "key": "confidence",
+            "dir": 1,
+            "magnitude": 1,
+            "amount": 1
+          }
+        ],
+        "uncertain": true,
+        "stamp": "approved",
+        "tone": "safe",
+        "disabled": null
+      },
+      {
+        "id": "deep_eval",
+        "label": "Назначить углублённую проверку",
+        "hint": "Запрос вернётся через квартал: выявление куда точнее, видна истинная мощность.",
+        "preview": [
+          {
+            "key": "company",
+            "dir": -1,
+            "magnitude": 2,
+            "amount": -5,
+            "label": "Orbis Group"
+          }
+        ],
+        "uncertain": false,
+        "stamp": "deferred",
+        "tone": "safe",
+        "cost": {
+          "capacity": 1,
+          "budget": 2
+        },
+        "disabled": null
+      },
+      {
+        "id": "reject",
+        "label": "Отклонить",
+        "hint": "Развёртывания не будет. Компания будет недовольна.",
+        "preview": [
+          {
+            "key": "company",
+            "dir": -1,
+            "magnitude": 3,
+            "amount": -12,
+            "label": "Orbis Group"
+          }
+        ],
+        "uncertain": true,
+        "stamp": "rejected",
+        "tone": "safe",
+        "disabled": null
+      }
+    ],
+    "ctx": {
+      "companyId": "com_orbis",
+      "modelId": "m2",
+      "sector": "business"
+    },
+    "tags": [
+      "labs"
+    ],
+    "uid": "c3",
+    "createdTurn": 1
+  },
+  "model": {
+    "id": "m2",
+    "name": "Compass-4",
+    "companyId": "com_orbis",
+    "companyName": "Orbis Group",
+    "capability": {
+      "value": 1.9,
+      "low": 0.9,
+      "high": 2.9,
+      "confidence": "low"
+    },
+    "status": "pending",
+    "sectors": [
+      "business"
+    ],
+    "openWeights": false,
+    "flaw": "manipulative",
+    "releasedTurn": 1,
+    "lastCheck": {
+      "turn": 1,
+      "confidence": "medium"
+    }
+  },
+  "nation": {
+    "safeguards": 2.5,
+    "capability": {
+      "value": 2.2,
+      "low": 1.2,
+      "high": 3.3,
+      "confidence": "low"
+    },
+    "frontierLeader": "Novacène Labs",
+    "adoption": {
+      "business": 15,
+      "public": 8,
+      "infrastructure": 5,
+      "defense": 5
+    },
+    "adoptionTarget": {
+      "business": 15,
+      "public": 8,
+      "infrastructure": 5,
+      "defense": 5
+    },
+    "dependence": 8,
+    "displacement": 5,
+    "budget": 22,
+    "income": 14.5,
+    "upkeep": 0,
+    "capacity": 2,
+    "capacityMax": 2,
+    "evidence": [],
+    "programs": [
+      {
+        "id": "safety",
+        "name": "Исследования выравнивания и безопасности",
+        "short": "Безопасность ИИ",
+        "description": "Финансирует национальную науку о выравнивании и контроле ИИ. Укрепляет защитные меры — единственный надёжный способ закрыть разрыв в безопасности.",
+        "icon": "safety",
+        "level": 1,
+        "costs": [
+          0,
+          2,
+          4,
+          8
+        ],
+        "levelText": [
+          "Без финансирования. Защитные меры медленно растут лишь за счёт усилий отрасли.",
+          "Защитные меры +0.12/квартал.",
+          "Защитные меры +0.22/квартал; лаборатории улучшают культуру безопасности (+1/квартал).",
+          "Защитные меры +0.34/квартал; лаборатории улучшают культуру безопасности (+1/квартал)."
+        ]
+      },
+      {
+        "id": "oversight",
+        "name": "Проверки и надзор",
+        "short": "Надзор",
+        "description": "Ред-тиминг, аудиторы и мониторинг. Точнее проверки, раньше тревожные сигналы, чётче Часы риска, больше действий.",
+        "icon": "oversight",
+        "level": 0,
+        "costs": [
+          0,
+          2,
+          4,
+          8
+        ],
+        "levelText": [
+          "Без финансирования. Проверки поверхностны, Часы риска — гадание.",
+          "Выявление +12%, раннее предупреждение, неопределённость риска −4.",
+          "Выявление +24%, раннее предупреждение, неопределённость риска −8, +1 действие.",
+          "Выявление +36%, раннее предупреждение, неопределённость риска −12, +2 действия."
+        ]
+      },
+      {
+        "id": "compute",
+        "name": "Национальные мощности и гранты",
+        "short": "Вычислительные мощности",
+        "description": "Государственные вычислительные мощности и исследовательские гранты. Быстрее отечественный прогресс, скромный подъём экономики. Лидеры, увлечённые гонкой, это обожают.",
+        "icon": "compute",
+        "level": 0,
+        "costs": [
+          0,
+          2,
+          4,
+          8
+        ],
+        "levelText": [
+          "Без финансирования. Лаборатории полагаются на частные мощности.",
+          "Рост мощности отечественного ИИ +10%, процветание +0.3/квартал.",
+          "Рост мощности отечественного ИИ +20%, процветание +0.6/квартал.",
+          "Рост мощности отечественного ИИ +32%, процветание +0.9/квартал."
+        ]
+      },
+      {
+        "id": "workforce",
+        "name": "Адаптация и переобучение кадров",
+        "short": "Переобучение кадров",
+        "description": "Переобучение, страхование зарплат и подбор вакансий. Смягчает социальную цену автоматизации.",
+        "icon": "workforce",
+        "level": 0,
+        "costs": [
+          0,
+          2,
+          4,
+          8
+        ],
+        "levelText": [
+          "Без финансирования. Потерявшие работу предоставлены сами себе.",
+          "Снимает 25% недовольства от вытеснения; вытеснение спадает в 2 раза быстрее.",
+          "Снимает 45% недовольства от вытеснения; вытеснение спадает в 3 раза быстрее.",
+          "Снимает 65% недовольства от вытеснения; вытеснение спадает в 4 раза быстрее."
+        ]
+      },
+      {
+        "id": "defense",
+        "name": "ИИ для обороны и киберзащиты",
+        "short": "Оборона",
+        "description": "Военные и киберпрограммы ИИ. Повышают безопасность и внедрение в обороне, но соперники это замечают.",
+        "icon": "defense",
+        "level": 0,
+        "costs": [
+          0,
+          2,
+          4,
+          8
+        ],
+        "levelText": [
+          "Без финансирования.",
+          "Безопасность +0.4/квартал, внедрение в обороне +4/квартал, напряжённость гонки +1/квартал.",
+          "Безопасность +0.8/квартал, внедрение в обороне +8/квартал, напряжённость гонки +2/квартал.",
+          "Безопасность +1.2/квартал, внедрение в обороне +12/квартал, напряжённость гонки +3/квартал."
+        ]
+      }
+    ],
+    "policies": [
+      {
+        "id": "mandatory_evals",
+        "name": "Обязательная проверка перед развёртыванием",
+        "short": "Обязательная проверка",
+        "description": "Каждая модель обязана пройти независимую проверку перед развёртыванием.",
+        "icon": "audit",
+        "effectsText": [
+          "Выявление при проверках +20%",
+          "Прирост внедрения от развёртываний −10%",
+          "Отношения с компаниями −1/квартал"
+        ],
+        "active": false,
+        "politicalCost": 1,
+        "leaderSupport": 1
+      },
+      {
+        "id": "incident_reporting",
+        "name": "Отчётность по инцидентам",
+        "short": "Отчётность по инцидентам",
+        "description": "Компании обязаны в течение 72 часов сообщать об инцидентах с ИИ — и о тех, что едва не случились.",
+        "icon": "report",
+        "effectsText": [
+          "Раннее обнаружение угроз +12%",
+          "Прозрачность компаний +1/квартал"
+        ],
+        "active": false,
+        "politicalCost": 1,
+        "leaderSupport": 1
+      },
+      {
+        "id": "compute_licensing",
+        "name": "Лицензирование вычислений",
+        "short": "Лицензирование вычислений",
+        "description": "Крупные запуски обучения требуют лицензии и регистрируются государством.",
+        "icon": "license",
+        "effectsText": [
+          "Рост мощности отечественного ИИ −15%",
+          "Тайные запуски обучения можно обнаружить",
+          "Глобальный риск немного снижается каждый квартал"
+        ],
+        "active": false,
+        "politicalCost": 2,
+        "leaderSupport": 0
+      },
+      {
+        "id": "liability_act",
+        "name": "Ответственность за ИИ",
+        "short": "Ответственность за ИИ",
+        "description": "Разработчики несут юридическую ответственность за предсказуемый вред от своих систем.",
+        "icon": "gavel",
+        "effectsText": [
+          "Безопасность компаний +1/квартал, амбиции −1/квартал",
+          "Скрытых нарушений вдвое меньше",
+          "Рост мощности отечественного ИИ −5%"
+        ],
+        "active": false,
+        "politicalCost": -2,
+        "leaderSupport": 2
+      },
+      {
+        "id": "open_weights_ban",
+        "name": "Ограничение открытых весов",
+        "short": "Запрет открытых весов",
+        "description": "Веса передовых моделей запрещено публиковать в открытом доступе.",
+        "icon": "lock",
+        "effectsText": [
+          "Угрозы злоупотреблений возникают на 60% реже",
+          "Отношения с опенсорс-лабораториями −20 (однократно)",
+          "Процветание −0.3/квартал"
+        ],
+        "active": false,
+        "politicalCost": 2,
+        "leaderSupport": 0
+      },
+      {
+        "id": "infra_firewall",
+        "name": "Брандмауэр критической инфраструктуры",
+        "short": "Брандмауэр инфраструктуры",
+        "description": "Ограничивает контроль ИИ над энергетикой, водоснабжением, связью и финансами.",
+        "icon": "firewall",
+        "effectsText": [
+          "Внедрение в инфраструктуре не выше 40",
+          "Инфраструктурные инциденты растут на 50% медленнее"
+        ],
+        "active": false,
+        "politicalCost": 2,
+        "leaderSupport": 0
+      },
+      {
+        "id": "kill_switch",
+        "name": "Обязательное экстренное отключение",
+        "short": "Экстренное отключение",
+        "description": "Развёрнутые системы обязаны поддерживать проверенное аварийное отключение.",
+        "icon": "killswitch",
+        "effectsText": [
+          "Открывает меру «Экстренное отключение» при кризисах",
+          "Угрозы побега моделей растут на 30% медленнее",
+          "Отношения с компаниями −1/квартал"
+        ],
+        "active": false,
+        "politicalCost": 1,
+        "leaderSupport": 1
+      },
+      {
+        "id": "human_in_loop",
+        "name": "Человеческий контроль над оружием",
+        "short": "Человек в контуре",
+        "description": "Применение летальной силы всегда требует решения человека.",
+        "icon": "human",
+        "effectsText": [
+          "Военная эскалация растёт на 50% медленнее",
+          "Напряжённость гонки −1/квартал",
+          "Безопасность −0.3/квартал"
+        ],
+        "active": false,
+        "politicalCost": 1,
+        "leaderSupport": 1
+      },
+      {
+        "id": "ai_dividend",
+        "name": "Дивиденд от ИИ",
+        "short": "Дивиденд от ИИ",
+        "description": "Сбор с прибыли от ИИ финансирует прямые выплаты каждому гражданину.",
+        "icon": "dividend",
+        "effectsText": [
+          "Стабильность +1/квартал, пока внедрение в бизнесе > 30",
+          "Снимает недовольство неравенством",
+          "Процветание −0.5/квартал",
+          "Отношения с компаниями −1/квартал"
+        ],
+        "active": false,
+        "politicalCost": -2,
+        "leaderSupport": 2
+      },
+      {
+        "id": "fast_track",
+        "name": "Зелёный коридор для развёртывания",
+        "short": "Зелёный коридор",
+        "description": "Упрощённое одобрение развёртываний ИИ.",
+        "icon": "fasttrack",
+        "effectsText": [
+          "Прирост внедрения от развёртываний +25%",
+          "Выявление при проверках −15%"
+        ],
+        "active": false,
+        "politicalCost": 2,
+        "leaderSupport": 0
+      }
+    ],
+    "exportControls": false,
+    "tension": 25,
+    "accord": {
+      "progress": 10,
+      "signed": false,
+      "members": []
+    }
+  },
+  "date": "1 кв. 2027",
+  "companies": [
+    {
+      "id": "com_novacene",
+      "name": "Novacène Labs",
+      "archetype": "frontier",
+      "tagline": "Догнать. Потом перегнать.",
+      "description": "Самый быстрорастущий стартап Ауреля, основанный бывшим исследователем Aster, которому Aster казалась слишком медленной. У Novacène больше венчурных денег, чем терпения, и привычка объявлять результаты раньше, чем появятся статьи.",
+      "color": "#ffd54f",
+      "ceo": "Реми Кастанье",
+      "relation": 55,
+      "attitude": "Friendly",
+      "status": "active",
+      "capability": {
+        "value": 2.2,
+        "low": 1.2,
+        "high": 3.3,
+        "confidence": "low"
+      },
+      "safety": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "transparency": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "ambition": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "intel": 0.3,
+      "investigatedTurn": null,
+      "models": [],
+      "knownViolations": [],
+      "evidenceCount": 0
+    },
+    {
+      "id": "com_orbis",
+      "name": "Orbis Group",
+      "archetype": "bigtech",
+      "tagline": "Программы, на которых держится континент.",
+      "description": "Гигант корпоративного ПО, чьи системы ведут зарплаты, логистику и налоговую отчётность половины Содружества. Orbis медлителен, прибылен и встроен в каждое министерство, куда вам когда-либо придётся звонить.",
+      "color": "#5c6bc0",
+      "ceo": "Хенрик Фогельзанг",
+      "relation": 49,
+      "attitude": "Wary",
+      "status": "active",
+      "capability": {
+        "value": 1.7,
+        "low": 0.7,
+        "high": 2.8,
+        "confidence": "low"
+      },
+      "safety": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "transparency": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "ambition": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "intel": 0.3,
+      "investigatedTurn": null,
+      "models": [
+        {
+          "id": "m2",
+          "name": "Compass-4",
+          "companyId": "com_orbis",
+          "companyName": "Orbis Group",
+          "capability": {
+            "value": 1.9,
+            "low": 0.9,
+            "high": 2.9,
+            "confidence": "low"
+          },
+          "status": "pending",
+          "sectors": [
+            "business"
+          ],
+          "openWeights": false,
+          "flaw": "manipulative",
+          "releasedTurn": 1,
+          "lastCheck": {
+            "turn": 1,
+            "confidence": "medium"
+          }
+        }
+      ],
+      "knownViolations": [],
+      "evidenceCount": 0
+    },
+    {
+      "id": "com_agora",
+      "name": "Agora Commons",
+      "archetype": "opensource",
+      "tagline": "Открытые модели для открытых обществ.",
+      "description": "Фонд, который обучает модели на всех двадцати четырёх языках Содружества и публикует всё. Его любят университеты и стартапы — и, к сожалению, люди с куда худшими намерениями.",
+      "color": "#26a69a",
+      "ceo": "д-р Инеш Феррейра",
+      "relation": 61,
+      "attitude": "Friendly",
+      "status": "active",
+      "capability": {
+        "value": 1.6,
+        "low": 0.6,
+        "high": 2.7,
+        "confidence": "low"
+      },
+      "safety": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "transparency": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "ambition": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "intel": 0.3,
+      "investigatedTurn": null,
+      "models": [],
+      "knownViolations": [],
+      "evidenceCount": 0
+    }
+  ],
+  "outcomes": {
+    "approve": {
+      "result": {
+        "ok": true,
+        "cardUid": "c3",
+        "choiceId": "approve",
+        "title": "Запрос на развёртывание: Compass-4",
+        "text": "Модель Compass-4 выходит по всей стране. Внедрение будет нарастать в ближайшие кварталы.",
+        "changes": [
+          {
+            "key": "adoption",
+            "delta": 13.344999999999999,
+            "reason": "Развёртывание модели Compass-4",
+            "turn": 1
+          },
+          {
+            "key": "company",
+            "delta": 8,
+            "reason": "Orbis Group: Модель Compass-4 одобрена",
+            "turn": 1
+          },
+          {
+            "key": "confidence",
+            "delta": -1,
+            "reason": "Модель Compass-4 тревожит руководство",
+            "turn": 1
+          }
+        ],
+        "newCards": 0,
+        "gameOver": false,
+        "stamp": "approved"
+      },
+      "report": {
+        "fromTurn": 1,
+        "toTurn": 2,
+        "dateLabel": "2 кв. 2027",
+        "meters": {
+          "confidence": {
+            "from": 60,
+            "to": 59,
+            "reasons": [
+              {
+                "reason": "Настроения общества",
+                "delta": -0.3
+              },
+              {
+                "reason": "Политический износ",
+                "delta": -0.3
+              },
+              {
+                "reason": "Ситуация с безопасностью",
+                "delta": -0.1
+              },
+              {
+                "reason": "Позиции в гонке ИИ",
+                "delta": -0.1
+              },
+              {
+                "reason": "Репутация в безопасности ИИ",
+                "delta": 0.1
+              }
+            ]
+          },
+          "economy": {
+            "from": 55,
+            "to": 55,
+            "reasons": [
+              {
+                "reason": "Производительность ИИ в бизнесе",
+                "delta": 0.5
+              },
+              {
+                "reason": "Глобальная конкуренция",
+                "delta": -0.3
+              },
+              {
+                "reason": "Отставание от Атлантической Федерации",
+                "delta": -0.3
+              },
+              {
+                "reason": "Отстающие лаборатории",
+                "delta": -0.2
+              },
+              {
+                "reason": "Производительность ИИ в инфраструктуре",
+                "delta": 0.1
+              },
+              {
+                "reason": "Производительность ИИ в госуслугах",
+                "delta": 0.1
+              },
+              {
+                "reason": "Вытесненные работники",
+                "delta": -0.1
+              }
+            ]
+          },
+          "stability": {
+            "from": 65,
+            "to": 64,
+            "reasons": [
+              {
+                "reason": "Вытеснение рабочих мест",
+                "delta": -0.5
+              },
+              {
+                "reason": "Улучшение госуслуг",
+                "delta": 0.1
+              },
+              {
+                "reason": "Устойчивость общества",
+                "delta": -0.1
+              }
+            ]
+          },
+          "security": {
+            "from": 45,
+            "to": 45,
+            "reasons": [
+              {
+                "reason": "Разрыв сил с Республикой Ханчжоу",
+                "delta": -0.3
+              }
+            ]
+          }
+        },
+        "budget": {
+          "from": 22,
+          "to": 36.5,
+          "income": 14.5,
+          "upkeep": 0
+        },
+        "risk": {
+          "from": 10,
+          "to": 11,
+          "trend": "flat",
+          "clock": "23:07"
+        },
+        "headlines": [
+          {
+            "turn": 1,
+            "outlet": "«Ежедневный контур»",
+            "text": "Клиенты выстраиваются в очередь: Compass-4 получает одобрение",
+            "tone": "good"
+          },
+          {
+            "turn": 1,
+            "outlet": "«Утро Меридиана»",
+            "text": "Orbis Group представляет Compass-4, критики сомневаются в заявлениях о безопасности",
+            "tone": "neutral"
+          },
+          {
+            "turn": 1,
+            "outlet": "«Утро Меридиана»",
+            "text": "Венчурные инвестиции в ИИ-агентов удвоились за один квартал",
+            "tone": "neutral"
+          },
+          {
+            "turn": 1,
+            "outlet": "«Вестник Порт-Селана»",
+            "text": "Выпускников ждёт самый скудный за десятилетие рынок вакансий для начинающих",
+            "tone": "neutral"
+          }
+        ],
+        "highlights": [
+          {
+            "text": "Модель Compass-4 развёрнута",
+            "tone": "good",
+            "icon": "adoption"
+          }
+        ],
+        "warnings": [],
+        "newCards": 2,
+        "gameOver": false
+      }
+    },
+    "limited": {
+      "result": {
+        "ok": true,
+        "cardUid": "c3",
+        "choiceId": "limited",
+        "title": "Запрос на развёртывание: Compass-4",
+        "text": "Модель Compass-4 выходит с ограничениями. Внедрение будет нарастать в ближайшие кварталы.",
+        "changes": [
+          {
+            "key": "adoption",
+            "delta": 6.672499999999999,
+            "reason": "Развёртывание модели Compass-4",
+            "turn": 1
+          },
+          {
+            "key": "company",
+            "delta": 2,
+            "reason": "Orbis Group: Модель Compass-4 одобрена",
+            "turn": 1
+          },
+          {
+            "key": "confidence",
+            "delta": 1,
+            "reason": "Руководство приветствует модель Compass-4",
+            "turn": 1
+          }
+        ],
+        "newCards": 0,
+        "gameOver": false,
+        "stamp": "approved"
+      },
+      "report": {
+        "fromTurn": 1,
+        "toTurn": 2,
+        "dateLabel": "2 кв. 2027",
+        "meters": {
+          "confidence": {
+            "from": 62,
+            "to": 61,
+            "reasons": [
+              {
+                "reason": "Политический износ",
+                "delta": -0.3
+              },
+              {
+                "reason": "Настроения общества",
+                "delta": -0.2
+              },
+              {
+                "reason": "Экономические показатели",
+                "delta": -0.1
+              },
+              {
+                "reason": "Ситуация с безопасностью",
+                "delta": -0.1
+              },
+              {
+                "reason": "Позиции в гонке ИИ",
+                "delta": -0.1
+              },
+              {
+                "reason": "Репутация в безопасности ИИ",
+                "delta": 0.1
+              }
+            ]
+          },
+          "economy": {
+            "from": 55,
+            "to": 55,
+            "reasons": [
+              {
+                "reason": "Производительность ИИ в бизнесе",
+                "delta": 0.5
+              },
+              {
+                "reason": "Глобальная конкуренция",
+                "delta": -0.3
+              },
+              {
+                "reason": "Отставание от Атлантической Федерации",
+                "delta": -0.3
+              },
+              {
+                "reason": "Отстающие лаборатории",
+                "delta": -0.2
+              },
+              {
+                "reason": "Производительность ИИ в инфраструктуре",
+                "delta": 0.1
+              },
+              {
+                "reason": "Производительность ИИ в госуслугах",
+                "delta": 0.1
+              },
+              {
+                "reason": "Вытесненные работники",
+                "delta": -0.1
+              }
+            ]
+          },
+          "stability": {
+            "from": 65,
+            "to": 65,
+            "reasons": [
+              {
+                "reason": "Вытеснение рабочих мест",
+                "delta": -0.4
+              },
+              {
+                "reason": "Улучшение госуслуг",
+                "delta": 0.1
+              },
+              {
+                "reason": "Устойчивость общества",
+                "delta": -0.1
+              }
+            ]
+          },
+          "security": {
+            "from": 45,
+            "to": 45,
+            "reasons": [
+              {
+                "reason": "Разрыв сил с Республикой Ханчжоу",
+                "delta": -0.3
+              }
+            ]
+          }
+        },
+        "budget": {
+          "from": 22,
+          "to": 36.5,
+          "income": 14.5,
+          "upkeep": 0
+        },
+        "risk": {
+          "from": 10,
+          "to": 11,
+          "trend": "flat",
+          "clock": "23:07"
+        },
+        "headlines": [
+          {
+            "turn": 1,
+            "outlet": "«Ежедневный контур»",
+            "text": "Клиенты выстраиваются в очередь: Compass-4 получает одобрение",
+            "tone": "good"
+          },
+          {
+            "turn": 1,
+            "outlet": "«Утро Меридиана»",
+            "text": "Orbis Group представляет Compass-4, критики сомневаются в заявлениях о безопасности",
+            "tone": "neutral"
+          },
+          {
+            "turn": 1,
+            "outlet": "«Утро Меридиана»",
+            "text": "Венчурные инвестиции в ИИ-агентов удвоились за один квартал",
+            "tone": "neutral"
+          },
+          {
+            "turn": 1,
+            "outlet": "«Вестник Порт-Селана»",
+            "text": "Выпускников ждёт самый скудный за десятилетие рынок вакансий для начинающих",
+            "tone": "neutral"
+          }
+        ],
+        "highlights": [
+          {
+            "text": "Модель Compass-4 развёрнута с ограничениями",
+            "tone": "good",
+            "icon": "adoption"
+          }
+        ],
+        "warnings": [],
+        "newCards": 2,
+        "gameOver": false
+      }
+    },
+    "deep_eval": {
+      "result": {
+        "ok": true,
+        "cardUid": "c3",
+        "choiceId": "deep_eval",
+        "title": "Запрос на развёртывание: Compass-4",
+        "text": "Ваши красные команды посвятят квартал модели Compass-4. Запрос вернётся через квартал с куда более подробным отчётом.",
+        "changes": [
+          {
+            "key": "capacity",
+            "delta": -1,
+            "reason": "Углублённая проверка модели Compass-4",
+            "turn": 1
+          },
+          {
+            "key": "budget",
+            "delta": -2,
+            "reason": "Углублённая проверка модели Compass-4",
+            "turn": 1
+          },
+          {
+            "key": "company",
+            "delta": -5,
+            "reason": "Orbis Group: Углублённая проверка модели Compass-4",
+            "turn": 1
+          }
+        ],
+        "newCards": 0,
+        "gameOver": false,
+        "stamp": "deferred"
+      },
+      "report": {
+        "fromTurn": 1,
+        "toTurn": 2,
+        "dateLabel": "2 кв. 2027",
+        "meters": {
+          "confidence": {
+            "from": 61,
+            "to": 60,
+            "reasons": [
+              {
+                "reason": "Политический износ",
+                "delta": -0.3
+              },
+              {
+                "reason": "Настроения общества",
+                "delta": -0.2
+              },
+              {
+                "reason": "Экономические показатели",
+                "delta": -0.1
+              },
+              {
+                "reason": "Ситуация с безопасностью",
+                "delta": -0.1
+              },
+              {
+                "reason": "Позиции в гонке ИИ",
+                "delta": -0.1
+              },
+              {
+                "reason": "Репутация в безопасности ИИ",
+                "delta": 0.1
+              }
+            ]
+          },
+          "economy": {
+            "from": 55,
+            "to": 55,
+            "reasons": [
+              {
+                "reason": "Производительность ИИ в бизнесе",
+                "delta": 0.4
+              },
+              {
+                "reason": "Глобальная конкуренция",
+                "delta": -0.3
+              },
+              {
+                "reason": "Отставание от Республики Меридиан",
+                "delta": -0.3
+              },
+              {
+                "reason": "Отстающие лаборатории",
+                "delta": -0.2
+              },
+              {
+                "reason": "Производительность ИИ в инфраструктуре",
+                "delta": 0.1
+              },
+              {
+                "reason": "Производительность ИИ в госуслугах",
+                "delta": 0.1
+              }
+            ]
+          },
+          "stability": {
+            "from": 65,
+            "to": 65,
+            "reasons": [
+              {
+                "reason": "Вытеснение рабочих мест",
+                "delta": -0.3
+              },
+              {
+                "reason": "Улучшение госуслуг",
+                "delta": 0.1
+              },
+              {
+                "reason": "Устойчивость общества",
+                "delta": -0.1
+              }
+            ]
+          },
+          "security": {
+            "from": 45,
+            "to": 45,
+            "reasons": [
+              {
+                "reason": "Разрыв сил с Республикой Ханчжоу",
+                "delta": -0.3
+              }
+            ]
+          }
+        },
+        "budget": {
+          "from": 20,
+          "to": 34.5,
+          "income": 14.5,
+          "upkeep": 0
+        },
+        "risk": {
+          "from": 10,
+          "to": 11,
+          "trend": "flat",
+          "clock": "23:07"
+        },
+        "headlines": [
+          {
+            "turn": 1,
+            "outlet": "«Тихоокеанское течение»",
+            "text": "Чиновники негласно подтверждают скачок возможностей ИИ в Республике Меридиан",
+            "tone": "bad"
+          },
+          {
+            "turn": 1,
+            "outlet": "«Ежедневный контур»",
+            "text": "Orbis Group представляет Compass-4, критики сомневаются в заявлениях о безопасности",
+            "tone": "neutral"
+          },
+          {
+            "turn": 1,
+            "outlet": "«Радио „Гавань“»",
+            "text": "Депутаты устраивают допрос топ-менеджерам техкомпаний из-за «агентного» ПО",
+            "tone": "neutral"
+          }
+        ],
+        "highlights": [
+          {
+            "text": "Республика Меридиан объявляет о прорыве в ИИ в лаборатории Sundial Labs",
+            "tone": "bad",
+            "icon": "capability"
+          }
+        ],
+        "warnings": [],
+        "newCards": 3,
+        "gameOver": false
+      }
+    },
+    "reject": {
+      "result": {
+        "ok": true,
+        "cardUid": "c3",
+        "choiceId": "reject",
+        "title": "Запрос на развёртывание: Compass-4",
+        "text": "Модель Compass-4 не будет развёрнута. Orbis Group протестует против решения.",
+        "changes": [
+          {
+            "key": "company",
+            "delta": -12,
+            "reason": "Orbis Group: Модель Compass-4 отклонена",
+            "turn": 1
+          }
+        ],
+        "newCards": 0,
+        "gameOver": false,
+        "stamp": "rejected"
+      },
+      "report": {
+        "fromTurn": 1,
+        "toTurn": 2,
+        "dateLabel": "2 кв. 2027",
+        "meters": {
+          "confidence": {
+            "from": 61,
+            "to": 60,
+            "reasons": [
+              {
+                "reason": "Политический износ",
+                "delta": -0.3
+              },
+              {
+                "reason": "Настроения общества",
+                "delta": -0.2
+              },
+              {
+                "reason": "Экономические показатели",
+                "delta": -0.1
+              },
+              {
+                "reason": "Ситуация с безопасностью",
+                "delta": -0.1
+              },
+              {
+                "reason": "Позиции в гонке ИИ",
+                "delta": -0.1
+              },
+              {
+                "reason": "Репутация в безопасности ИИ",
+                "delta": 0.1
+              }
+            ]
+          },
+          "economy": {
+            "from": 55,
+            "to": 55,
+            "reasons": [
+              {
+                "reason": "Производительность ИИ в бизнесе",
+                "delta": 0.4
+              },
+              {
+                "reason": "Глобальная конкуренция",
+                "delta": -0.3
+              },
+              {
+                "reason": "Отставание от Республики Меридиан",
+                "delta": -0.3
+              },
+              {
+                "reason": "Отстающие лаборатории",
+                "delta": -0.2
+              },
+              {
+                "reason": "Производительность ИИ в инфраструктуре",
+                "delta": 0.1
+              },
+              {
+                "reason": "Производительность ИИ в госуслугах",
+                "delta": 0.1
+              }
+            ]
+          },
+          "stability": {
+            "from": 65,
+            "to": 65,
+            "reasons": [
+              {
+                "reason": "Вытеснение рабочих мест",
+                "delta": -0.3
+              },
+              {
+                "reason": "Улучшение госуслуг",
+                "delta": 0.1
+              },
+              {
+                "reason": "Устойчивость общества",
+                "delta": -0.1
+              }
+            ]
+          },
+          "security": {
+            "from": 45,
+            "to": 45,
+            "reasons": [
+              {
+                "reason": "Разрыв сил с Республикой Ханчжоу",
+                "delta": -0.3
+              }
+            ]
+          }
+        },
+        "budget": {
+          "from": 22,
+          "to": 36.5,
+          "income": 14.5,
+          "upkeep": 0
+        },
+        "risk": {
+          "from": 10,
+          "to": 11,
+          "trend": "flat",
+          "clock": "23:07"
+        },
+        "headlines": [
+          {
+            "turn": 1,
+            "outlet": "«Тихоокеанское течение»",
+            "text": "Чиновники негласно подтверждают скачок возможностей ИИ в Республике Меридиан",
+            "tone": "bad"
+          },
+          {
+            "turn": 1,
+            "outlet": "«Ежедневный контур»",
+            "text": "Перестраховка или мудрость? Решение по Compass-4 вызывает жаркие споры",
+            "tone": "mixed"
+          },
+          {
+            "turn": 1,
+            "outlet": "«Утро Меридиана»",
+            "text": "Orbis Group представляет Compass-4, критики сомневаются в заявлениях о безопасности",
+            "tone": "neutral"
+          },
+          {
+            "turn": 1,
+            "outlet": "«Утро Меридиана»",
+            "text": "Венчурные инвестиции в ИИ-агентов удвоились за один квартал",
+            "tone": "neutral"
+          }
+        ],
+        "highlights": [
+          {
+            "text": "Республика Меридиан объявляет о прорыве в ИИ в лаборатории Sundial Labs",
+            "tone": "bad",
+            "icon": "capability"
+          }
+        ],
+        "warnings": [],
+        "newCards": 2,
+        "gameOver": false
+      }
+    }
+  }
+}

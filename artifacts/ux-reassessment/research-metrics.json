@@ -1,0 +1,1007 @@
+[
+  {
+    "width": 390,
+    "height": 844,
+    "before": {
+      ".decision-page__scroll": {
+        "x": 0,
+        "y": 57,
+        "w": 390,
+        "h": 748,
+        "scrollTop": 0,
+        "scrollHeight": 748,
+        "clientHeight": 748
+      },
+      ".decision-page__context": {
+        "x": 20,
+        "y": 79,
+        "w": 350,
+        "h": 181.75,
+        "scrollTop": 0,
+        "scrollHeight": 182,
+        "clientHeight": 182
+      },
+      ".decision": {
+        "x": 20,
+        "y": 260.75,
+        "w": 350,
+        "h": 345,
+        "scrollTop": 0,
+        "scrollHeight": 345,
+        "clientHeight": 345
+      },
+      ".decision-detail": {
+        "x": 20,
+        "y": 537.75,
+        "w": 350,
+        "h": 68,
+        "scrollTop": 0,
+        "scrollHeight": 68,
+        "clientHeight": 68
+      },
+      ".decision-page__footer": {
+        "x": 0,
+        "y": 805,
+        "w": 390,
+        "h": 39,
+        "scrollTop": 0,
+        "scrollHeight": 38,
+        "clientHeight": 38
+      },
+      ".main": {
+        "x": 0,
+        "y": 130,
+        "w": 390,
+        "h": 589.3125,
+        "scrollTop": 0,
+        "scrollHeight": 792,
+        "clientHeight": 589
+      },
+      ".page-head": null,
+      ".panel-sections": null,
+      "choices": [
+        {
+          "text": "Approve open release",
+          "x": 20,
+          "y": 317.75,
+          "w": 350,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Staged release with safeguards",
+          "x": 20,
+          "y": 369.75,
+          "w": 350,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Order a deep evaluation",
+          "x": 20,
+          "y": 421.75,
+          "w": 350,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Reject",
+          "x": 20,
+          "y": 473.75,
+          "w": 350,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        }
+      ]
+    },
+    "selected": {
+      ".decision-page__scroll": {
+        "x": 0,
+        "y": 57,
+        "w": 390,
+        "h": 690,
+        "scrollTop": 0,
+        "scrollHeight": 690,
+        "clientHeight": 690
+      },
+      ".decision-page__context": {
+        "x": 20,
+        "y": 79,
+        "w": 350,
+        "h": 181.75,
+        "scrollTop": 0,
+        "scrollHeight": 182,
+        "clientHeight": 182
+      },
+      ".decision": {
+        "x": 20,
+        "y": 260.75,
+        "w": 350,
+        "h": 445.359375,
+        "scrollTop": 0,
+        "scrollHeight": 445,
+        "clientHeight": 445
+      },
+      ".decision-detail": {
+        "x": 20,
+        "y": 537.75,
+        "w": 350,
+        "h": 168.359375,
+        "scrollTop": 0,
+        "scrollHeight": 168,
+        "clientHeight": 168
+      },
+      ".decision-page__footer": {
+        "x": 0,
+        "y": 747,
+        "w": 390,
+        "h": 97,
+        "scrollTop": 0,
+        "scrollHeight": 96,
+        "clientHeight": 96
+      },
+      ".main": {
+        "x": 0,
+        "y": 130,
+        "w": 390,
+        "h": 589.3125,
+        "scrollTop": 0,
+        "scrollHeight": 792,
+        "clientHeight": 589
+      },
+      ".page-head": null,
+      ".panel-sections": null,
+      "choices": [
+        {
+          "text": "Approve open release",
+          "x": 20,
+          "y": 317.75,
+          "w": 350,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Staged release with safeguards",
+          "x": 20,
+          "y": 369.75,
+          "w": 350,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Order a deep evaluation",
+          "x": 20,
+          "y": 421.75,
+          "w": 350,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Reject",
+          "x": 20,
+          "y": 473.75,
+          "w": 350,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        }
+      ]
+    },
+    "evidence": {
+      ".decision-page__scroll": {
+        "x": 0,
+        "y": 57,
+        "w": 390,
+        "h": 690,
+        "scrollTop": 0,
+        "scrollHeight": 1427,
+        "clientHeight": 690
+      },
+      ".decision-page__context": {
+        "x": 20,
+        "y": 79,
+        "w": 350,
+        "h": 923.578125,
+        "scrollTop": 0,
+        "scrollHeight": 924,
+        "clientHeight": 924
+      },
+      ".decision": {
+        "x": 20,
+        "y": 1018.578125,
+        "w": 350,
+        "h": 445.359375,
+        "scrollTop": 0,
+        "scrollHeight": 445,
+        "clientHeight": 445
+      },
+      ".decision-detail": {
+        "x": 20,
+        "y": 1295.578125,
+        "w": 350,
+        "h": 168.359375,
+        "scrollTop": 0,
+        "scrollHeight": 168,
+        "clientHeight": 168
+      },
+      ".decision-page__footer": {
+        "x": 0,
+        "y": 747,
+        "w": 390,
+        "h": 97,
+        "scrollTop": 0,
+        "scrollHeight": 96,
+        "clientHeight": 96
+      },
+      ".main": {
+        "x": 0,
+        "y": 130,
+        "w": 390,
+        "h": 589.3125,
+        "scrollTop": 0,
+        "scrollHeight": 792,
+        "clientHeight": 589
+      },
+      ".page-head": null,
+      ".panel-sections": null,
+      "choices": [
+        {
+          "text": "Approve open release",
+          "x": 20,
+          "y": 1075.578125,
+          "w": 350,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Staged release with safeguards",
+          "x": 20,
+          "y": 1127.578125,
+          "w": 350,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Order a deep evaluation",
+          "x": 20,
+          "y": 1179.578125,
+          "w": 350,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Reject",
+          "x": 20,
+          "y": 1231.578125,
+          "w": 350,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        }
+      ]
+    },
+    "company": {
+      ".decision-page__scroll": null,
+      ".decision-page__context": null,
+      ".decision": null,
+      ".decision-detail": null,
+      ".decision-page__footer": null,
+      ".main": {
+        "x": 0,
+        "y": 130,
+        "w": 390,
+        "h": 657,
+        "scrollTop": 0,
+        "scrollHeight": 1199,
+        "clientHeight": 657
+      },
+      ".page-head": null,
+      ".panel-sections": {
+        "x": 16,
+        "y": 249.375,
+        "w": 358,
+        "h": 89,
+        "scrollTop": 0,
+        "scrollHeight": 88,
+        "clientHeight": 88
+      },
+      "choices": []
+    },
+    "returned": {
+      "selection": 0,
+      "evidenceOpen": 0
+    }
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "before": {
+      ".decision-page__scroll": {
+        "x": 0,
+        "y": 49,
+        "w": 844,
+        "h": 306,
+        "scrollTop": 0,
+        "scrollHeight": 306,
+        "clientHeight": 306
+      },
+      ".decision-page__context": {
+        "x": 20,
+        "y": 49,
+        "w": 388,
+        "h": 306,
+        "scrollTop": 0,
+        "scrollHeight": 306,
+        "clientHeight": 306
+      },
+      ".decision": {
+        "x": 436,
+        "y": 49,
+        "w": 388,
+        "h": 306,
+        "scrollTop": 0,
+        "scrollHeight": 361,
+        "clientHeight": 306
+      },
+      ".decision-detail": {
+        "x": 436,
+        "y": 324,
+        "w": 388,
+        "h": 68,
+        "scrollTop": 0,
+        "scrollHeight": 68,
+        "clientHeight": 68
+      },
+      ".decision-page__footer": {
+        "x": 0,
+        "y": 355,
+        "w": 844,
+        "h": 35,
+        "scrollTop": 0,
+        "scrollHeight": 34,
+        "clientHeight": 34
+      },
+      ".main": {
+        "x": 80,
+        "y": 95.5,
+        "w": 764,
+        "h": 294.5,
+        "scrollTop": 58,
+        "scrollHeight": 700,
+        "clientHeight": 295
+      },
+      ".page-head": null,
+      ".panel-sections": null,
+      "choices": [
+        {
+          "text": "Approve open release",
+          "x": 436,
+          "y": 104,
+          "w": 388,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Staged release with safeguards",
+          "x": 436,
+          "y": 156,
+          "w": 388,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Order a deep evaluation",
+          "x": 436,
+          "y": 208,
+          "w": 388,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Reject",
+          "x": 436,
+          "y": 260,
+          "w": 388,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        }
+      ]
+    },
+    "selected": {
+      ".decision-page__scroll": {
+        "x": 0,
+        "y": 49,
+        "w": 844,
+        "h": 276,
+        "scrollTop": 0,
+        "scrollHeight": 276,
+        "clientHeight": 276
+      },
+      ".decision-page__context": {
+        "x": 20,
+        "y": 49,
+        "w": 388,
+        "h": 276,
+        "scrollTop": 0,
+        "scrollHeight": 276,
+        "clientHeight": 276
+      },
+      ".decision": {
+        "x": 436,
+        "y": 49,
+        "w": 388,
+        "h": 276,
+        "scrollTop": 183,
+        "scrollHeight": 461,
+        "clientHeight": 276
+      },
+      ".decision-detail": {
+        "x": 436,
+        "y": 141,
+        "w": 388,
+        "h": 168.359375,
+        "scrollTop": 0,
+        "scrollHeight": 168,
+        "clientHeight": 168
+      },
+      ".decision-page__footer": {
+        "x": 0,
+        "y": 325,
+        "w": 844,
+        "h": 65,
+        "scrollTop": 0,
+        "scrollHeight": 64,
+        "clientHeight": 64
+      },
+      ".main": {
+        "x": 80,
+        "y": 95.5,
+        "w": 764,
+        "h": 294.5,
+        "scrollTop": 58,
+        "scrollHeight": 700,
+        "clientHeight": 295
+      },
+      ".page-head": null,
+      ".panel-sections": null,
+      "choices": [
+        {
+          "text": "Approve open release",
+          "x": 436,
+          "y": -79,
+          "w": 388,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Staged release with safeguards",
+          "x": 436,
+          "y": -27,
+          "w": 388,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Order a deep evaluation",
+          "x": 436,
+          "y": 25,
+          "w": 388,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Reject",
+          "x": 436,
+          "y": 77,
+          "w": 388,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        }
+      ]
+    },
+    "evidence": {
+      ".decision-page__scroll": {
+        "x": 0,
+        "y": 49,
+        "w": 844,
+        "h": 276,
+        "scrollTop": 0,
+        "scrollHeight": 276,
+        "clientHeight": 276
+      },
+      ".decision-page__context": {
+        "x": 20,
+        "y": 49,
+        "w": 388,
+        "h": 276,
+        "scrollTop": 0,
+        "scrollHeight": 956,
+        "clientHeight": 276
+      },
+      ".decision": {
+        "x": 436,
+        "y": 49,
+        "w": 388,
+        "h": 276,
+        "scrollTop": 183,
+        "scrollHeight": 461,
+        "clientHeight": 276
+      },
+      ".decision-detail": {
+        "x": 436,
+        "y": 141,
+        "w": 388,
+        "h": 168.359375,
+        "scrollTop": 0,
+        "scrollHeight": 168,
+        "clientHeight": 168
+      },
+      ".decision-page__footer": {
+        "x": 0,
+        "y": 325,
+        "w": 844,
+        "h": 65,
+        "scrollTop": 0,
+        "scrollHeight": 64,
+        "clientHeight": 64
+      },
+      ".main": {
+        "x": 80,
+        "y": 95.5,
+        "w": 764,
+        "h": 294.5,
+        "scrollTop": 58,
+        "scrollHeight": 700,
+        "clientHeight": 295
+      },
+      ".page-head": null,
+      ".panel-sections": null,
+      "choices": [
+        {
+          "text": "Approve open release",
+          "x": 436,
+          "y": -79,
+          "w": 388,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Staged release with safeguards",
+          "x": 436,
+          "y": -27,
+          "w": 388,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Order a deep evaluation",
+          "x": 436,
+          "y": 25,
+          "w": 388,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Reject",
+          "x": 436,
+          "y": 77,
+          "w": 388,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        }
+      ]
+    },
+    "company": {
+      ".decision-page__scroll": null,
+      ".decision-page__context": null,
+      ".decision": null,
+      ".decision-detail": null,
+      ".decision-page__footer": null,
+      ".main": {
+        "x": 80,
+        "y": 95.5,
+        "w": 764,
+        "h": 294.5,
+        "scrollTop": 0,
+        "scrollHeight": 966,
+        "clientHeight": 295
+      },
+      ".page-head": null,
+      ".panel-sections": {
+        "x": 96,
+        "y": 178.484375,
+        "w": 732,
+        "h": 45,
+        "scrollTop": 0,
+        "scrollHeight": 44,
+        "clientHeight": 44
+      },
+      "choices": []
+    },
+    "returned": {
+      "selection": 0,
+      "evidenceOpen": 0
+    }
+  },
+  {
+    "width": 667,
+    "height": 375,
+    "before": {
+      ".decision-page__scroll": {
+        "x": 0,
+        "y": 57,
+        "w": 667,
+        "h": 279,
+        "scrollTop": 0,
+        "scrollHeight": 524,
+        "clientHeight": 279
+      },
+      ".decision-page__context": {
+        "x": 20,
+        "y": 79,
+        "w": 627,
+        "h": 157.75,
+        "scrollTop": 0,
+        "scrollHeight": 158,
+        "clientHeight": 158
+      },
+      ".decision": {
+        "x": 20,
+        "y": 236.75,
+        "w": 627,
+        "h": 324,
+        "scrollTop": 0,
+        "scrollHeight": 324,
+        "clientHeight": 324
+      },
+      ".decision-detail": {
+        "x": 20,
+        "y": 513.75,
+        "w": 627,
+        "h": 47,
+        "scrollTop": 0,
+        "scrollHeight": 47,
+        "clientHeight": 47
+      },
+      ".decision-page__footer": {
+        "x": 0,
+        "y": 336,
+        "w": 667,
+        "h": 39,
+        "scrollTop": 0,
+        "scrollHeight": 38,
+        "clientHeight": 38
+      },
+      ".main": {
+        "x": 0,
+        "y": 130,
+        "w": 667,
+        "h": 120.3125,
+        "scrollTop": 263,
+        "scrollHeight": 747,
+        "clientHeight": 120
+      },
+      ".page-head": null,
+      ".panel-sections": null,
+      "choices": [
+        {
+          "text": "Approve open release",
+          "x": 20,
+          "y": 293.75,
+          "w": 627,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Staged release with safeguards",
+          "x": 20,
+          "y": 345.75,
+          "w": 627,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Order a deep evaluation",
+          "x": 20,
+          "y": 397.75,
+          "w": 627,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Reject",
+          "x": 20,
+          "y": 449.75,
+          "w": 627,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        }
+      ]
+    },
+    "selected": {
+      ".decision-page__scroll": {
+        "x": 0,
+        "y": 57,
+        "w": 667,
+        "h": 221,
+        "scrollTop": 420,
+        "scrollHeight": 645,
+        "clientHeight": 221
+      },
+      ".decision-page__context": {
+        "x": 20,
+        "y": -341,
+        "w": 627,
+        "h": 157.75,
+        "scrollTop": 0,
+        "scrollHeight": 158,
+        "clientHeight": 158
+      },
+      ".decision": {
+        "x": 20,
+        "y": -183.25,
+        "w": 627,
+        "h": 445.359375,
+        "scrollTop": 0,
+        "scrollHeight": 445,
+        "clientHeight": 445
+      },
+      ".decision-detail": {
+        "x": 20,
+        "y": 93.75,
+        "w": 627,
+        "h": 168.359375,
+        "scrollTop": 0,
+        "scrollHeight": 168,
+        "clientHeight": 168
+      },
+      ".decision-page__footer": {
+        "x": 0,
+        "y": 278,
+        "w": 667,
+        "h": 97,
+        "scrollTop": 0,
+        "scrollHeight": 96,
+        "clientHeight": 96
+      },
+      ".main": {
+        "x": 0,
+        "y": 130,
+        "w": 667,
+        "h": 120.3125,
+        "scrollTop": 263,
+        "scrollHeight": 747,
+        "clientHeight": 120
+      },
+      ".page-head": null,
+      ".panel-sections": null,
+      "choices": [
+        {
+          "text": "Approve open release",
+          "x": 20,
+          "y": -126.25,
+          "w": 627,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Staged release with safeguards",
+          "x": 20,
+          "y": -74.25,
+          "w": 627,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Order a deep evaluation",
+          "x": 20,
+          "y": -22.25,
+          "w": 627,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Reject",
+          "x": 20,
+          "y": 29.75,
+          "w": 627,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        }
+      ]
+    },
+    "evidence": {
+      ".decision-page__scroll": {
+        "x": 0,
+        "y": 57,
+        "w": 667,
+        "h": 221,
+        "scrollTop": 46,
+        "scrollHeight": 1260,
+        "clientHeight": 221
+      },
+      ".decision-page__context": {
+        "x": 20,
+        "y": 33,
+        "w": 627,
+        "h": 757.015625,
+        "scrollTop": 0,
+        "scrollHeight": 757,
+        "clientHeight": 757
+      },
+      ".decision": {
+        "x": 20,
+        "y": 806.015625,
+        "w": 627,
+        "h": 445.359375,
+        "scrollTop": 0,
+        "scrollHeight": 445,
+        "clientHeight": 445
+      },
+      ".decision-detail": {
+        "x": 20,
+        "y": 1083.015625,
+        "w": 627,
+        "h": 168.359375,
+        "scrollTop": 0,
+        "scrollHeight": 168,
+        "clientHeight": 168
+      },
+      ".decision-page__footer": {
+        "x": 0,
+        "y": 278,
+        "w": 667,
+        "h": 97,
+        "scrollTop": 0,
+        "scrollHeight": 96,
+        "clientHeight": 96
+      },
+      ".main": {
+        "x": 0,
+        "y": 130,
+        "w": 667,
+        "h": 120.3125,
+        "scrollTop": 263,
+        "scrollHeight": 747,
+        "clientHeight": 120
+      },
+      ".page-head": null,
+      ".panel-sections": null,
+      "choices": [
+        {
+          "text": "Approve open release",
+          "x": 20,
+          "y": 863.015625,
+          "w": 627,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Staged release with safeguards",
+          "x": 20,
+          "y": 915.015625,
+          "w": 627,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Order a deep evaluation",
+          "x": 20,
+          "y": 967.015625,
+          "w": 627,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        },
+        {
+          "text": "Reject",
+          "x": 20,
+          "y": 1019.015625,
+          "w": 627,
+          "h": 52,
+          "scrollTop": 0,
+          "scrollHeight": 51,
+          "clientHeight": 51
+        }
+      ]
+    },
+    "company": {
+      ".decision-page__scroll": null,
+      ".decision-page__context": null,
+      ".decision": null,
+      ".decision-detail": null,
+      ".decision-page__footer": null,
+      ".main": {
+        "x": 0,
+        "y": 130,
+        "w": 667,
+        "h": 188,
+        "scrollTop": 60,
+        "scrollHeight": 986,
+        "clientHeight": 188
+      },
+      ".page-head": null,
+      ".panel-sections": {
+        "x": 16,
+        "y": 166.984375,
+        "w": 635,
+        "h": 45,
+        "scrollTop": 0,
+        "scrollHeight": 44,
+        "clientHeight": 44
+      },
+      "choices": []
+    },
+    "returned": {
+      "selection": 0,
+      "evidenceOpen": 0
+    }
+  }
+]

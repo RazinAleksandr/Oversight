@@ -1,0 +1,15 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {setLang,loadLangPack} from '../../../src/i18n';
+const lang=process.argv[2]==='ru'?'ru':'en';
+setLang(lang,await loadLangPack(lang));
+const {localizeContent}=await import('../../../src/engine/localize');localizeContent();
+const {newGame,loadGame}=await import('../../../src/engine/game');
+const g=newGame({countryId:'commonwealth',difficulty:'director',seed:20261012});
+const intro=g.view().inbox.find(c=>c.kind==='intro');if(intro)g.resolveChoice(intro.uid,'safety');
+const view=g.view();const card=view.inbox.find(c=>c.kind==='deployment');
+const model=view.models.find(m=>m.id===card?.ctx.modelId);
+const outcomes=Object.fromEntries(card!.choices.map(c=>{const copy=loadGame(g.serialize())!; const result=copy.resolveChoice(card!.uid,c.id);const report=copy.endTurn();return [c.id,{result,report}]}));
+const investigated=loadGame(g.serialize())!;const investigation=investigated.performAction('investigate_company',model!.companyId);const investigatedCompany=investigated.view().companies.find(c=>c.id===model!.companyId);
+const data={investigation,investigatedCompany,card,model,nation:view.nation,date:view.dateLabel,companies:view.companies,outcomes};
+writeFileSync(`artifacts/ux-reassessment/prototype/${lang}.json`,JSON.stringify(data,null,2));
+console.log(JSON.stringify(data,null,2));

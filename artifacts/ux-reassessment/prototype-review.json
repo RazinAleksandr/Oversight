@@ -1,0 +1,830 @@
+[
+  {
+    "lang": "en",
+    "width": 844,
+    "height": 390,
+    "before": [
+      {
+        "text": "Approve deployment\nTarget +13.3 · mandate −1\n$0\n0 actions",
+        "rect": {
+          "x": 395,
+          "y": 91,
+          "width": 423,
+          "height": 57,
+          "top": 91,
+          "right": 818,
+          "bottom": 148,
+          "left": 395
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Approve with limits\nTarget +6.7 · mandate +1 · slower flaw growth\n$0\n0 actions",
+        "rect": {
+          "x": 395,
+          "y": 148,
+          "width": 423,
+          "height": 57,
+          "top": 148,
+          "right": 818,
+          "bottom": 205,
+          "left": 395
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Order a deep evaluation\nDelay to next quarter · better evidence\n$2B\n1 action",
+        "rect": {
+          "x": 395,
+          "y": 205,
+          "width": 423,
+          "height": 57,
+          "top": 205,
+          "right": 818,
+          "bottom": 262,
+          "left": 395
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Reject\nNo rollout · company relations −12\n$0\n0 actions",
+        "rect": {
+          "x": 395,
+          "y": 262,
+          "width": 423,
+          "height": 57,
+          "top": 262,
+          "right": 818,
+          "bottom": 319,
+          "left": 395
+        },
+        "visible": true,
+        "hit": true
+      }
+    ],
+    "after": [
+      {
+        "text": "Approve deployment\nTarget +13.3 · mandate −1\n$0\n0 actions",
+        "rect": {
+          "x": 395,
+          "y": 91,
+          "width": 423,
+          "height": 57,
+          "top": 91,
+          "right": 818,
+          "bottom": 148,
+          "left": 395
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Approve with limits\nTarget +6.7 · mandate +1 · slower flaw growth\n$0\n0 actions",
+        "rect": {
+          "x": 395,
+          "y": 148,
+          "width": 423,
+          "height": 57,
+          "top": 148,
+          "right": 818,
+          "bottom": 205,
+          "left": 395
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Order a deep evaluation\nDelay to next quarter · better evidence\n$2B\n1 action",
+        "rect": {
+          "x": 395,
+          "y": 205,
+          "width": 423,
+          "height": 57,
+          "top": 205,
+          "right": 818,
+          "bottom": 262,
+          "left": 395
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Reject\nNo rollout · company relations −12\n$0\n0 actions",
+        "rect": {
+          "x": 395,
+          "y": 262,
+          "width": 423,
+          "height": 57,
+          "top": 262,
+          "right": 818,
+          "bottom": 319,
+          "left": 395
+        },
+        "visible": true,
+        "hit": true
+      }
+    ],
+    "stable": true,
+    "state": {
+      "chosen": 1,
+      "reader": "effects",
+      "mobile": "brief",
+      "route": "decision",
+      "level": 1,
+      "appliedLevel": 1
+    }
+  },
+  {
+    "lang": "en",
+    "width": 667,
+    "height": 375,
+    "before": [
+      {
+        "text": "Approve deployment\nTarget +13.3 · mandate −1\n$0 0 actions",
+        "rect": {
+          "x": 26,
+          "y": 121,
+          "width": 302.5,
+          "height": 88,
+          "top": 121,
+          "right": 328.5,
+          "bottom": 209,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Approve with limits\nTarget +6.7 · mandate +1 · slower flaw growth\n$0 0 actions",
+        "rect": {
+          "x": 338.5,
+          "y": 121,
+          "width": 302.5,
+          "height": 88,
+          "top": 121,
+          "right": 641,
+          "bottom": 209,
+          "left": 338.5
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Order a deep evaluation\nDelay to next quarter · better evidence\n$2B 1 action",
+        "rect": {
+          "x": 26,
+          "y": 209,
+          "width": 302.5,
+          "height": 88,
+          "top": 209,
+          "right": 328.5,
+          "bottom": 297,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Reject\nNo rollout · company relations −12\n$0 0 actions",
+        "rect": {
+          "x": 338.5,
+          "y": 209,
+          "width": 302.5,
+          "height": 88,
+          "top": 209,
+          "right": 641,
+          "bottom": 297,
+          "left": 338.5
+        },
+        "visible": true,
+        "hit": true
+      }
+    ],
+    "after": [
+      {
+        "text": "Approve deployment\nTarget +13.3 · mandate −1\n$0 0 actions",
+        "rect": {
+          "x": 26,
+          "y": 121,
+          "width": 302.5,
+          "height": 88,
+          "top": 121,
+          "right": 328.5,
+          "bottom": 209,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Approve with limits\nTarget +6.7 · mandate +1 · slower flaw growth\n$0 0 actions",
+        "rect": {
+          "x": 338.5,
+          "y": 121,
+          "width": 302.5,
+          "height": 88,
+          "top": 121,
+          "right": 641,
+          "bottom": 209,
+          "left": 338.5
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Order a deep evaluation\nDelay to next quarter · better evidence\n$2B 1 action",
+        "rect": {
+          "x": 26,
+          "y": 209,
+          "width": 302.5,
+          "height": 88,
+          "top": 209,
+          "right": 328.5,
+          "bottom": 297,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Reject\nNo rollout · company relations −12\n$0 0 actions",
+        "rect": {
+          "x": 338.5,
+          "y": 209,
+          "width": 302.5,
+          "height": 88,
+          "top": 209,
+          "right": 641,
+          "bottom": 297,
+          "left": 338.5
+        },
+        "visible": true,
+        "hit": true
+      }
+    ],
+    "stable": true,
+    "state": {
+      "chosen": 1,
+      "reader": "effects",
+      "mobile": "options",
+      "route": "decision",
+      "level": 1,
+      "appliedLevel": 1
+    }
+  },
+  {
+    "lang": "en",
+    "width": 390,
+    "height": 844,
+    "before": [
+      {
+        "text": "Approve deployment\nTarget +13.3 · mandate −1\n$0\n0 actions",
+        "rect": {
+          "x": 26,
+          "y": 145,
+          "width": 338,
+          "height": 78,
+          "top": 145,
+          "right": 364,
+          "bottom": 223,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Approve with limits\nTarget +6.7 · mandate +1 · slower flaw growth\n$0\n0 actions",
+        "rect": {
+          "x": 26,
+          "y": 223,
+          "width": 338,
+          "height": 80.96875,
+          "top": 223,
+          "right": 364,
+          "bottom": 303.96875,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Order a deep evaluation\nDelay to next quarter · better evidence\n$2B\n1 action",
+        "rect": {
+          "x": 26,
+          "y": 303.96875,
+          "width": 338,
+          "height": 80.96875,
+          "top": 303.96875,
+          "right": 364,
+          "bottom": 384.9375,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Reject\nNo rollout · company relations −12\n$0\n0 actions",
+        "rect": {
+          "x": 26,
+          "y": 384.9375,
+          "width": 338,
+          "height": 78,
+          "top": 384.9375,
+          "right": 364,
+          "bottom": 462.9375,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      }
+    ],
+    "after": [
+      {
+        "text": "Approve deployment\nTarget +13.3 · mandate −1\n$0\n0 actions",
+        "rect": {
+          "x": 26,
+          "y": 145,
+          "width": 338,
+          "height": 78,
+          "top": 145,
+          "right": 364,
+          "bottom": 223,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Approve with limits\nTarget +6.7 · mandate +1 · slower flaw growth\n$0\n0 actions",
+        "rect": {
+          "x": 26,
+          "y": 223,
+          "width": 338,
+          "height": 80.96875,
+          "top": 223,
+          "right": 364,
+          "bottom": 303.96875,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Order a deep evaluation\nDelay to next quarter · better evidence\n$2B\n1 action",
+        "rect": {
+          "x": 26,
+          "y": 303.96875,
+          "width": 338,
+          "height": 80.96875,
+          "top": 303.96875,
+          "right": 364,
+          "bottom": 384.9375,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Reject\nNo rollout · company relations −12\n$0\n0 actions",
+        "rect": {
+          "x": 26,
+          "y": 384.9375,
+          "width": 338,
+          "height": 78,
+          "top": 384.9375,
+          "right": 364,
+          "bottom": 462.9375,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      }
+    ],
+    "stable": true,
+    "state": {
+      "chosen": 1,
+      "reader": "effects",
+      "mobile": "options",
+      "route": "decision",
+      "level": 1,
+      "appliedLevel": 1
+    }
+  },
+  {
+    "lang": "ru",
+    "width": 844,
+    "height": 390,
+    "before": [
+      {
+        "text": "Одобрить развёртывание\nЦель +13,3 · мандат −1\n$0\n0 действий",
+        "rect": {
+          "x": 395,
+          "y": 91,
+          "width": 423,
+          "height": 57,
+          "top": 91,
+          "right": 818,
+          "bottom": 148,
+          "left": 395
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Одобрить с ограничениями\nЦель +6,7 · мандат +1 · медленнее рост угрозы\n$0\n0 действий",
+        "rect": {
+          "x": 395,
+          "y": 148,
+          "width": 423,
+          "height": 57,
+          "top": 148,
+          "right": 818,
+          "bottom": 205,
+          "left": 395
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Назначить углублённую проверку\nОтсрочка на квартал · точнее проверка\n$2 млрд\n1 действие",
+        "rect": {
+          "x": 395,
+          "y": 205,
+          "width": 423,
+          "height": 57,
+          "top": 205,
+          "right": 818,
+          "bottom": 262,
+          "left": 395
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Отклонить\nБез запуска · отношения −12\n$0\n0 действий",
+        "rect": {
+          "x": 395,
+          "y": 262,
+          "width": 423,
+          "height": 57,
+          "top": 262,
+          "right": 818,
+          "bottom": 319,
+          "left": 395
+        },
+        "visible": true,
+        "hit": true
+      }
+    ],
+    "after": [
+      {
+        "text": "Одобрить развёртывание\nЦель +13,3 · мандат −1\n$0\n0 действий",
+        "rect": {
+          "x": 395,
+          "y": 91,
+          "width": 423,
+          "height": 57,
+          "top": 91,
+          "right": 818,
+          "bottom": 148,
+          "left": 395
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Одобрить с ограничениями\nЦель +6,7 · мандат +1 · медленнее рост угрозы\n$0\n0 действий",
+        "rect": {
+          "x": 395,
+          "y": 148,
+          "width": 423,
+          "height": 57,
+          "top": 148,
+          "right": 818,
+          "bottom": 205,
+          "left": 395
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Назначить углублённую проверку\nОтсрочка на квартал · точнее проверка\n$2 млрд\n1 действие",
+        "rect": {
+          "x": 395,
+          "y": 205,
+          "width": 423,
+          "height": 57,
+          "top": 205,
+          "right": 818,
+          "bottom": 262,
+          "left": 395
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Отклонить\nБез запуска · отношения −12\n$0\n0 действий",
+        "rect": {
+          "x": 395,
+          "y": 262,
+          "width": 423,
+          "height": 57,
+          "top": 262,
+          "right": 818,
+          "bottom": 319,
+          "left": 395
+        },
+        "visible": true,
+        "hit": true
+      }
+    ],
+    "stable": true,
+    "state": {
+      "chosen": 1,
+      "reader": "effects",
+      "mobile": "brief",
+      "route": "decision",
+      "level": 1,
+      "appliedLevel": 1
+    }
+  },
+  {
+    "lang": "ru",
+    "width": 667,
+    "height": 375,
+    "before": [
+      {
+        "text": "Одобрить развёртывание\nЦель +13,3 · мандат −1\n$0 0 действий",
+        "rect": {
+          "x": 26,
+          "y": 121,
+          "width": 302.5,
+          "height": 88,
+          "top": 121,
+          "right": 328.5,
+          "bottom": 209,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Одобрить с ограничениями\nЦель +6,7 · мандат +1 · медленнее рост угрозы\n$0 0 действий",
+        "rect": {
+          "x": 338.5,
+          "y": 121,
+          "width": 302.5,
+          "height": 88,
+          "top": 121,
+          "right": 641,
+          "bottom": 209,
+          "left": 338.5
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Назначить углублённую проверку\nОтсрочка на квартал · точнее проверка\n$2 млрд 1 действие",
+        "rect": {
+          "x": 26,
+          "y": 209,
+          "width": 302.5,
+          "height": 88,
+          "top": 209,
+          "right": 328.5,
+          "bottom": 297,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Отклонить\nБез запуска · отношения −12\n$0 0 действий",
+        "rect": {
+          "x": 338.5,
+          "y": 209,
+          "width": 302.5,
+          "height": 88,
+          "top": 209,
+          "right": 641,
+          "bottom": 297,
+          "left": 338.5
+        },
+        "visible": true,
+        "hit": true
+      }
+    ],
+    "after": [
+      {
+        "text": "Одобрить развёртывание\nЦель +13,3 · мандат −1\n$0 0 действий",
+        "rect": {
+          "x": 26,
+          "y": 121,
+          "width": 302.5,
+          "height": 88,
+          "top": 121,
+          "right": 328.5,
+          "bottom": 209,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Одобрить с ограничениями\nЦель +6,7 · мандат +1 · медленнее рост угрозы\n$0 0 действий",
+        "rect": {
+          "x": 338.5,
+          "y": 121,
+          "width": 302.5,
+          "height": 88,
+          "top": 121,
+          "right": 641,
+          "bottom": 209,
+          "left": 338.5
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Назначить углублённую проверку\nОтсрочка на квартал · точнее проверка\n$2 млрд 1 действие",
+        "rect": {
+          "x": 26,
+          "y": 209,
+          "width": 302.5,
+          "height": 88,
+          "top": 209,
+          "right": 328.5,
+          "bottom": 297,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Отклонить\nБез запуска · отношения −12\n$0 0 действий",
+        "rect": {
+          "x": 338.5,
+          "y": 209,
+          "width": 302.5,
+          "height": 88,
+          "top": 209,
+          "right": 641,
+          "bottom": 297,
+          "left": 338.5
+        },
+        "visible": true,
+        "hit": true
+      }
+    ],
+    "stable": true,
+    "state": {
+      "chosen": 1,
+      "reader": "effects",
+      "mobile": "options",
+      "route": "decision",
+      "level": 1,
+      "appliedLevel": 1
+    }
+  },
+  {
+    "lang": "ru",
+    "width": 390,
+    "height": 844,
+    "before": [
+      {
+        "text": "Одобрить развёртывание\nЦель +13,3 · мандат −1\n$0\n0 действий",
+        "rect": {
+          "x": 26,
+          "y": 145,
+          "width": 338,
+          "height": 78,
+          "top": 145,
+          "right": 364,
+          "bottom": 223,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Одобрить с ограничениями\nЦель +6,7 · мандат +1 · медленнее рост угрозы\n$0\n0 действий",
+        "rect": {
+          "x": 26,
+          "y": 223,
+          "width": 338,
+          "height": 100.15625,
+          "top": 223,
+          "right": 364,
+          "bottom": 323.15625,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Назначить углублённую проверку\nОтсрочка на квартал · точнее проверка\n$2 млрд\n1 действие",
+        "rect": {
+          "x": 26,
+          "y": 323.15625,
+          "width": 338,
+          "height": 100.15625,
+          "top": 323.15625,
+          "right": 364,
+          "bottom": 423.3125,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Отклонить\nБез запуска · отношения −12\n$0\n0 действий",
+        "rect": {
+          "x": 26,
+          "y": 423.3125,
+          "width": 338,
+          "height": 78,
+          "top": 423.3125,
+          "right": 364,
+          "bottom": 501.3125,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      }
+    ],
+    "after": [
+      {
+        "text": "Одобрить развёртывание\nЦель +13,3 · мандат −1\n$0\n0 действий",
+        "rect": {
+          "x": 26,
+          "y": 145,
+          "width": 338,
+          "height": 78,
+          "top": 145,
+          "right": 364,
+          "bottom": 223,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Одобрить с ограничениями\nЦель +6,7 · мандат +1 · медленнее рост угрозы\n$0\n0 действий",
+        "rect": {
+          "x": 26,
+          "y": 223,
+          "width": 338,
+          "height": 100.15625,
+          "top": 223,
+          "right": 364,
+          "bottom": 323.15625,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Назначить углублённую проверку\nОтсрочка на квартал · точнее проверка\n$2 млрд\n1 действие",
+        "rect": {
+          "x": 26,
+          "y": 323.15625,
+          "width": 338,
+          "height": 100.15625,
+          "top": 323.15625,
+          "right": 364,
+          "bottom": 423.3125,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      },
+      {
+        "text": "Отклонить\nБез запуска · отношения −12\n$0\n0 действий",
+        "rect": {
+          "x": 26,
+          "y": 423.3125,
+          "width": 338,
+          "height": 78,
+          "top": 423.3125,
+          "right": 364,
+          "bottom": 501.3125,
+          "left": 26
+        },
+        "visible": true,
+        "hit": true
+      }
+    ],
+    "stable": true,
+    "state": {
+      "chosen": 1,
+      "reader": "effects",
+      "mobile": "options",
+      "route": "decision",
+      "level": 1,
+      "appliedLevel": 1
+    }
+  }
+]

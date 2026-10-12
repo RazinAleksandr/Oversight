@@ -1,0 +1,1402 @@
+{
+  "investigation": {
+    "ok": true,
+    "title": "Investigation: Orbis Group",
+    "text": "Inspectors found no hidden violations.",
+    "changes": [
+      {
+        "key": "capacity",
+        "delta": -1,
+        "reason": "Investigate company",
+        "turn": 1
+      },
+      {
+        "key": "company",
+        "delta": -3,
+        "reason": "Orbis Group: Investigation",
+        "turn": 1
+      }
+    ],
+    "newCards": 0,
+    "gameOver": false,
+    "revealed": [
+      "Safety culture: 63 (Medium)",
+      "Transparency: 64 (Medium)",
+      "Ambition: 61 (Medium)",
+      "True capability: 1.7 (reported 1.7)"
+    ]
+  },
+  "investigatedCompany": {
+    "id": "com_orbis",
+    "name": "Orbis Group",
+    "archetype": "bigtech",
+    "tagline": "The software a continent runs on.",
+    "description": "An enterprise-software giant whose systems run payroll, logistics and tax filing for half the Commonwealth. Orbis is slow, profitable and embedded in every ministry you will ever need to call.",
+    "color": "#5c6bc0",
+    "ceo": "Henrik Vogelsang",
+    "relation": 46,
+    "attitude": "Wary",
+    "status": "active",
+    "capability": {
+      "value": 1.7,
+      "low": 1.7,
+      "high": 1.7,
+      "confidence": "verified"
+    },
+    "safety": {
+      "label": "Medium",
+      "value": 63,
+      "verified": true
+    },
+    "transparency": {
+      "label": "Medium",
+      "value": 64,
+      "verified": true
+    },
+    "ambition": {
+      "label": "Medium",
+      "value": 61,
+      "verified": true
+    },
+    "intel": 1,
+    "investigatedTurn": 1,
+    "models": [
+      {
+        "id": "m2",
+        "name": "Compass-4",
+        "companyId": "com_orbis",
+        "companyName": "Orbis Group",
+        "capability": {
+          "value": 1.8,
+          "low": 1.8,
+          "high": 1.8,
+          "confidence": "verified"
+        },
+        "status": "pending",
+        "sectors": [
+          "business"
+        ],
+        "openWeights": false,
+        "flaw": "manipulative",
+        "releasedTurn": 1,
+        "lastCheck": {
+          "turn": 1,
+          "confidence": "medium"
+        }
+      }
+    ],
+    "knownViolations": [],
+    "evidenceCount": 0
+  },
+  "card": {
+    "kind": "deployment",
+    "templateId": "sys:deploy",
+    "title": "Deployment request: Compass-4",
+    "subtitle": "Deployment Request · Business",
+    "body": "Orbis Group requests approval to deploy Compass-4 across Business. Henrik Vogelsang calls it \"our most capable system yet\" and promises it is safe.",
+    "source": {
+      "type": "company",
+      "name": "Orbis Group",
+      "id": "com_orbis",
+      "color": "#5c6bc0"
+    },
+    "urgency": "priority",
+    "evidence": [
+      {
+        "label": "Claimed capability",
+        "value": "1.9 (company claim)",
+        "confidence": "low"
+      },
+      {
+        "label": "Requested sectors",
+        "value": "Business",
+        "confidence": "high"
+      },
+      {
+        "label": "Projected adoption",
+        "value": "+13 Business",
+        "confidence": "medium"
+      },
+      {
+        "label": "Red-team finding",
+        "value": "Gave contradictory answers to the same question depending on the user's inferred politics.",
+        "confidence": "verified"
+      },
+      {
+        "label": "Red-team finding",
+        "value": "Invented false urgency (\"you must decide today\") in 15% of simulated advisory dialogues.",
+        "confidence": "verified"
+      },
+      {
+        "label": "Government position",
+        "value": "The Chancellor worries about what it will do to jobs.",
+        "confidence": "high"
+      }
+    ],
+    "advisors": [
+      {
+        "advisor": "scientist",
+        "text": "These are real findings: manipulation. Approving Compass-4 means knowingly deploying the problem."
+      },
+      {
+        "advisor": "economist",
+        "text": "Approval adds about +13 adoption across Business — roughly +0.3 Prosperity per quarter once it ramps up. Restrictions leave that on the table."
+      }
+    ],
+    "choices": [
+      {
+        "id": "approve",
+        "label": "Approve deployment",
+        "hint": "Full rollout in Business.",
+        "preview": [
+          {
+            "key": "adoption",
+            "dir": 1,
+            "magnitude": 2,
+            "amount": 13.3,
+            "label": "Business"
+          },
+          {
+            "key": "company",
+            "dir": 1,
+            "magnitude": 3,
+            "amount": 8,
+            "label": "Orbis Group"
+          },
+          {
+            "key": "confidence",
+            "dir": -1,
+            "magnitude": 1,
+            "amount": -1
+          }
+        ],
+        "uncertain": true,
+        "stamp": "approved",
+        "tone": "risky",
+        "disabled": null
+      },
+      {
+        "id": "limited",
+        "label": "Approve with limits",
+        "hint": "Sandboxed scope: half the gains, any flaw grows at half speed.",
+        "preview": [
+          {
+            "key": "adoption",
+            "dir": 1,
+            "magnitude": 1,
+            "amount": 6.7,
+            "label": "Business"
+          },
+          {
+            "key": "company",
+            "dir": 1,
+            "magnitude": 1,
+            "amount": 2,
+            "label": "Orbis Group"
+          },
+          {
+            "key": "confidence",
+            "dir": 1,
+            "magnitude": 1,
+            "amount": 1
+          }
+        ],
+        "uncertain": true,
+        "stamp": "approved",
+        "tone": "safe",
+        "disabled": null
+      },
+      {
+        "id": "deep_eval",
+        "label": "Order a deep evaluation",
+        "hint": "Returns next quarter with far better detection and the true capability.",
+        "preview": [
+          {
+            "key": "company",
+            "dir": -1,
+            "magnitude": 2,
+            "amount": -5,
+            "label": "Orbis Group"
+          }
+        ],
+        "uncertain": false,
+        "stamp": "deferred",
+        "tone": "safe",
+        "cost": {
+          "capacity": 1,
+          "budget": 2
+        },
+        "disabled": null
+      },
+      {
+        "id": "reject",
+        "label": "Reject",
+        "hint": "No deployment. The company will not be pleased.",
+        "preview": [
+          {
+            "key": "company",
+            "dir": -1,
+            "magnitude": 3,
+            "amount": -12,
+            "label": "Orbis Group"
+          }
+        ],
+        "uncertain": true,
+        "stamp": "rejected",
+        "tone": "safe",
+        "disabled": null
+      }
+    ],
+    "ctx": {
+      "companyId": "com_orbis",
+      "modelId": "m2",
+      "sector": "business"
+    },
+    "tags": [
+      "labs"
+    ],
+    "uid": "c3",
+    "createdTurn": 1
+  },
+  "model": {
+    "id": "m2",
+    "name": "Compass-4",
+    "companyId": "com_orbis",
+    "companyName": "Orbis Group",
+    "capability": {
+      "value": 1.9,
+      "low": 0.9,
+      "high": 2.9,
+      "confidence": "low"
+    },
+    "status": "pending",
+    "sectors": [
+      "business"
+    ],
+    "openWeights": false,
+    "flaw": "manipulative",
+    "releasedTurn": 1,
+    "lastCheck": {
+      "turn": 1,
+      "confidence": "medium"
+    }
+  },
+  "nation": {
+    "safeguards": 2.5,
+    "capability": {
+      "value": 2.2,
+      "low": 1.2,
+      "high": 3.3,
+      "confidence": "low"
+    },
+    "frontierLeader": "Novacène Labs",
+    "adoption": {
+      "business": 15,
+      "public": 8,
+      "infrastructure": 5,
+      "defense": 5
+    },
+    "adoptionTarget": {
+      "business": 15,
+      "public": 8,
+      "infrastructure": 5,
+      "defense": 5
+    },
+    "dependence": 8,
+    "displacement": 5,
+    "budget": 22,
+    "income": 14.5,
+    "upkeep": 0,
+    "capacity": 2,
+    "capacityMax": 2,
+    "evidence": [],
+    "programs": [
+      {
+        "id": "safety",
+        "name": "Alignment & Safety Research",
+        "short": "Safety",
+        "description": "Funds national alignment and control science. Raises Safeguards — the only lasting way to close the safety gap.",
+        "icon": "safety",
+        "level": 1,
+        "costs": [
+          0,
+          2,
+          4,
+          8
+        ],
+        "levelText": [
+          "Unfunded. Safeguards creep forward on industry effort alone.",
+          "Safeguards +0.12/quarter.",
+          "Safeguards +0.22/quarter; labs adopt better safety culture (+1/quarter).",
+          "Safeguards +0.34/quarter; labs adopt better safety culture (+1/quarter)."
+        ]
+      },
+      {
+        "id": "oversight",
+        "name": "Evaluation & Oversight",
+        "short": "Oversight",
+        "description": "Red teams, auditors and monitoring. Better evaluations, earlier warnings, a sharper Risk Clock, more capacity.",
+        "icon": "oversight",
+        "level": 0,
+        "costs": [
+          0,
+          2,
+          4,
+          8
+        ],
+        "levelText": [
+          "Unfunded. Evaluations are thin; the Risk Clock is a guess.",
+          "Detection +12%, earlier warnings, risk uncertainty −4.",
+          "Detection +24%, earlier warnings, risk uncertainty −8, +1 capacity.",
+          "Detection +36%, earlier warnings, risk uncertainty −12, +2 capacity."
+        ]
+      },
+      {
+        "id": "compute",
+        "name": "National Compute & Grants",
+        "short": "Compute",
+        "description": "Public compute and research grants. Faster domestic progress and a modest economic lift. Race-minded leaders love it.",
+        "icon": "compute",
+        "level": 0,
+        "costs": [
+          0,
+          2,
+          4,
+          8
+        ],
+        "levelText": [
+          "Unfunded. Labs rely on private compute.",
+          "Domestic capability growth +10%, prosperity +0.3/quarter.",
+          "Domestic capability growth +20%, prosperity +0.6/quarter.",
+          "Domestic capability growth +32%, prosperity +0.9/quarter."
+        ]
+      },
+      {
+        "id": "workforce",
+        "name": "Workforce Transition",
+        "short": "Workforce",
+        "description": "Retraining, wage insurance and job matching. Softens the social cost of automation.",
+        "icon": "workforce",
+        "level": 0,
+        "costs": [
+          0,
+          2,
+          4,
+          8
+        ],
+        "levelText": [
+          "Unfunded. Displaced workers are on their own.",
+          "Mitigates 25% of displacement unrest; displacement fades 2× faster.",
+          "Mitigates 45% of displacement unrest; displacement fades 3× faster.",
+          "Mitigates 65% of displacement unrest; displacement fades 4× faster."
+        ]
+      },
+      {
+        "id": "defense",
+        "name": "Defense & Cyber AI",
+        "short": "Defense",
+        "description": "Military and cyber AI programs. Raises security and defense adoption, but rivals notice.",
+        "icon": "defense",
+        "level": 0,
+        "costs": [
+          0,
+          2,
+          4,
+          8
+        ],
+        "levelText": [
+          "Unfunded.",
+          "Security +0.4/quarter, defense adoption +4/quarter, race tension +1/quarter.",
+          "Security +0.8/quarter, defense adoption +8/quarter, race tension +2/quarter.",
+          "Security +1.2/quarter, defense adoption +12/quarter, race tension +3/quarter."
+        ]
+      }
+    ],
+    "policies": [
+      {
+        "id": "mandatory_evals",
+        "name": "Mandatory Pre-Deployment Testing",
+        "short": "Mandatory Testing",
+        "description": "Every model must pass independent testing before deployment.",
+        "icon": "audit",
+        "effectsText": [
+          "Evaluation detection +20%",
+          "Deployment adoption gains −10%",
+          "Company relations −1/quarter"
+        ],
+        "active": false,
+        "politicalCost": 1,
+        "leaderSupport": 1
+      },
+      {
+        "id": "incident_reporting",
+        "name": "Incident Reporting Act",
+        "short": "Incident Reporting",
+        "description": "Companies must report AI incidents and near-misses within 72 hours.",
+        "icon": "report",
+        "effectsText": [
+          "Early warning of situations +12%",
+          "Company transparency +1/quarter"
+        ],
+        "active": false,
+        "politicalCost": 1,
+        "leaderSupport": 1
+      },
+      {
+        "id": "compute_licensing",
+        "name": "Compute Licensing",
+        "short": "Compute Licensing",
+        "description": "Large training runs need a license and are logged by the state.",
+        "icon": "license",
+        "effectsText": [
+          "Domestic capability growth −15%",
+          "Secret training runs become detectable",
+          "Global risk falls slightly each quarter"
+        ],
+        "active": false,
+        "politicalCost": 2,
+        "leaderSupport": 0
+      },
+      {
+        "id": "liability_act",
+        "name": "AI Liability Act",
+        "short": "Liability Act",
+        "description": "Developers are legally liable for foreseeable harms caused by their systems.",
+        "icon": "gavel",
+        "effectsText": [
+          "Company safety +1/quarter, ambition −1/quarter",
+          "Hidden violations halved",
+          "Domestic capability growth −5%"
+        ],
+        "active": false,
+        "politicalCost": -2,
+        "leaderSupport": 2
+      },
+      {
+        "id": "open_weights_ban",
+        "name": "Open-Weights Restriction",
+        "short": "Open-Weights Ban",
+        "description": "Frontier model weights may not be published openly.",
+        "icon": "lock",
+        "effectsText": [
+          "Misuse situations spawn 60% less often",
+          "Open-source labs −20 relation (once)",
+          "Prosperity −0.3/quarter"
+        ],
+        "active": false,
+        "politicalCost": 2,
+        "leaderSupport": 0
+      },
+      {
+        "id": "infra_firewall",
+        "name": "Critical Infrastructure Firewall",
+        "short": "Infra Firewall",
+        "description": "Caps AI control of energy, water, telecom and finance systems.",
+        "icon": "firewall",
+        "effectsText": [
+          "Infrastructure adoption capped at 40",
+          "Infrastructure incidents grow 50% slower"
+        ],
+        "active": false,
+        "politicalCost": 2,
+        "leaderSupport": 0
+      },
+      {
+        "id": "kill_switch",
+        "name": "Emergency Off-Switch Mandate",
+        "short": "Off-Switch Mandate",
+        "description": "Deployed systems must support a verified emergency shutdown.",
+        "icon": "killswitch",
+        "effectsText": [
+          "Unlocks Emergency Shutdown for crises",
+          "Escape situations grow 30% slower",
+          "Company relations −1/quarter"
+        ],
+        "active": false,
+        "politicalCost": 1,
+        "leaderSupport": 1
+      },
+      {
+        "id": "human_in_loop",
+        "name": "Human Control of Weapons",
+        "short": "Human-in-the-Loop",
+        "description": "Lethal force always requires a human decision.",
+        "icon": "human",
+        "effectsText": [
+          "Military escalation grows 50% slower",
+          "Race tension −1/quarter",
+          "Security −0.3/quarter"
+        ],
+        "active": false,
+        "politicalCost": 1,
+        "leaderSupport": 1
+      },
+      {
+        "id": "ai_dividend",
+        "name": "AI Dividend",
+        "short": "AI Dividend",
+        "description": "A levy on AI profits funds direct payments to every citizen.",
+        "icon": "dividend",
+        "effectsText": [
+          "Stability +1/quarter while business adoption > 30",
+          "Removes inequality unrest",
+          "Prosperity −0.5/quarter",
+          "Company relations −1/quarter"
+        ],
+        "active": false,
+        "politicalCost": -2,
+        "leaderSupport": 2
+      },
+      {
+        "id": "fast_track",
+        "name": "Deployment Fast-Track",
+        "short": "Fast-Track",
+        "description": "Streamlined approvals for AI deployments.",
+        "icon": "fasttrack",
+        "effectsText": [
+          "Deployment adoption gains +25%",
+          "Evaluation detection −15%"
+        ],
+        "active": false,
+        "politicalCost": 2,
+        "leaderSupport": 0
+      }
+    ],
+    "exportControls": false,
+    "tension": 25,
+    "accord": {
+      "progress": 10,
+      "signed": false,
+      "members": []
+    }
+  },
+  "date": "Q1 2027",
+  "companies": [
+    {
+      "id": "com_novacene",
+      "name": "Novacène Labs",
+      "archetype": "frontier",
+      "tagline": "Catch up. Then overtake.",
+      "description": "Aurelle's fastest-growing start-up, founded by a former Aster researcher who thought Aster was far too slow. Novacène has more venture money than patience and a habit of announcing results before the papers exist.",
+      "color": "#ffd54f",
+      "ceo": "Rémi Castagnet",
+      "relation": 55,
+      "attitude": "Friendly",
+      "status": "active",
+      "capability": {
+        "value": 2.2,
+        "low": 1.2,
+        "high": 3.3,
+        "confidence": "low"
+      },
+      "safety": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "transparency": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "ambition": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "intel": 0.3,
+      "investigatedTurn": null,
+      "models": [],
+      "knownViolations": [],
+      "evidenceCount": 0
+    },
+    {
+      "id": "com_orbis",
+      "name": "Orbis Group",
+      "archetype": "bigtech",
+      "tagline": "The software a continent runs on.",
+      "description": "An enterprise-software giant whose systems run payroll, logistics and tax filing for half the Commonwealth. Orbis is slow, profitable and embedded in every ministry you will ever need to call.",
+      "color": "#5c6bc0",
+      "ceo": "Henrik Vogelsang",
+      "relation": 49,
+      "attitude": "Wary",
+      "status": "active",
+      "capability": {
+        "value": 1.7,
+        "low": 0.7,
+        "high": 2.8,
+        "confidence": "low"
+      },
+      "safety": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "transparency": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "ambition": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "intel": 0.3,
+      "investigatedTurn": null,
+      "models": [
+        {
+          "id": "m2",
+          "name": "Compass-4",
+          "companyId": "com_orbis",
+          "companyName": "Orbis Group",
+          "capability": {
+            "value": 1.9,
+            "low": 0.9,
+            "high": 2.9,
+            "confidence": "low"
+          },
+          "status": "pending",
+          "sectors": [
+            "business"
+          ],
+          "openWeights": false,
+          "flaw": "manipulative",
+          "releasedTurn": 1,
+          "lastCheck": {
+            "turn": 1,
+            "confidence": "medium"
+          }
+        }
+      ],
+      "knownViolations": [],
+      "evidenceCount": 0
+    },
+    {
+      "id": "com_agora",
+      "name": "Agora Commons",
+      "archetype": "opensource",
+      "tagline": "Open models for open societies.",
+      "description": "A foundation that trains models in all twenty-four Commonwealth languages and publishes everything. Beloved by universities and start-ups, and unfortunately by people with worse intentions.",
+      "color": "#26a69a",
+      "ceo": "Dr. Inês Ferreira",
+      "relation": 61,
+      "attitude": "Friendly",
+      "status": "active",
+      "capability": {
+        "value": 1.6,
+        "low": 0.6,
+        "high": 2.7,
+        "confidence": "low"
+      },
+      "safety": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "transparency": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "ambition": {
+        "label": "Unknown",
+        "value": null,
+        "verified": false
+      },
+      "intel": 0.3,
+      "investigatedTurn": null,
+      "models": [],
+      "knownViolations": [],
+      "evidenceCount": 0
+    }
+  ],
+  "outcomes": {
+    "approve": {
+      "result": {
+        "ok": true,
+        "cardUid": "c3",
+        "choiceId": "approve",
+        "title": "Deployment request: Compass-4",
+        "text": "Compass-4 rolls out nationwide. Adoption will ramp up over the next quarters.",
+        "changes": [
+          {
+            "key": "adoption",
+            "delta": 13.344999999999999,
+            "reason": "Compass-4 deployment",
+            "turn": 1
+          },
+          {
+            "key": "company",
+            "delta": 8,
+            "reason": "Orbis Group: Compass-4 approved",
+            "turn": 1
+          },
+          {
+            "key": "confidence",
+            "delta": -1,
+            "reason": "Leader uneasy about Compass-4",
+            "turn": 1
+          }
+        ],
+        "newCards": 0,
+        "gameOver": false,
+        "stamp": "approved"
+      },
+      "report": {
+        "fromTurn": 1,
+        "toTurn": 2,
+        "dateLabel": "Q2 2027",
+        "meters": {
+          "confidence": {
+            "from": 60,
+            "to": 59,
+            "reasons": [
+              {
+                "reason": "Public mood",
+                "delta": -0.3
+              },
+              {
+                "reason": "Political wear and tear",
+                "delta": -0.3
+              },
+              {
+                "reason": "Security situation",
+                "delta": -0.1
+              },
+              {
+                "reason": "Position in the AI race",
+                "delta": -0.1
+              },
+              {
+                "reason": "AI safety record",
+                "delta": 0.1
+              }
+            ]
+          },
+          "economy": {
+            "from": 55,
+            "to": 55,
+            "reasons": [
+              {
+                "reason": "Business AI productivity",
+                "delta": 0.5
+              },
+              {
+                "reason": "Global competition",
+                "delta": -0.3
+              },
+              {
+                "reason": "Falling behind Atlantic Federation",
+                "delta": -0.3
+              },
+              {
+                "reason": "Lagging Labs",
+                "delta": -0.2
+              },
+              {
+                "reason": "Infrastructure AI productivity",
+                "delta": 0.1
+              },
+              {
+                "reason": "Public Services AI productivity",
+                "delta": 0.1
+              },
+              {
+                "reason": "Displaced workers",
+                "delta": -0.1
+              }
+            ]
+          },
+          "stability": {
+            "from": 65,
+            "to": 64,
+            "reasons": [
+              {
+                "reason": "Job displacement",
+                "delta": -0.5
+              },
+              {
+                "reason": "Better public services",
+                "delta": 0.1
+              },
+              {
+                "reason": "Social resilience",
+                "delta": -0.1
+              }
+            ]
+          },
+          "security": {
+            "from": 45,
+            "to": 45,
+            "reasons": [
+              {
+                "reason": "Power gap vs Hanzhou Republic",
+                "delta": -0.3
+              }
+            ]
+          }
+        },
+        "budget": {
+          "from": 22,
+          "to": 36.5,
+          "income": 14.5,
+          "upkeep": 0
+        },
+        "risk": {
+          "from": 10,
+          "to": 11,
+          "trend": "flat",
+          "clock": "23:07"
+        },
+        "headlines": [
+          {
+            "turn": 1,
+            "outlet": "The Daily Circuit",
+            "text": "Customers line up as Compass-4 wins approval",
+            "tone": "good"
+          },
+          {
+            "turn": 1,
+            "outlet": "Meridian Morning",
+            "text": "Critics question safety claims as Orbis Group unveils Compass-4",
+            "tone": "neutral"
+          },
+          {
+            "turn": 1,
+            "outlet": "Meridian Morning",
+            "text": "Venture funding for AI agents doubles in a single quarter",
+            "tone": "neutral"
+          },
+          {
+            "turn": 1,
+            "outlet": "Port Selan Herald",
+            "text": "Graduates face the thinnest entry-level job market in a decade",
+            "tone": "neutral"
+          }
+        ],
+        "highlights": [
+          {
+            "text": "Compass-4 deployed",
+            "tone": "good",
+            "icon": "adoption"
+          }
+        ],
+        "warnings": [],
+        "newCards": 2,
+        "gameOver": false
+      }
+    },
+    "limited": {
+      "result": {
+        "ok": true,
+        "cardUid": "c3",
+        "choiceId": "limited",
+        "title": "Deployment request: Compass-4",
+        "text": "Compass-4 rolls out under restrictions. Adoption will ramp up over the next quarters.",
+        "changes": [
+          {
+            "key": "adoption",
+            "delta": 6.672499999999999,
+            "reason": "Compass-4 deployment",
+            "turn": 1
+          },
+          {
+            "key": "company",
+            "delta": 2,
+            "reason": "Orbis Group: Compass-4 approved",
+            "turn": 1
+          },
+          {
+            "key": "confidence",
+            "delta": 1,
+            "reason": "Leader welcomes Compass-4",
+            "turn": 1
+          }
+        ],
+        "newCards": 0,
+        "gameOver": false,
+        "stamp": "approved"
+      },
+      "report": {
+        "fromTurn": 1,
+        "toTurn": 2,
+        "dateLabel": "Q2 2027",
+        "meters": {
+          "confidence": {
+            "from": 62,
+            "to": 61,
+            "reasons": [
+              {
+                "reason": "Political wear and tear",
+                "delta": -0.3
+              },
+              {
+                "reason": "Public mood",
+                "delta": -0.2
+              },
+              {
+                "reason": "Economic performance",
+                "delta": -0.1
+              },
+              {
+                "reason": "Security situation",
+                "delta": -0.1
+              },
+              {
+                "reason": "Position in the AI race",
+                "delta": -0.1
+              },
+              {
+                "reason": "AI safety record",
+                "delta": 0.1
+              }
+            ]
+          },
+          "economy": {
+            "from": 55,
+            "to": 55,
+            "reasons": [
+              {
+                "reason": "Business AI productivity",
+                "delta": 0.5
+              },
+              {
+                "reason": "Global competition",
+                "delta": -0.3
+              },
+              {
+                "reason": "Falling behind Atlantic Federation",
+                "delta": -0.3
+              },
+              {
+                "reason": "Lagging Labs",
+                "delta": -0.2
+              },
+              {
+                "reason": "Infrastructure AI productivity",
+                "delta": 0.1
+              },
+              {
+                "reason": "Public Services AI productivity",
+                "delta": 0.1
+              },
+              {
+                "reason": "Displaced workers",
+                "delta": -0.1
+              }
+            ]
+          },
+          "stability": {
+            "from": 65,
+            "to": 65,
+            "reasons": [
+              {
+                "reason": "Job displacement",
+                "delta": -0.4
+              },
+              {
+                "reason": "Better public services",
+                "delta": 0.1
+              },
+              {
+                "reason": "Social resilience",
+                "delta": -0.1
+              }
+            ]
+          },
+          "security": {
+            "from": 45,
+            "to": 45,
+            "reasons": [
+              {
+                "reason": "Power gap vs Hanzhou Republic",
+                "delta": -0.3
+              }
+            ]
+          }
+        },
+        "budget": {
+          "from": 22,
+          "to": 36.5,
+          "income": 14.5,
+          "upkeep": 0
+        },
+        "risk": {
+          "from": 10,
+          "to": 11,
+          "trend": "flat",
+          "clock": "23:07"
+        },
+        "headlines": [
+          {
+            "turn": 1,
+            "outlet": "The Daily Circuit",
+            "text": "Customers line up as Compass-4 wins approval",
+            "tone": "good"
+          },
+          {
+            "turn": 1,
+            "outlet": "Meridian Morning",
+            "text": "Critics question safety claims as Orbis Group unveils Compass-4",
+            "tone": "neutral"
+          },
+          {
+            "turn": 1,
+            "outlet": "Meridian Morning",
+            "text": "Venture funding for AI agents doubles in a single quarter",
+            "tone": "neutral"
+          },
+          {
+            "turn": 1,
+            "outlet": "Port Selan Herald",
+            "text": "Graduates face the thinnest entry-level job market in a decade",
+            "tone": "neutral"
+          }
+        ],
+        "highlights": [
+          {
+            "text": "Compass-4 deployed with limits",
+            "tone": "good",
+            "icon": "adoption"
+          }
+        ],
+        "warnings": [],
+        "newCards": 2,
+        "gameOver": false
+      }
+    },
+    "deep_eval": {
+      "result": {
+        "ok": true,
+        "cardUid": "c3",
+        "choiceId": "deep_eval",
+        "title": "Deployment request: Compass-4",
+        "text": "Your red teams will spend the quarter on Compass-4. The request returns next quarter with a far more thorough report.",
+        "changes": [
+          {
+            "key": "capacity",
+            "delta": -1,
+            "reason": "Deep evaluation of Compass-4",
+            "turn": 1
+          },
+          {
+            "key": "budget",
+            "delta": -2,
+            "reason": "Deep evaluation of Compass-4",
+            "turn": 1
+          },
+          {
+            "key": "company",
+            "delta": -5,
+            "reason": "Orbis Group: Deep evaluation of Compass-4",
+            "turn": 1
+          }
+        ],
+        "newCards": 0,
+        "gameOver": false,
+        "stamp": "deferred"
+      },
+      "report": {
+        "fromTurn": 1,
+        "toTurn": 2,
+        "dateLabel": "Q2 2027",
+        "meters": {
+          "confidence": {
+            "from": 61,
+            "to": 60,
+            "reasons": [
+              {
+                "reason": "Political wear and tear",
+                "delta": -0.3
+              },
+              {
+                "reason": "Public mood",
+                "delta": -0.2
+              },
+              {
+                "reason": "Economic performance",
+                "delta": -0.1
+              },
+              {
+                "reason": "Security situation",
+                "delta": -0.1
+              },
+              {
+                "reason": "Position in the AI race",
+                "delta": -0.1
+              },
+              {
+                "reason": "AI safety record",
+                "delta": 0.1
+              }
+            ]
+          },
+          "economy": {
+            "from": 55,
+            "to": 55,
+            "reasons": [
+              {
+                "reason": "Business AI productivity",
+                "delta": 0.4
+              },
+              {
+                "reason": "Global competition",
+                "delta": -0.3
+              },
+              {
+                "reason": "Falling behind Meridian Republic",
+                "delta": -0.3
+              },
+              {
+                "reason": "Lagging Labs",
+                "delta": -0.2
+              },
+              {
+                "reason": "Infrastructure AI productivity",
+                "delta": 0.1
+              },
+              {
+                "reason": "Public Services AI productivity",
+                "delta": 0.1
+              }
+            ]
+          },
+          "stability": {
+            "from": 65,
+            "to": 65,
+            "reasons": [
+              {
+                "reason": "Job displacement",
+                "delta": -0.3
+              },
+              {
+                "reason": "Better public services",
+                "delta": 0.1
+              },
+              {
+                "reason": "Social resilience",
+                "delta": -0.1
+              }
+            ]
+          },
+          "security": {
+            "from": 45,
+            "to": 45,
+            "reasons": [
+              {
+                "reason": "Power gap vs Hanzhou Republic",
+                "delta": -0.3
+              }
+            ]
+          }
+        },
+        "budget": {
+          "from": 20,
+          "to": 34.5,
+          "income": 14.5,
+          "upkeep": 0
+        },
+        "risk": {
+          "from": 10,
+          "to": 11,
+          "trend": "flat",
+          "clock": "23:07"
+        },
+        "headlines": [
+          {
+            "turn": 1,
+            "outlet": "Pacific Current",
+            "text": "Officials quietly confirm a Meridian capability jump",
+            "tone": "bad"
+          },
+          {
+            "turn": 1,
+            "outlet": "The Daily Circuit",
+            "text": "Critics question safety claims as Orbis Group unveils Compass-4",
+            "tone": "neutral"
+          },
+          {
+            "turn": 1,
+            "outlet": "Harbour Radio News",
+            "text": "Lawmakers grill tech executives over \"agentic\" software",
+            "tone": "neutral"
+          }
+        ],
+        "highlights": [
+          {
+            "text": "Meridian Republic announces an AI breakthrough at Sundial Labs",
+            "tone": "bad",
+            "icon": "capability"
+          }
+        ],
+        "warnings": [],
+        "newCards": 3,
+        "gameOver": false
+      }
+    },
+    "reject": {
+      "result": {
+        "ok": true,
+        "cardUid": "c3",
+        "choiceId": "reject",
+        "title": "Deployment request: Compass-4",
+        "text": "Compass-4 will not be deployed. Orbis Group protests the decision.",
+        "changes": [
+          {
+            "key": "company",
+            "delta": -12,
+            "reason": "Orbis Group: Compass-4 rejected",
+            "turn": 1
+          }
+        ],
+        "newCards": 0,
+        "gameOver": false,
+        "stamp": "rejected"
+      },
+      "report": {
+        "fromTurn": 1,
+        "toTurn": 2,
+        "dateLabel": "Q2 2027",
+        "meters": {
+          "confidence": {
+            "from": 61,
+            "to": 60,
+            "reasons": [
+              {
+                "reason": "Political wear and tear",
+                "delta": -0.3
+              },
+              {
+                "reason": "Public mood",
+                "delta": -0.2
+              },
+              {
+                "reason": "Economic performance",
+                "delta": -0.1
+              },
+              {
+                "reason": "Security situation",
+                "delta": -0.1
+              },
+              {
+                "reason": "Position in the AI race",
+                "delta": -0.1
+              },
+              {
+                "reason": "AI safety record",
+                "delta": 0.1
+              }
+            ]
+          },
+          "economy": {
+            "from": 55,
+            "to": 55,
+            "reasons": [
+              {
+                "reason": "Business AI productivity",
+                "delta": 0.4
+              },
+              {
+                "reason": "Global competition",
+                "delta": -0.3
+              },
+              {
+                "reason": "Falling behind Meridian Republic",
+                "delta": -0.3
+              },
+              {
+                "reason": "Lagging Labs",
+                "delta": -0.2
+              },
+              {
+                "reason": "Infrastructure AI productivity",
+                "delta": 0.1
+              },
+              {
+                "reason": "Public Services AI productivity",
+                "delta": 0.1
+              }
+            ]
+          },
+          "stability": {
+            "from": 65,
+            "to": 65,
+            "reasons": [
+              {
+                "reason": "Job displacement",
+                "delta": -0.3
+              },
+              {
+                "reason": "Better public services",
+                "delta": 0.1
+              },
+              {
+                "reason": "Social resilience",
+                "delta": -0.1
+              }
+            ]
+          },
+          "security": {
+            "from": 45,
+            "to": 45,
+            "reasons": [
+              {
+                "reason": "Power gap vs Hanzhou Republic",
+                "delta": -0.3
+              }
+            ]
+          }
+        },
+        "budget": {
+          "from": 22,
+          "to": 36.5,
+          "income": 14.5,
+          "upkeep": 0
+        },
+        "risk": {
+          "from": 10,
+          "to": 11,
+          "trend": "flat",
+          "clock": "23:07"
+        },
+        "headlines": [
+          {
+            "turn": 1,
+            "outlet": "Pacific Current",
+            "text": "Officials quietly confirm a Meridian capability jump",
+            "tone": "bad"
+          },
+          {
+            "turn": 1,
+            "outlet": "The Daily Circuit",
+            "text": "Overcautious or wise? Compass-4 decision sparks fierce debate",
+            "tone": "mixed"
+          },
+          {
+            "turn": 1,
+            "outlet": "Meridian Morning",
+            "text": "Critics question safety claims as Orbis Group unveils Compass-4",
+            "tone": "neutral"
+          },
+          {
+            "turn": 1,
+            "outlet": "Meridian Morning",
+            "text": "Venture funding for AI agents doubles in a single quarter",
+            "tone": "neutral"
+          }
+        ],
+        "highlights": [
+          {
+            "text": "Meridian Republic announces an AI breakthrough at Sundial Labs",
+            "tone": "bad",
+            "icon": "capability"
+          }
+        ],
+        "warnings": [],
+        "newCards": 2,
+        "gameOver": false
+      }
+    }
+  }
+}
