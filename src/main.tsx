@@ -10,6 +10,8 @@ import './styles/ui-card.css';
 import './styles/ui-screens.css';
 import './styles/fx.css';
 import './styles/ui-dossier.css';
+import './styles/ui-workspace.css';
+import './styles/ui-pilot-inspector.css';
 import { getLang, loadLangPack, setLang } from './i18n';
 import { bootLang } from './ui/lang';
 import { initializeStorage } from './platform/storage';

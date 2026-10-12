@@ -24,7 +24,7 @@ export function readSave(): string | null {
   return readSnapshot().active;
 }
 
-export type SavedOverlay = { type: 'choice'; result: ChoiceResult } | { type: 'action'; result: ActionResult } | { type: 'report'; report: TurnReport };
+export type SavedOverlay = { type: 'choice'; result: ChoiceResult; pilot?: boolean } | { type: 'action'; result: ActionResult; returnToCard?: string } | { type: 'report'; report: TurnReport };
 export function readPending(): SavedOverlay | null {
   try {
     const saved = JSON.parse(readSnapshot().pending ?? 'null');

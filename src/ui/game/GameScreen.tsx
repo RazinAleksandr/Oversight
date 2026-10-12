@@ -14,6 +14,9 @@ import { DESKTOP_QUERY, useHeightVar, useMedia } from '../hooks';
 import { announce, cx, isInteractiveTarget } from '../util';
 import { closeTopSheet, sheetsOpen } from '../components/Sheet';
 import { ActionSheet, responseAsAction } from './ActionSheet';
+import { CompanyInspector, PilotOutcome } from './CompanyInspector';
+import { DeploymentWorkspace } from './DeploymentWorkspace';
+import { newTask, readTask, writeTask, type TaskDraft } from './taskDraft';
 import { BriefingSheet } from './Briefing';
 import { GameCtx, type GameCtxValue } from './context';
 import { Hud, MeterSheet, RiskSheet, METER_ORDER } from './Hud';
@@ -29,8 +32,8 @@ import { WorldPanel } from './panels/WorldPanel';
 
 type Overlay =
   | { type: 'card'; uid: string }
-  | { type: 'choice'; result: ChoiceResult }
-  | { type: 'action'; result: ActionResult }
+  | { type: 'choice'; result: ChoiceResult; pilot?: boolean }
+  | { type: 'action'; result: ActionResult; returnToCard?: string }
   | { type: 'report'; report: TurnReport }
   | null;
 
@@ -56,7 +59,30 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
   const [tab, setTab] = useState<TabId>('inbox');
   const [sections, setSections] = useState<Record<string, string>>({});
   const scrollPositions = useRef<Partial<Record<TabId, number>>>({});
-  const [overlay, setOverlay] = useState<Overlay>(() => initialReport ? { type: 'report', report: initialReport } : readPending());
+  const initialTask = useRef(readTask(game.view()));
+  const [task, setTask] = useState<TaskDraft | null>(initialTask.current);
+  const taskRef = useRef(task);
+  const draftTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const updateTask = useCallback((next: TaskDraft | null, defer = false) => {
+    taskRef.current = next;
+    setTask(next);
+    clearTimeout(draftTimer.current);
+    if (defer) draftTimer.current = setTimeout(() => writeTask(taskRef.current), 250);
+    else writeTask(next);
+  }, []);
+  useEffect(() => {
+    const flush = () => { clearTimeout(draftTimer.current); writeTask(taskRef.current); };
+    const visibility = () => { if (document.hidden) flush(); };
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', visibility);
+    // Do not rewrite an old run's draft while a new/imported game is mounting.
+    return () => { clearTimeout(draftTimer.current); window.removeEventListener('pagehide', flush); document.removeEventListener('visibilitychange', visibility); };
+  }, []);
+  const [overlay, setOverlay] = useState<Overlay>(() => initialReport ? { type: 'report', report: initialReport }
+    : readPending() ?? (initialTask.current?.active ? { type: 'card', uid: initialTask.current.uid } : null));
+  const choiceBusy = useRef(false);
+  const investigationBusy = useRef(false);
+  const [inspectionError, setInspectionError] = useState<string | null>(null);
   const [sheet, setSheet] = useState<SheetState>(null);
   const [fresh, setFresh] = useState<TabId[]>([]);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -170,9 +196,19 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
 
   const openCard = useCallback((uid: string) => {
     clearPending();
+    choiceBusy.current = false;
+    investigationBusy.current = false;
+    setInspectionError(null);
+    const current = game.view();
+    const card = current.inbox.find(c => c.uid === uid);
+    if (card?.kind === 'deployment') {
+      const previous = taskRef.current;
+      updateTask(previous?.uid === uid && previous.turn === current.turn
+        ? { ...previous, active: true, route: 'decision' } : newTask(current, uid));
+    } else if (taskRef.current) updateTask({ ...taskRef.current, active: false });
     setSheet(null);
     setOverlay({ type: 'card', uid });
-  }, []);
+  }, [game, updateTask]);
 
   const finishIfOver = (): boolean => {
     const v = game.view();
@@ -185,25 +221,30 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
   };
 
   const choose = (card: Card, ch: Choice) => {
+    if (choiceBusy.current) return;
+    choiceBusy.current = true;
     const r = game.resolveChoice(card.uid, ch.id);
     if (!r.ok) {
+      choiceBusy.current = false;
       audio.play('fail', { volume: 0.5 });
       toast(r.error ?? t('That choice is not available.'));
       return;
     }
-    save({ type: 'choice', result: r });
+    const pilot = card.kind === 'deployment';
+    if (taskRef.current?.uid === card.uid) updateTask(null);
+    save({ type: 'choice', result: r, ...(pilot ? { pilot: true } : {}) });
     announce(`${card.title}: ${ch.label}. ${r.text}`);
     setTab('inbox');
     mainRef.current?.scrollTo({ top: 0 });
-    setOverlay({ type: 'choice', result: r });
+    setOverlay({ type: 'choice', result: r, pilot });
   };
 
   const afterChoice = (r: ChoiceResult, toDesk = false) => {
     clearPending();
     if (finishIfOver()) return;
     const v = game.view();
-    if (r.nextCardUid && v.inbox.some((c) => c.uid === r.nextCardUid)) return setOverlay({ type: 'card', uid: r.nextCardUid });
-    if (!toDesk && v.inbox.length) return setOverlay({ type: 'card', uid: v.inbox[0].uid });
+    if (r.nextCardUid && v.inbox.some((c) => c.uid === r.nextCardUid)) return openCard(r.nextCardUid);
+    if (!toDesk && v.inbox.length) return openCard(v.inbox[0].uid);
     setOverlay(null);
     if (tab !== 'inbox' && !desktop) setTab('inbox');
   };
@@ -221,6 +262,49 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     announce(`${r.title}. ${r.text}`);
     mainRef.current?.scrollTo({ top: 0 });
     setOverlay({ type: 'action', result: r });
+  };
+
+  const returnToDecision = (uid: string) => {
+    clearPending();
+    investigationBusy.current = false;
+    setInspectionError(null);
+    if (finishIfOver()) { updateTask(null); return; }
+    const current = game.view();
+    const card = current.inbox.find(c => c.uid === uid && c.kind === 'deployment');
+    if (!card) {
+      updateTask(null);
+      setOverlay(null);
+      toast(t('This decision has already been resolved.'));
+      return;
+    }
+    const previous = taskRef.current;
+    updateTask(previous?.uid === uid ? { ...previous, route: 'decision', active: true } : newTask(current, uid));
+    setOverlay({ type: 'card', uid });
+  };
+
+  const investigateForDecision = (uid: string, companyId: string) => {
+    if (investigationBusy.current) return;
+    investigationBusy.current = true;
+    // Revalidate the current task and its bound target immediately before mutation.
+    const current = game.view();
+    const card = current.inbox.find(c => c.uid === uid && c.kind === 'deployment');
+    const model = current.models.find(m => m.id === card?.ctx.modelId);
+    if (!card || model?.companyId !== companyId) {
+      investigationBusy.current = false;
+      returnToDecision(uid);
+      return;
+    }
+    const r = game.performAction('investigate_company', companyId);
+    if (!r.ok) {
+      investigationBusy.current = false;
+      setInspectionError(r.error ?? t('That action is not available right now.'));
+      announce(r.error ?? t('That action is not available right now.'));
+      return;
+    }
+    save({ type: 'action', result: r, returnToCard: uid });
+    if (taskRef.current) updateTask({ ...taskRef.current, route: 'decision' });
+    announce(`${r.title}. ${r.text}`);
+    setOverlay({ type: 'action', result: r, returnToCard: uid });
   };
 
   const setProgram = (id: ProgramId, level: number) => {
@@ -241,6 +325,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
       return;
     }
     turnBusy.current = true;
+    updateTask(null);
     const report = game.endTurn();
     save({ type: 'report', report });
     setSheet(null);
@@ -312,8 +397,8 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     id === 'labs' || id === 'first_deployment' ? tab === 'labs' :
     id === 'nation' || id === 'first_demand' ? tab === 'nation' :
     id === 'world' ? tab === 'world' : id === 'threats' || id === 'first_situation' || id === 'evidence' ? tab === 'threats' : false) : undefined;
-  const inlineChoice = overlay?.type === 'choice' && !overlay.result.gameOver && !overlay.result.nextCardUid;
-  const inlineAction = overlay?.type === 'action' && !overlay.result.gameOver;
+  const inlineChoice = overlay?.type === 'choice' && !overlay.pilot && !overlay.result.gameOver && !overlay.result.nextCardUid;
+  const inlineAction = overlay?.type === 'action' && !overlay.returnToCard && !overlay.result.gameOver;
 
   const panel =
     tab === 'labs' ? <NationPanel companies /> : tab === 'nation' ? <NationPanel /> : tab === 'world' ? <WorldPanel /> : tab === 'threats' ? <ThreatsPanel /> : <InboxPanel />;
@@ -387,7 +472,18 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
           })()}
 
         {/* Overlays */}
-        {openCardObj && (
+        {openCardObj?.kind === 'deployment' && task?.uid === openCardObj.uid ? (
+          task.route === 'company' ? <CompanyInspector card={openCardObj} error={inspectionError}
+            onReturn={() => returnToDecision(openCardObj.uid)}
+            onInvestigate={companyId => investigateForDecision(openCardObj.uid, companyId)} />
+          : <DeploymentWorkspace key={openCardObj.uid} card={openCardObj} selectedId={task.selectedId}
+              reading={task.reading}
+              onReadingChange={reading => { if (taskRef.current) updateTask({ ...taskRef.current, reading }, true); }}
+              onSelect={selectedId => { if (taskRef.current) updateTask({ ...taskRef.current, selectedId }); }}
+              onInspect={() => { investigationBusy.current = false; setInspectionError(null); if (taskRef.current) updateTask({ ...taskRef.current, route: 'company' }); }}
+              onClose={() => { if (taskRef.current) updateTask({ ...taskRef.current, active: false }); setOverlay(null); }}
+              onChoose={ch => choose(openCardObj, ch)} />
+        ) : openCardObj && (
           <BriefingSheet
             key={openCardObj.uid}
             card={openCardObj}
@@ -398,10 +494,14 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
             onChoose={(ch) => choose(openCardObj, ch)}
           />
         )}
-        {overlay?.type === 'choice' && !inlineChoice && (
+        {overlay?.type === 'choice' && overlay.pilot && <PilotOutcome result={overlay.result} remaining={view.inbox.length}
+          onNext={() => afterChoice(overlay.result)} onDesk={() => afterChoice(overlay.result, true)} />}
+        {overlay?.type === 'choice' && !overlay.pilot && !inlineChoice && (
           <ChoiceResultOverlay result={overlay.result} remaining={view.inbox.length} onNext={() => afterChoice(overlay.result)} onDesk={() => afterChoice(overlay.result, true)} />
         )}
-        {overlay?.type === 'action' && !inlineAction && (
+        {overlay?.type === 'action' && overlay.returnToCard && <PilotOutcome investigation result={overlay.result}
+          onNext={() => returnToDecision(overlay.returnToCard!)} />}
+        {overlay?.type === 'action' && !overlay.returnToCard && !inlineAction && (
           <ActionResultOverlay
             result={overlay.result}
             onClose={() => {

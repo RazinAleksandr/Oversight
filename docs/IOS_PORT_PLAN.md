@@ -1,6 +1,6 @@
 # Oversight on iPhone — proposed plan
 
-Current status, 12 October 2026: **Build 2 was signed and installed, but the user rejected its usability. A revised landscape-first task plan is awaiting agreement; see section 11.** Native installation was verified, not physical usability acceptance.
+Current status, 12 October 2026: **Build 2 was signed and installed, but the user rejected its usability. The revised landscape-first task pilot is approved and in implementation; see section 11.** Native installation was verified, not physical usability acceptance.
 
 Historical initial approval: The user selected **TestFlight first, with a shared web game**, then approved proceeding (“Lets roll”). Their next instruction was to update the required tools before implementation. TestFlight is already installed on their iPhone, and they report an active Apple Developer subscription.
 
@@ -364,7 +364,7 @@ breakpoint gap at 667 × 375. These are concrete usability defects even though t
 earlier engine and scripted completion checks passed. Exact physical-device clipping
 and human comprehension have not yet been reproduced in this session.
 
-**Proposed; awaiting renewed agreement.** The new recommendation and acceptance
+**Approved for the pilot below.** The new recommendation and acceptance
 criteria are in [UX_REASSESSMENT_DECISION.md](UX_REASSESSMENT_DECISION.md):
 landscape-first task workspace, selective recovery of the earlier dossier identity,
 and sequential portrait/large-text fallback. This supersedes section 10's
@@ -383,3 +383,13 @@ at `iphone-ux-build-2` (`842c316`); earlier visual baseline at
 `backup/iphone-before-ux-2026-10-12` (`1883243`). Use selective restoration rather
 than a destructive reset. The local iOS instructions require this revised review
 gate because the earlier design assumption failed.
+
+### Pilot approval
+
+The user approved the revised direction: “Do what is needed. Ping me when the pilot
+is ready.” Implement one live deployment → contextual company investigation →
+return with selection retained → explicit decision → outcome flow, with the
+recovered dossier identity, both languages and adaptive landscape/portrait layouts.
+Work is on `codex/iphone-ux-pilot`; the review checkpoint is `4e53c00`.
+Production pilot installation on the paired iPhone is part of this authorization.
+User feedback on that pilot precedes extending the pattern to other workflows.

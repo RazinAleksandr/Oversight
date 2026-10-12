@@ -1,6 +1,6 @@
 # iPhone UX reassessment — decision brief
 
-12 October 2026 · Proposed; awaiting agreement before production changes.
+12 October 2026 · Approved for the integrated deployment/investigation pilot. The user asked to proceed and notify them when ready.
 
 ## Recommendation
 
@@ -135,8 +135,8 @@ The 667×375 study uses a compact 2×2 option grid and a separate reading page. 
 
 Production source, the native project, the installed build and saves were not changed for this review. Only documentation and the disposable study are checkpointed.
 
-## Decision requested
+## Approved pilot scope
 
-Approve **landscape-first task workspace + selective recovery of the earlier visual identity + usable sequential portrait fallback**, starting with the single integrated deployment/investigation slice. The disposable prototype is for testing this interaction model; it is not an installed candidate or proof that the complete game is comfortable.
+The user approved **landscape-first task workspace + selective recovery of the earlier visual identity + usable sequential portrait fallback**, starting with the single integrated deployment/investigation slice. The disposable prototype is for testing this interaction model; it is not an installed candidate or proof that the complete game is comfortable.
 
-This renewed agreement is required by `AGENTS.md` and `docs/IOS_PORT_AGENT_INSTRUCTIONS.md`: a major assumption in the previous redesign failed, so the revised plan must be reviewed before another production redesign.
+The renewed agreement required by `AGENTS.md` and `docs/IOS_PORT_AGENT_INSTRUCTIONS.md` was given: “Do what is needed. Ping me when the pilot is ready.”

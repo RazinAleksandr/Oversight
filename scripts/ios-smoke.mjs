@@ -36,9 +36,10 @@ for(const lang of ['en','ru']) {
   }
   if(await p.locator('.tip__ok').count()){await p.locator('.tip__ok').click();continue;}
   if(await p.locator('[data-choice]').count()) {
-   const choices=p.locator('[data-choice][data-blocked="false"]'); const labels=await choices.locator('.choice__label').allTextContents();
+   const mode=p.locator('[data-workspace-mode="options"]'); if(await mode.isVisible()) await mode.click();
+   const choices=p.locator('[data-choice][data-blocked="false"]'); const labels=await choices.locator('.choice__label, .workspace-choice-label').allTextContents();
    let index=labels.findIndex(x=>/Safety first|Approve with limits|Release with safeguards|Demand international oversight|Sign the Accord|Emergency shutdown|Безопасность прежде всего|Одобрить с ограничениями|Выпустить с мерами|Подписать Соглашение|Аварийное отключение/.test(x));if(index<0)index=0;
-   trace.push({turns,title:await p.locator('.dossier__title').innerText(),choice:labels[index]});
+   trace.push({turns,title:await p.locator('.dossier__title, .workspace-subject').innerText(),choice:labels[index]});
    await choices.nth(index).click();await p.locator('[data-confirm-choice]').click();continue;
   }
   if(!prepared && turns>=1) {

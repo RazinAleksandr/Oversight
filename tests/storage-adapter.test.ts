@@ -30,9 +30,11 @@ describe('native storage adapter', () => {
   });
   it('restores the committed run and pending result after a fresh startup', async () => {
     const s = await import('../src/platform/storage'); await s.initializeStorage();
+    s.writePreference('ato.task.v1', JSON.stringify({ uid: 'card1', selectedId: 'limit' }));
     s.writeSnapshot({ active: 'run1', pending: 'result1' });
     s.writeSnapshot({ active: 'run2', pending: 'result2' }); await s.flushStorage();
     vi.resetModules(); const next = await import('../src/platform/storage'); await next.initializeStorage();
     expect(next.readSnapshot()).toEqual({ active: 'run2', completed: null, pending: 'result2' });
+    expect(next.readPreference('ato.task.v1')).toBe(JSON.stringify({ uid: 'card1', selectedId: 'limit' }));
   });
 });

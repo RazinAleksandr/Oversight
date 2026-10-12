@@ -912,7 +912,7 @@ export function getActionViews(s: GameState): ActionView[] {
     };
     if (def.targets) {
       // Actions with options are validated per option at perform time; targets only carry their own reason.
-      view.targets = def.targets(s).map((tg) => ({ ...tg, disabled: tg.disabled ?? (def.options ? null : def.block?.(s, tg.id)) ?? costBlock(s, def.cost(s, tg.id)) }));
+      view.targets = def.targets(s).map((tg) => ({ ...tg, ...(def.id === 'investigate_company' ? { preview: def.preview(s, tg.id) } : {}), disabled: tg.disabled ?? (def.options ? null : def.block?.(s, tg.id)) ?? costBlock(s, def.cost(s, tg.id)) }));
       if (!view.disabled && view.targets.length === 0) view.disabled = t('No valid targets');
     }
     if (def.options) view.options = def.options(s);

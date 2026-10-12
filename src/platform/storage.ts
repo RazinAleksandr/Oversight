@@ -5,7 +5,7 @@ import { SaveJournal, emptySnapshot, type Snapshot } from './journal';
 export const native = Capacitor.isNativePlatform();
 export const SAVE_KEY = 'ato.save.v1';
 const COMPLETED_KEY = 'ato.completed.v1', PENDING_KEY = 'ato.pending.v1';
-const smallKeys = ['ato.settings.v1', 'ato.lang.v1'];
+const smallKeys = ['ato.settings.v1', 'ato.lang.v1', 'ato.task.v1'];
 let cache = emptySnapshot();
 let journal: SaveJournal | undefined;
 type Status = 'saved' | 'saving' | 'failed';

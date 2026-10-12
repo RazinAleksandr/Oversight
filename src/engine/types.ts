@@ -860,6 +860,8 @@ export interface ChoiceResult {
 }
 
 export interface ActionTarget {
+  /** Optional, authoritative preview for this specific target. */
+  preview?: EffectPreview[];
   id: string;
   label: string;
   sublabel?: string;

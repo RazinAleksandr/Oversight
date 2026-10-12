@@ -9,6 +9,7 @@ import { audio } from '../audio';
 import { fx } from '../fx';
 import { t } from '../i18n';
 import { type Backend, readSave, writeSave } from './backend';
+import { writeTask } from './game/taskDraft';
 import { GameScreen } from './game/GameScreen';
 import { EndingScreen } from './screens/EndingScreen';
 import { HowToPlay } from './screens/HowToPlay';
@@ -90,6 +91,7 @@ export function App({ backend }: { backend: Backend }): JSX.Element {
   const start = async (opts: NewGameOptions) => {
     try {
       const g = await backend.newGame(opts);
+      writeTask(null);
       setGame(g);
       setGameKey((k) => k + 1);
       setEnding(null);
@@ -262,7 +264,7 @@ export function App({ backend }: { backend: Backend }): JSX.Element {
           <p>{t('The imported run will replace your active save. Export your current run first if you want to keep it.')}</p>
           <button type="button" class="btn btn--primary" onClick={async () => {
             try {
-              writeSave(importedGame, null); await flushStorage();
+              writeTask(null); writeSave(importedGame, null); await flushStorage();
               setImportedGame(null); setModal(null); setSaveTick(n => n + 1);
               setGame(importedGame); setGameKey(n => n + 1);
               const v = importedGame.view();

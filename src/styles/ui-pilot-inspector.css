@@ -1,0 +1,49 @@
+/* Scoped task pages: source dossier identity, stable return and commitment. */
+.sheet-root--page .pilot-inspector {
+  --paper: #ece6d8; --ink: #1b1a17; --ink-dim: #5d584b;
+  --text: #1b1a17; --text-dim: #5d584b; --line: #c3bcac;
+  color: var(--ink); background: var(--paper); display: grid;
+  grid-template-rows: auto minmax(0,1fr) auto; overflow: hidden;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.pilot-inspector__bar { display: flex; align-items: center; gap: 12px; padding: var(--safe-t) max(16px,var(--safe-r)) 0 max(16px,var(--safe-l)); min-height: calc(52px + var(--safe-t)); background:#070b14; color:#d8e1f0; border-bottom:3px solid #c8312b; font-size:14px; }
+.pilot-inspector button { min-width:44px; min-height:44px; border:0; padding:10px 14px; background:transparent; color:inherit; font:600 15px/1.35 'Inter',system-ui,sans-serif; cursor:pointer; }
+.pilot-inspector button:focus-visible { outline:3px solid #245192; outline-offset:-3px; }
+.pilot-inspector__bar button { padding-left:0; color:#3fd0ff; text-align:left; }
+.pilot-inspector__resources { margin-left:auto; font-size:13px; flex-shrink:0; }
+.pilot-inspector__body { min-height:0; overflow:auto; overscroll-behavior:contain; padding:22px max(24px,var(--safe-r)) 24px max(24px,var(--safe-l)); display:grid; grid-template-columns:1.15fr 1fr; gap:32px; align-content:start; }
+.pilot-inspector h1 { font:26px/1.18 'Special Elite','JetBrains Mono',monospace; margin:0 0 16px; }
+.pilot-inspector h2 { font:600 18px/1.3 'Space Grotesk',system-ui,sans-serif; margin:0 0 12px; }
+.pilot-inspector p, .pilot-inspector li { font-size:16px; line-height:1.5; }
+.pilot-inspector p { margin:0 0 16px; }
+.pilot-inspector__eyebrow { font-family:'JetBrains Mono',monospace; font-size:12px!important; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.06em; }
+.pilot-inspector__facts { margin:0 0 16px; }
+.pilot-inspector__facts > div { display:flex; gap:12px; padding:8px 0; border-bottom:1px solid var(--line); font-size:15px; }
+.pilot-inspector__facts dt { color:var(--ink-dim); }
+.pilot-inspector__facts dd { margin:0 0 0 auto; text-align:right; font-weight:600; display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.pilot-inspector__note { color:var(--ink-dim); }
+.pilot-inspector__footer { display:flex; flex-wrap:wrap; gap:8px 20px; align-items:center; background:#070b14; color:#d8e1f0; padding:8px max(16px,var(--safe-r)) max(8px,var(--safe-b)) max(16px,var(--safe-l)); margin:0; }
+.pilot-inspector__cost { display:flex; flex:1; flex-wrap:wrap; gap:6px 12px; align-items:center; font-size:13px; }
+.pilot-inspector__cost .chip,.pilot-inspector__cost .cost { color:#d8e1f0; background:none; border:0; padding:0; font-size:13px; }
+.pilot-inspector .pilot-inspector__confirm { margin-left:auto; background:#3fd0ff; color:#04121c; border-radius:3px; min-height:48px; }
+.pilot-inspector .pilot-inspector__confirm:disabled { background:#283348; color:#bec8d8; cursor:default; }
+.pilot-inspector .pilot-inspector__blocked { width:100%; color:#ffbcad; margin:0; font-size:14px; }
+.pilot-outcome__body { display:block; }
+.pilot-outcome__body > section { max-width:860px; margin:0 auto; }
+.pilot-inspector .pilot-outcome__stamp { display:inline-block; border:2px solid #a3241e; padding:4px 10px; color:#a3241e; font:18px 'Special Elite','JetBrains Mono',monospace; margin-bottom:18px; }
+.pilot-outcome__changes { display:flex; flex-wrap:wrap; gap:10px 16px; list-style:none; padding:0; }
+.pilot-outcome__changes .chip { background:none; border:0; padding:0; color:var(--ink); font-size:15px; }
+.pilot-outcome__findings { padding-left:20px; }
+.pilot-outcome__findings li { padding:4px 0; }
+@media(max-width:600px) {
+  .pilot-inspector__bar { flex-wrap:wrap; gap:0 8px; padding-bottom:8px; }
+  .pilot-inspector__bar > span:not(.pilot-inspector__resources) { display:none; }
+  .pilot-inspector__bar strong { font-size:14px; }
+  .pilot-inspector__body { display:block; padding:20px; }
+  .pilot-inspector__purpose { margin-top:24px; }
+  .pilot-inspector__footer { gap:8px; }
+  .pilot-inspector__cost { flex-basis:100%; }
+  .pilot-inspector .pilot-inspector__confirm { flex:1; }
+}
+.pilot-inspector__footer { --text:#d8e1f0; --text-dim:#bec8d8; --bad-text:#ffbcad; --good:#96dcae; }
+.pilot-inspector__cost .chip__label, .pilot-inspector__cost .chip__num { color:inherit; }
