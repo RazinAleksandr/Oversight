@@ -8,6 +8,7 @@ import './styles/main.css';
 import './styles/ui-game.css';
 import './styles/ui-card.css';
 import './styles/ui-screens.css';
+import './styles/fx.css';
 import './styles/ui-dossier.css';
 import { getLang, loadLangPack, setLang } from './i18n';
 import { bootLang } from './ui/lang';

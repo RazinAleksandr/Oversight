@@ -338,7 +338,11 @@ The new review and proposed design stages are in
 layout measurements, a learning/pacing assessment, feature simplification tradeoffs,
 portrait/landscape wireframes, two visual directions and acceptance criteria.
 
-**This redesign proposal is pending agreement.** Earlier port approval does not
-constitute approval of a new navigation structure, portrait-only support, tutorial
-scenario, threat batching or finale rule changes. The current phase is analysis;
-no game or iOS configuration changes were made for this review.
+**Approved on 12 October 2026.** The user asked to implement the recommended
+portrait-first dossier direction with Git rollback protection. Work is on
+`codex/iphone-ux-redesign`, with baseline branch
+`backup/iphone-before-ux-2026-10-12` at `1883243` and a separate backup of preexisting
+uncommitted files. Both orientations remain supported. This implementation changes
+presentation and contextual teaching; it does not change the finale rules, shorten
+the campaign, or automatically acknowledge threat decisions. See
+[UX_REDESIGN_IMPLEMENTATION.md](UX_REDESIGN_IMPLEMENTATION.md) for verification and rollback.

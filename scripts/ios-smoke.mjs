@@ -47,7 +47,7 @@ for(const lang of ['en','ru']) {
    await p.locator('#tab-inbox').click();prepared=true;continue;
   }
   if(await p.locator('button[data-card]').count()){await p.locator('button[data-card]').first().click();continue;}
-  await p.locator('.endbar button').click();
+  await p.locator('.btn--end:visible').click();
  }
  await p.locator('.ending').waitFor();
  assert.equal(await p.evaluate(()=>typeof window.__ato),'undefined','release exposes QA hooks');

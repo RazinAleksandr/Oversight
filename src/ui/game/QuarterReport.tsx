@@ -3,7 +3,7 @@
  * budget, risk clock change, highlights, warnings and headlines — rows animate in sequentially.
  */
 import type { JSX } from 'preact';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import type { MeterId, TurnReport } from '../../engine/types';
 import { METER_INFO } from '../../engine/labels';
 import { audio } from '../../audio';
@@ -27,13 +27,14 @@ function DelayedTween({ from, to, delay, format }: { from: number; to: number; d
   return <TweenNum value={v} format={format} ms={600} class="num" />;
 }
 
-function MeterRow({ id, r, i }: { id: MeterId; r: TurnReport['meters'][MeterId]; i: number }): JSX.Element {
+function MeterRow({ id, r }: { id: MeterId; r: TurnReport['meters'][MeterId] }): JSX.Element {
   // Delta from the displayed (rounded) endpoints so "67 > 67" never reads "−1".
   const d = Math.round(r.to) - Math.round(r.from);
   const status = r.to <= 15 ? 'bad' : r.to <= 30 ? 'warn' : 'ok';
   const reasons = [...r.reasons].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
   return (
     <li class={cx('qrow', `qrow--${status}`)} data-fx="reveal">
+      <details class="qrow__explanation"><summary aria-label={t('{meter}: {from} to {to}. Why it changed', { meter: METER_INFO[id].name, from: Math.round(r.from), to: Math.round(r.to) })}>
       <span class="qrow__icon">
         <Icon name={METER_INFO[id].icon} size={18} />
       </span>
@@ -42,26 +43,29 @@ function MeterRow({ id, r, i }: { id: MeterId; r: TurnReport['meters'][MeterId];
         <span class="num dim">{Math.round(r.from)}</span>
         <Icon name="chevron_right" size={14} />
         <span class={cx('qrow__to', status !== 'ok' && `is-${status}`)}>
-          <DelayedTween from={r.from} to={r.to} delay={350 + i * 120} />
+          <span class="num">{Math.round(r.to)}</span>
         </span>
       </span>
       <span class={cx('qrow__delta num', d > 0 ? 'is-good' : d < 0 ? 'is-bad' : 'is-flat')}>{signed(d)}</span>
-      {reasons.length > 0 && (
-        <details class="qrow__explanation"><summary>{t('Why it changed')}</summary><ul class="qrow__reasons">
+      </summary>
+      {reasons.length > 0 ? (
+        <ul class="qrow__reasons">
           {reasons.map((x, k) => (
             <li key={k}>
               <span>{x.reason}</span>
               <span class={cx('num', x.delta > 0 ? 'is-good' : x.delta < 0 ? 'is-bad' : '')}>{signed(x.delta, Math.abs(x.delta) < 1 && x.delta !== 0 ? 1 : 0)}</span>
             </li>
           ))}
-        </ul></details>
-      )}
+        </ul>
+      ) : <p class="dim small">{t('No changes recorded yet this quarter.')}</p>}
+      </details>
     </li>
   );
 }
 
 export function QuarterReport({ report, onContinue }: { report: TurnReport; onContinue(): void }): JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => { ref.current?.scrollTo({ top: 0 }); }, []);
   useEffect(() => {
     audio.play('turn');
     if (ref.current) {
@@ -96,8 +100,8 @@ export function QuarterReport({ report, onContinue }: { report: TurnReport; onCo
         </header>
 
         <ul class="qrows">
-          {METER_ORDER.map((id, i) => (
-            <MeterRow key={id} id={id} r={report.meters[id]} i={i} />
+          {METER_ORDER.map((id) => (
+            <MeterRow key={id} id={id} r={report.meters[id]} />
           ))}
         </ul>
 

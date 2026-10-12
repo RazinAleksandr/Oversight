@@ -26,7 +26,7 @@ const statusTone = (s: MeterView['status']) => (s === 'critical' ? 'bad' : s ===
  */
 const HUD_ABBR: Partial<Record<MeterId, string>> =
   getLang() === 'en'
-    ? {}
+    ? { confidence: t('Conf'), economy: t('Pros'), stability: t('Stab'), security: t('Sec') }
     : { confidence: t('[HUD] Confidence'), economy: t('[HUD] Prosperity'), stability: t('[HUD] Stability'), security: t('[HUD] Security') };
 
 function MeterLabel({ id, short }: { id: MeterId; short: string }): JSX.Element {

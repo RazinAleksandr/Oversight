@@ -10,8 +10,8 @@ import { DIFF_LABEL, cx, hueOf } from '../util';
 import { useGame } from './context';
 
 export const TABS: { id: TabId; label: string; icon: string }[] = [
-  { id: 'inbox', label: t('Inbox'), icon: 'inbox' },
-  { id: 'labs', label: t('Labs'), icon: 'labs' },
+  { id: 'inbox', label: t('Desk'), icon: 'inbox' },
+  { id: 'labs', label: t('Companies'), icon: 'labs' },
   { id: 'nation', label: t('Nation'), icon: 'nation' },
   { id: 'world', label: t('World'), icon: 'world' },
   { id: 'threats', label: t('Threats'), icon: 'threats' },

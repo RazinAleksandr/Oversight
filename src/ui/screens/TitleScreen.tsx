@@ -59,7 +59,7 @@ export function TitleScreen({
   return (
     <div class="screen title">
       <div class="title__clock" aria-hidden="true">
-        <RiskClock risk={{ estimate: 12, low: 6, high: 22, clock: '23:07' }} size={520} />
+        <RiskClock risk={{ estimate: 12, low: 6, high: 22, clock: '23:07' }} size={64} />
       </div>
       <div class="title__corner title__corner--tl" aria-hidden="true">
         {t('DEPT. OF AI · EYES ONLY')}

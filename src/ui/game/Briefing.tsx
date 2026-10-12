@@ -2,12 +2,12 @@
 import type { JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Card, Choice, EvidenceLine } from '../../engine/types';
-import { SOURCE_INFO } from '../../engine/labels';
-import { getLang, t } from '../../i18n';
+import { SOURCE_INFO, SECTOR_INFO } from '../../engine/labels';
+import { getLang, listJoinL, t } from '../../i18n';
 import { Icon } from '../components/Icon';
 import { ChanceBadge, ConfBadge, CostChips, PreviewChip, UncertainChip } from '../components/Chips';
 import { Sheet } from '../components/Sheet';
-import { clamp, cx, hash, money } from '../util';
+import { clamp, cx, hash, money, one } from '../util';
 import { advisorInfo, useGame } from './context';
 import { DemandForecast } from './DemandForecast';
 
@@ -58,11 +58,17 @@ export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose
   const choice = card.choices.find(c => c.id === selected);
   const blocked = choice ? choiceBlock(choice, res) : null;
   const forecast = view.government.demands.find(d => d.id === card.ctx.demandId)?.forecast;
+  const model = view.models.find(m => m.id === card.ctx.modelId);
+  const deployment = card.kind === 'deployment' && model;
   const paragraphs = card.body.split(/\n\s*\n/).filter(Boolean);
   const summary = card.kind === 'intro'
     ? t('You lead the national AI department. Keep your job, protect the country, and guide the transition. What will you prioritize?')
+    : deployment ? model.openWeights
+      ? t('{company} asks to release {model} openly. Anyone could run or modify it.', { company: model.companyName, model: model.name })
+      : t('{company} asks to deploy {model} in {sectors}.', { company: model.companyName, model: model.name, sectors: listJoinL(model.sectors.map(id => SECTOR_INFO[id].name)) })
     : paragraphs[0] ?? card.body;
   const extraStory = card.kind === 'intro' || paragraphs.length > 1;
+  const concern = model && model.flaw !== 'unknown' && model.flaw !== 'none_found';
   const lowEvidence = card.evidence?.some(e => e.confidence === 'low' || e.confidence === 'redacted');
   const pick = (id: string) => {
     setSelected(id);
@@ -91,20 +97,34 @@ export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose
       <div class="decision-page__scroll">
         <div class="decision-page__context">
           <header class="decision-page__heading">
-            <p class="decision-page__source">{card.source.name} · {SOURCE_INFO[card.source.type].label}</p>
-            <h1 class="dossier__title">{card.title}</h1>
+            <p class="decision-page__source">{deployment ? t('Deployment Request') : SOURCE_INFO[card.source.type].label} · {card.source.name}</p>
+            <h1 class="dossier__title">{deployment ? model.name : card.title}</h1>
             {card.urgency === 'critical' && <p class="decision-page__urgent"><Icon name="warning" size={16} />{t('Urgent')}</p>}
           </header>
           <p class="decision-page__summary">{summary}</p>
+          {concern && <p class="decision-page__urgent">{t('Evaluation flagged a concern. Review the evidence before deciding.')}</p>}
           {extraStory && <details class="briefing-detail"><summary>{t('Full briefing')}</summary><div>{paragraphs.map((p,i) => <p key={i}>{p}</p>)}</div></details>}
           {!!card.evidence?.length && <details class="briefing-detail briefing-detail--evidence">
-            <summary>{t('Evidence')}<span>{lowEvidence ? t('Incomplete picture') : t('{n} findings', { n: card.evidence.length })}</span></summary>
+            <summary>{deployment ? t('Evidence & advice') : t('Evidence')}<span>{concern ? t('Concern reported') : lowEvidence ? t('Incomplete picture') : t('{n} findings', { n: card.evidence.length })}</span></summary>
             <section class="evidence" aria-label={t('Evidence')}>
               <dl class="evidence__list">{card.evidence.map((e,i)=><EvidenceRow key={i} e={e} seed={hash(card.uid+i)} />)}</dl>
+              {deployment && !!card.advisors?.length && <details class="briefing-detail">
+            <summary>{t('Advisors')}<span>{t('Different priorities')}</span></summary>
+            <section class="advisors" aria-label={t('Advisor notes')}>{card.advisors.map(n=>{
+              const a=advisorInfo(view,n.advisor);
+              return <figure key={n.advisor}><figcaption><strong>{a.role}</strong><blockquote>{n.text}</blockquote></figcaption></figure>;
+            })}</section>
+          </details>}
+              {deployment && <details class="briefing-detail"><summary>{t('Full briefing')}</summary><p>{card.body}</p></details>}
+              {model && <dl class="decision-context">
+                <div><dt>{t('Capability estimate')}</dt><dd>{one(model.capability.low)}–{one(model.capability.high)} <ConfBadge c={model.capability.confidence} /></dd></div>
+                <div><dt>{t('National safeguards')}</dt><dd>{one(view.nation.safeguards)}</dd></div>
+                {model.sectors.map(id => <div key={id}><dt>{SECTOR_INFO[id].name}</dt><dd>{t('{actual}% in use · target {target}%', { actual: Math.round(view.nation.adoption[id]), target: Math.round(view.nation.adoptionTarget[id]) })}</dd></div>)}
+              </dl>}
               {card.kind === 'deployment' && <><p class="briefing-note">{t('A negative result is not proof of safety.')}</p><p class="briefing-note">{t('Approval raises an adoption target. Actual use grows over later quarters. Investigating costs time and resources, but can reveal missed problems.')}</p></>}
             </section>
           </details>}
-          {!!card.advisors?.length && <details class="briefing-detail">
+          {!deployment && !!card.advisors?.length && <details class="briefing-detail">
             <summary>{t('Advisors')}<span>{t('Different priorities')}</span></summary>
             <section class="advisors" aria-label={t('Advisor notes')}>{card.advisors.map(n=>{
               const a=advisorInfo(view,n.advisor);
@@ -116,10 +136,18 @@ export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose
         </div>
         <section class="decision" aria-label={t('Your decision')}>
           <h2 class="decision__title">{t('Your decision')}</h2>
-          <div class="choices" role="radiogroup" aria-label={t('Your decision')}>
+          <div class="choices" role="radiogroup" aria-label={t('Your decision')} onKeyDown={e => {
+            if (!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Home','End'].includes(e.key)) return;
+            e.preventDefault();
+            const index = card.choices.findIndex(c => c.id === selected);
+            const next = e.key === 'Home' ? 0 : e.key === 'End' ? card.choices.length - 1 :
+              (index + (e.key === 'ArrowUp' || e.key === 'ArrowLeft' ? -1 : 1) + card.choices.length) % card.choices.length;
+            pick(card.choices[next].id);
+            e.currentTarget.querySelectorAll<HTMLButtonElement>('button')[next]?.focus({ preventScroll: true });
+          }}>
             {card.choices.map((ch,i)=>{
               const reason=choiceBlock(ch,res);
-              return <button key={ch.id} type="button" role="radio" aria-checked={selected===ch.id} aria-controls="decision-detail" data-choice={i+1} data-blocked={!!reason}
+              return <button key={ch.id} type="button" role="radio" aria-checked={selected===ch.id} tabIndex={selected ? selected === ch.id ? 0 : -1 : i === 0 ? 0 : -1} aria-label={reason ? `${ch.label}: ${reason}` : ch.label} aria-controls="decision-detail" data-choice={i+1} data-blocked={!!reason}
                 class={cx('choice',selected===ch.id && 'is-selected',reason && 'is-blocked')} onClick={()=>pick(ch.id)}>
                 <span class="choice__radio" aria-hidden="true" /><span class="choice__label">{ch.label}</span>
                 {reason && <Icon name="lock" size={16} />}

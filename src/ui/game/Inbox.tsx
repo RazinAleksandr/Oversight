@@ -123,6 +123,7 @@ export function InboxPanel(): JSX.Element {
           sub={`${view.dateLabel} · ${view.inbox.length ? tp(view.inbox.length, '{n} briefing awaiting decision', '{n} briefings awaiting decision') : t('desk clear')}`}
         />
       )}
+      {view.turn <= 2 && <p class="quarter-guide">{t('Each quarter: resolve briefings, use Nation or World for extra actions, then end the quarter.')}</p>}
       {view.warnings.length > 0 && (
         <ul class="warnings" aria-label={t('Warnings')}>
           {[...new Set(view.warnings.map(cleanWarning))].map((w) => (
@@ -142,6 +143,7 @@ export function InboxPanel(): JSX.Element {
       ) : (
         <EmptyState icon="check" title={t('Desk clear')} text={t('Every briefing is resolved. Use Nation to investigate companies or fund programs, and World to negotiate. Then end the quarter.')} />
       )}
+      {view.canEndTurn && <div class="desk-end"><EndQuarterButton wide /></div>}
       <DeskSummary />
     </div>
   );

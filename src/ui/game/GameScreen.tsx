@@ -308,7 +308,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
 
   // Tips show only when nothing else demands attention.
   const tip = !overlay && !sheet ? view.pendingTips.find(id =>
-    ['welcome', 'inbox', 'capacity', 'end_turn', 'low_confidence'].includes(id) ? tab === 'inbox' :
+    ['welcome', 'inbox', 'capacity', 'end_turn', 'low_confidence', 'risk_clock'].includes(id) ? tab === 'inbox' :
     id === 'labs' || id === 'first_deployment' ? tab === 'labs' :
     id === 'nation' || id === 'first_demand' ? tab === 'nation' :
     id === 'world' ? tab === 'world' : id === 'threats' || id === 'first_situation' || id === 'evidence' ? tab === 'threats' : false) : undefined;

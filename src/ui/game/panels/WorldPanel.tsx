@@ -5,7 +5,7 @@
 import type { JSX } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import type { CountryId, RivalView } from '../../../engine/types';
-import { Bar, EstimateLine, Gauge, RangeBar } from '../../components/Bars';
+import { Bar, EstimateLine, RangeBar } from '../../components/Bars';
 import { ActionChip, PageHead, Section, Trait } from '../../components/Common';
 import { Icon, Svg, artCached, isPlaceholder } from '../../components/Icon';
 import { cx } from '../../util';
@@ -29,13 +29,12 @@ export function WorldPanel(): JSX.Element {
         {[['overview', t('Overview')], ...view.rivals.map(r => [r.id, r.name])].map(([id, label]) => <button type="button" class={cx('btn', section === id && 'btn--accent')} aria-pressed={section === id} onClick={() => selectSection('world', id)}>{label}</button>)}
       </nav>
       {section === 'overview' && <div class="world-top">
-        <WorldMap />
         <div class="world-gauges">
           <div class={cx('panel gaugecard', n.tension >= 70 && 'is-hot')}>
             <h3 class="eyebrow">
               <Icon name="tension" size={13} /> {t('Race tension')}
             </h3>
-            <Gauge value={n.tension} size={150} />
+            <Bar value={n.tension} tone={n.tension >= 90 ? 'bad' : n.tension >= 70 ? 'warn' : 'accent'} label={t('Race tension')} />
             <p class="gaugecard__v">
               <span class="num">{Math.round(n.tension)}</span>
               <span class={cx('gaugecard__lbl', n.tension >= 70 ? 'is-bad' : n.tension >= 40 ? 'is-warn' : 'is-good')}>{tensionLabel(n.tension)}</span>
@@ -65,6 +64,7 @@ export function WorldPanel(): JSX.Element {
             </p>
           </div>
         </div>
+        <details class="world-map-detail"><summary>{t('World map')}</summary><WorldMap /></details>
       </div>}
 
       {section !== 'overview' && <Section title={t('Rival powers')} icon="foreign">
