@@ -1,6 +1,6 @@
 # iPhone release
 
-Status on 12 October 2026: **implemented candidate; not yet signed or delivered through TestFlight.**
+Status on 12 October 2026: **signed candidate installed and launched on the paired iPhone; TestFlight upload awaits an App Store Connect app record.**
 Branch: `codex/ios-port`. Desktop/browser release qualification is deferred.
 
 ## Configuration
@@ -42,34 +42,58 @@ choice/report recovery and saved debrief reopening, and verifies that release QA
 hooks are absent. Evidence is written to `artifacts/ios-smoke/`. This is not a
 physical-device test, nor a skilled playthrough or balance measurement.
 
-## Signing blocker
+## Signing and TestFlight
 
-The signed build attempt failed with Xcode's explicit response:
-“Unable to log in … The login details … were rejected,” followed by missing
-provisioning profiles for the configured bundle ID. The local keychain has no
-valid code-signing identities. No certificate/profile was created successfully.
-
-Open **Xcode 26.3**, Settings → Apple Accounts, remove/re-add the existing account,
-complete its normal sign-in and verify that team `PW4Q53FM3J` appears. Do not delete
-certificates or Keychain entries as a troubleshooting shortcut. The user must
-complete authentication and any Apple agreements. If the failure persists,
-Apple Developer Support can diagnose the account; active membership alone does
-not establish a valid Xcode session.
-
-After account access works:
+The user refreshed Xcode authentication and accepted the updated Program License
+Agreement. Automatic signing now succeeds for team `PW4Q53FM3J`.
 
 ```bash
 npm run ios:archive
 ```
 
-This builds a signed Release archive at `artifacts/ios-release/Oversight.xcarchive`
-using automatic signing. Confirm App Store Connect contains the matching app
-record, validate the archive, then upload for internal TestFlight. Beta contact
-and external review metadata are needed before any external beta submission.
-No upload, tester invitation or external submission has occurred.
+The signed Release archive is `artifacts/ios-release/Oversight.xcarchive`.
+Its code signature verifies, and the asset/privacy preflight passes against the
+actual app bundle. The development-signed app installed and launched on the paired
+iPhone 13 running iOS 18.7.8; its native Preferences file was created. This confirms
+installation and initialization, not a complete physical playthrough.
 
-The existing `Oversight-unsigned.xcarchive` only proves iPhone compilation. It is
-not installable via TestFlight and has not passed Apple's signed upload validation.
+App Store Connect export succeeded at
+`artifacts/ios-release/testflight/App.ipa` (version 1.0, build 1), using automatic
+distribution signing and `testFlightInternalTestingOnly=true`. This candidate is
+restricted to internal testing. Export is not server upload validation.
+
+Upload was attempted but stopped at `IDEDistributionFetchAppRecordStep` with
+`DistributionAppRecordProviderError.missingApp(bundleId: "com.viktor.oversight")`.
+Create the matching app in App Store Connect → Apps → + → New App:
+
+- Platform: iOS
+- Name: Oversight (availability still unconfirmed)
+- Primary language: English (U.S.)
+- Bundle ID: `com.viktor.oversight`
+- SKU: `oversight-ios`
+
+If the bundle ID is absent from the menu, register it as an explicit App ID under
+Certificates, Identifiers & Profiles first. The development archive used an
+Xcode-managed wildcard profile; that alone does not establish an App Store record.
+Browser and Xcode Computer Use were denied, so the user must perform this account
+step or enable suitable access. No tester invitations or external submission
+have occurred, and no build has reached TestFlight.
+
+After the app record exists, retry:
+
+```bash
+xcodebuild -exportArchive \
+  -archivePath artifacts/ios-release/Oversight.xcarchive \
+  -exportPath artifacts/ios-release/upload \
+  -exportOptionsPlist artifacts/ios-release/UploadOptions.plist \
+  -allowProvisioningUpdates
+```
+
+Evidence: `artifacts/ios-release/signing-retry.log`, `export.log`, `upload.log`,
+`device-install.json`, `device-launch.json`, and `device-preferences-list.json`.
+The local export/upload option plists contain the team and internal-testing mode;
+they contain no credentials. Physical-device acceptance and TestFlight processing
+remain release gates below.
 
 ## Saves and recovery
 
@@ -119,8 +143,8 @@ Supporting local evidence/logs are in `artifacts/ios-foundations/`,
 ## Gates before calling the iPhone build stable
 
 Computer Use access to Simulator and Xcode was not approved in this session.
-The paired physical iPhone is available to Xcode, but signing and interactive
-access have not been established. Complete these gates on the signed build:
+The signed candidate is installed on the paired physical iPhone, but interactive
+verification has not been completed. Complete these gates on the signed build:
 
 - Cold launch in airplane mode; complete a run; force quit after choices and quarter
   reports; resume; reopen the final debrief; install an update without losing saves.
