@@ -38,7 +38,8 @@ dossier direction and retains landscape support.
 - Baseline branch: `backup/iphone-before-ux-2026-10-12`, commit `1883243`.
 - First implementation checkpoint: `11367f0`.
 - Threat-description correction and regressions: `592ce55`.
-- Subsequent polish and release verification are separate commits on the same branch.
+- Phone polish and build-2 preparation: `b32c66d`.
+- Native delivery verification is recorded in a final documentation commit.
 - No branch has been pushed by this work; `main` has not been updated.
 - Preexisting `.gitignore` edits and untracked user files were preserved and excluded
   from the implementation commits. Additional backups are in
@@ -104,6 +105,18 @@ node scripts/ux-redesign-smoke.mjs
 npm run ios:smoke
 ```
 
+## Installed iPhone build
+
+On 12 October 2026, version **1.0 (2)** of `com.viktor.oversight` was installed on
+Viktor's paired iPhone 13. Code-signature verification passed. `devicectl` confirmed
+launch and the app process was still present in the subsequent diagnostic check.
+Both native save-journal files were copied back and compared: they are byte-identical
+to the pre-install backup. Installation did not reset the existing run.
+
+Evidence: `install.json`, `launch.json`, `process.json`, `native-save-check.json`,
+`archive.log`, and the before/after Documents copies in `artifacts/ux-redesign/`.
+This verifies installation, launch and storage preservation, not a physical playthrough.
+
 ## Limits and next playtest
 
 Headless WebKit screenshots demonstrate rendered layouts, not physical touch comfort.
@@ -113,5 +126,6 @@ can require scrolling on narrow screens; preserving their meaning takes priority
 forcing every state into one viewport. The final-decision odds and 16-quarter pacing
 were deliberately left as approved game rules.
 
-TestFlight publishing remains separate from this UI iteration; the existing App Store
-Connect app-record blocker is described in the iOS release documentation.
+This iteration did not attempt another TestFlight upload. The previous upload was
+blocked by the missing App Store Connect app record, as recorded in the iOS release
+documentation; this update was installed directly on the paired phone.
