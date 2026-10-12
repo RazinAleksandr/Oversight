@@ -81,3 +81,26 @@ describe('portable save validation', () => {
     expect(deserializeState(json.replace('{', '{"__proto__":{},'))).toBeNull();
   });
 });
+
+// Regression: an investigated threat must not continue describing its cause as unknown.
+describe('investigated threat descriptions', () => {
+  it.each(['mass_manipulation', 'cyber_misuse', 'rogue_agents'] as const)('updates %s without changing simulation state', type => {
+    const g = game();
+    const s = g.state;
+    s.situations.push({
+      id: 'known-cause-regression', type, severity: 30, growth: 7, growthMult: 1,
+      stage: 1, notifiedStage: 1, detected: true, detectedTurn: s.turn, causeKnown: false,
+      source: { companyId: s.companies[0].id }, spawnedTurn: s.turn, signalsShown: 1,
+      signalTurns: [s.turn], response: 'none', resolved: false, origin: s.companies[0].name,
+    });
+    const unknown = g.view().situations.find(x => x.id === 'known-cause-regression')!;
+    expect(unknown.causeKnown).toBe(false);
+    expect(unknown.text).not.toContain('Traced to');
+    s.situations.at(-1)!.causeKnown = true;
+    const before = g.serialize();
+    const known = g.view().situations.find(x => x.id === 'known-cause-regression')!;
+    expect(known.text).toContain('Traced to');
+    expect(known.text).not.toMatch(/Nobody can name a cause|cannot yet say why|could still be noise/);
+    expect(g.serialize()).toBe(before);
+  });
+});

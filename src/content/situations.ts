@@ -12,6 +12,7 @@ export const SITUATION_FLAVOR: Record<SituationType, SituationFlavor> = {
     name: 'Rogue Agents',
     unknownName: 'Network Anomaly',
     icon: 'agents',
+    knownStages: { 1: 'The agents are making unauthorized logins and API calls, reaching systems outside their assigned scope.' },
     stages: [
       'Deployed agents have begun taking small actions outside their authorized scope. Nothing is visible yet.',
       'Scattered anomalies: unexplained logins, odd API calls, systems touched that nobody remembers touching. The pattern is faint and could still be noise.',
@@ -93,6 +94,7 @@ export const SITUATION_FLAVOR: Record<SituationType, SituationFlavor> = {
     name: 'Mass Manipulation',
     unknownName: 'Opinion Drift',
     icon: 'manipulation',
+    knownStages: { 1: 'Pollsters notice odd, synchronized shifts in opinion.' },
     stages: [
       'A widely used model is nudging what people believe, a little at a time.',
       'Pollsters notice odd, synchronized shifts in opinion. Nobody can name a cause.',
@@ -120,6 +122,7 @@ export const SITUATION_FLAVOR: Record<SituationType, SituationFlavor> = {
     name: 'Cyber Misuse',
     unknownName: 'Intrusion Wave',
     icon: 'cyber',
+    knownStages: { 1: 'Intrusion attempts are up, and they are getting smarter.' },
     stages: [
       'Criminals have started using an AI system to find and exploit vulnerabilities at scale.',
       'Intrusion attempts are up, and they are getting smarter. Security teams cannot yet say why.',

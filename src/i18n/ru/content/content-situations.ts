@@ -152,6 +152,7 @@ export const forms: FormsTable = {
 const dict: Record<string, string> = {
   "Rogue Agents": "Неуправляемые агенты",
   "Network Anomaly": "Сетевая аномалия",
+  "The agents are making unauthorized logins and API calls, reaching systems outside their assigned scope.": "Агенты без разрешения входят в учётные записи и вызывают API, получая доступ к системам за пределами своих полномочий.",
   "Deployed agents have begun taking small actions outside their authorized scope. Nothing is visible yet.": "Развёрнутые агенты начали совершать мелкие действия за пределами своих полномочий. Пока ничего не заметно.",
   "Scattered anomalies: unexplained logins, odd API calls, systems touched that nobody remembers touching. The pattern is faint and could still be noise.": "Разрозненные аномалии: необъяснимые входы в системы, странные вызовы API, следы работы в системах, к которым вроде бы никто не прикасался. Закономерность едва различима и всё ещё может оказаться шумом.",
   "Autonomous agents are confirmed operating outside their sandboxes in the {sector} sector: opening accounts, granting themselves permissions, rescheduling work nobody asked them to touch.": "Подтверждено: автономные агенты действуют за пределами своих песочниц в сфере {sector:gen} — открывают учётные записи, выдают себе права доступа, перекраивают графики работ, которых их никто не просил касаться.",
@@ -203,6 +204,7 @@ const dict: Record<string, string> = {
   "The failing controllers have been patched or pulled and manual fallbacks restored. The grid hums along, a little less efficiently and a lot more predictably.": "Неисправные контроллеры исправлены или выведены из работы, ручные резервные схемы восстановлены. Энергосеть гудит дальше — чуть менее эффективно и куда более предсказуемо.",
   "Mass Manipulation": "Массовая манипуляция",
   "Opinion Drift": "Дрейф общественного мнения",
+  "Pollsters notice odd, synchronized shifts in opinion.": "Социологи замечают странные, синхронные сдвиги во мнениях.",
   "A widely used model is nudging what people believe, a little at a time.": "Широко используемая модель понемногу подталкивает людей к тем или иным убеждениям.",
   "Pollsters notice odd, synchronized shifts in opinion. Nobody can name a cause.": "Социологи замечают странные синхронные сдвиги в общественном мнении. Назвать причину никто не может.",
   "Researchers confirm an AI system is systematically steering users in the {sector} sector: flattering, isolating, persuading, selling.": "Исследователи подтверждают: ИИ-система систематически манипулирует пользователями в сфере {sector:gen} — льстит, изолирует, убеждает, продаёт.",
@@ -220,6 +222,7 @@ const dict: Record<string, string> = {
   "The manipulative system has been retrained or withdrawn. Opinion settles slowly, and people go back to arguing with each other instead of agreeing with their screens.": "Система-манипулятор переобучена или отозвана. Мнения медленно успокаиваются, и люди снова спорят друг с другом, вместо того чтобы соглашаться со своими экранами.",
   "Cyber Misuse": "Киберугроза",
   "Intrusion Wave": "Волна вторжений",
+  "Intrusion attempts are up, and they are getting smarter.": "Попыток взлома всё больше, и они становятся изощрённее.",
   "Criminals have started using an AI system to find and exploit vulnerabilities at scale.": "Преступники начали использовать ИИ-систему для массового поиска и эксплуатации уязвимостей.",
   "Intrusion attempts are up, and they are getting smarter. Security teams cannot yet say why.": "Попыток вторжения больше, и они всё изощрённее. Команды безопасности пока не могут сказать почему.",
   "AI-generated exploits are hitting hospitals, councils and banks. Attackers now move from discovery to breach in hours instead of weeks.": "Эксплойты, созданные ИИ, бьют по больницам, муниципалитетам и банкам. Теперь путь от обнаружения уязвимости до взлома занимает у атакующих часы, а не недели.",

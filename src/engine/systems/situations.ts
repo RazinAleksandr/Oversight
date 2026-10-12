@@ -2,7 +2,7 @@
  * Situations (GDD §8): hidden severity growth, stages, detection, the two-signal rule,
  * escalation warnings, stage cards, responses, catastrophes and resolution.
  */
-import { getLang, t } from '../../i18n';
+import { t } from '../../i18n';
 import { costBlock, makeCard, payCost } from '../cards';
 import { changeAdoptionTarget, changeCompanyRelation, changeMeter, changeResource, changeRisk, changeRivalTrust } from '../changes';
 import { getAdvisor, getFlawFlavor, getOutlets, getSituationFlavor } from '../content';
@@ -659,23 +659,18 @@ export function severityEstimate(s: GameState, x: Situation): { low: number; hig
   return { value: center, low: clamp(center - u, 0, 100), high: clamp(center + u, 0, 100) };
 }
 
-/** Sentences that only make sense while the cause is still a mystery (English, and common Russian phrasings). */
-const UNKNOWN_CAUSE = /(cannot yet|can't yet|not yet (?:clear|known|say)|no one knows|nobody knows|unknown (?:cause|source|origin)|unclear (?:why|what|who|how)|is unclear|remains unclear)/i;
-const UNKNOWN_CAUSE_RU = /(пока не (?:ясно|известно|понятно|установлен|можем)|ещё не (?:ясно|известно|понятно|установлен)|никто не знает|неизвестн\S* (?:причин|источник|происхожден)|причин\S* (?:пока )?неизвестн|источник\S* (?:пока )?неизвестн|неясно|остаётся неясн|не ясно)/i;
-
 /** Player-facing description: the stage text, updated once the cause is known. */
 export function situationText(s: GameState, x: Situation): string {
   const flavor = getSituationFlavor(x.type);
   const ctx = situationTemplateCtx(s, x);
   if (x.resolved && x.outcome !== 'catastrophe') return fillTemplate(s, flavor.resolvedText, ctx);
-  const text = fillTemplate(s, flavor.stages[visibleStage(x)], ctx);
+  const stage = visibleStage(x);
+  const text = fillTemplate(s, (x.causeKnown && flavor.knownStages?.[stage]) || flavor.stages[stage], ctx);
   if (!x.causeKnown) return text;
   const model = findModel(s, x.source.modelId);
   const company = findCompany(s, x.source.companyId ?? model?.companyId);
   const source = model ? `${model.name}${company ? ` (${company.name})` : ''}` : x.origin;
-  const unknown = getLang() === 'en' ? UNKNOWN_CAUSE : UNKNOWN_CAUSE_RU;
-  const kept = (text.match(/[^.!?]+[.!?]+["”'»]?\s*/g) ?? [text]).filter((sentence) => !unknown.test(sentence)).join('').trim();
-  return t('Traced to {source}. {text}', { source, text: kept }).trim();
+  return t('Traced to {source}. {text}', { source, text }).trim();
 }
 
 export function situationCard(s: GameState, x: Situation, reason: 'detected' | 'stage'): Card {

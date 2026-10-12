@@ -341,6 +341,8 @@ export interface SituationFlavor {
   icon: string; // art icon name
   /** Card/panel text per stage 0..4 */
   stages: [string, string, string, string, string];
+  /** Narrative replacements after investigation; never parsed from localized prose. */
+  knownStages?: Partial<Record<0 | 1 | 2 | 3 | 4, string>>;
   /** Vague warning headlines (pre-detection signals) */
   signals: string[];
   catastropheTitle: string;
