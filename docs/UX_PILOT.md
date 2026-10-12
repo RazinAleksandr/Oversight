@@ -95,15 +95,21 @@ effects require scrolling. This remains a specific physical-playtest comfort ris
 
 ## Native delivery
 
-A signed build 3 archive was rebuilt after the final layout correction. Root
-verification confirmed that its 71 bundled web files match the production build
-and that the app loads local offline assets. A fresh phone save backup completed at 19:36 before the install attempt.
-Installation then failed with CoreDevice error 4000 because the paired iPhone was
-no longer reachable; the device list reports it unavailable. Build 3 is prepared
-but **not installed**. The previously installed build was build 2, and the failed
-attempt stopped before transfer; the current installed version cannot be rechecked
-while the phone is disconnected. Reconnect and unlock the phone to complete native
-delivery and verify the saved run afterward.
+Build 3 was installed directly on the paired iPhone 13 on 13 October 2026.
+`devicectl device info apps` confirms Oversight 1.0, bundle version 3. The signed
+archive contains 71 bundled web files matching the verified production build;
+preflight confirms local assets and no remote launch dependency.
+
+The 12 October installation attempts failed when the phone disconnected. After
+reconnection on 13 October, a fresh Documents backup was taken before installation.
+Both native save journal files are byte-identical afterward. Evidence is under
+`artifacts/ux-pilot/`: `install-20261013.json`, `installed-app-20261013.json`,
+`save-preservation-20261013.json`, and the before/after Documents copies.
+
+Remote launch verification is pending: the first launch command timed out; the
+retry explicitly failed with `FBSOpenApplicationErrorDomain` code 7 (`Locked`). The user has been asked to unlock
+the phone and open Oversight. Installation and saved-file preservation do not
+establish physical gameplay comfort.
 
 ## Review boundary
 
