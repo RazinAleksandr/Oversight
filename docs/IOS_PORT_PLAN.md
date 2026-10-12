@@ -325,3 +325,20 @@ The agreement gate in [AGENTS.md](../AGENTS.md) and [the port assignment](IOS_PO
   EN→RU RNG/cash preservation; WebKit audio suspend/resume; native compilation.
 - These results do not certify the physical iPhone or a TestFlight build as stable.
   Signing access and native acceptance gates are the remaining release blockers.
+
+
+## 10. UX reassessment requested after the iPhone installation
+
+On 12 October 2026, the user reported poor comfort in both orientations, excessive
+learning burden, and an unattractive visual style. They requested deep analysis
+and proposals for discussion before implementation.
+
+The new review and proposed design stages are in
+[UX_REVIEW_2026-10-12.md](UX_REVIEW_2026-10-12.md). It includes current WebKit evidence,
+layout measurements, a learning/pacing assessment, feature simplification tradeoffs,
+portrait/landscape wireframes, two visual directions and acceptance criteria.
+
+**This redesign proposal is pending agreement.** Earlier port approval does not
+constitute approval of a new navigation structure, portrait-only support, tutorial
+scenario, threat batching or finale rule changes. The current phase is analysis;
+no game or iOS configuration changes were made for this review.
