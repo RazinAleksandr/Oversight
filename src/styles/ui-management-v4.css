@@ -1,0 +1,224 @@
+/* Focused management workspaces: one subject, its facts, then its available operations. */
+.management-v4 {
+  --text:var(--v4-text,#f1eee5); --text-dim:var(--v4-muted,#b1bbb9); --text-faint:var(--v4-muted,#b1bbb9);
+  --panel:var(--v4-surface,#1c2427); --line:var(--v4-line,#3b474a); --accent:var(--v4-accent,#e9b872);
+  --good:var(--v4-good,#9bc8b2); --bad-text:var(--v4-danger,#f08b78); --warn:var(--v4-accent,#e9b872);
+  display:flex; flex-direction:column; height:100%; min-height:0; min-width:0; padding:0; margin:0; gap:10px;
+  color:var(--text); font:400 1rem/1.45 var(--font-body,Inter,sans-serif);
+}
+.management-v4 .pagehead { margin:0; padding:0; flex:none; min-height:0; }
+.management-v4 .pagehead__title { font:650 1.5rem/1.15 var(--font-head,'Space Grotesk',sans-serif); letter-spacing:-.025em; }
+.management-v4 .pagehead__sub { font-size:.875rem; margin:4px 0 0; color:var(--text-dim); }
+.management-v4 h2 { font:650 1.25rem/1.2 var(--font-head,'Space Grotesk',sans-serif); margin:0 0 12px; }
+.management-v4 h3 { font:650 1rem/1.35 var(--font-body,Inter,sans-serif); margin:20px 0 10px; }
+.management-v4 p { margin:0 0 14px; line-height:1.5; }
+.management-v4 button { min-height:44px; font-family:inherit; touch-action:manipulation; }
+.management-v4 button:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
+.management-v4 .panel-sections { display:flex; flex-wrap:nowrap; flex:none; overflow-x:auto; min-height:44px; gap:0; border-bottom:1px solid var(--line); padding:0; margin:0; }
+.management-v4 .panel-sections .btn { flex:none; white-space:nowrap; padding:8px 16px; background:transparent; color:var(--text-dim); border:0; border-bottom:2px solid transparent; border-radius:0; box-shadow:none; }
+.management-v4 .panel-sections .btn--accent { color:var(--text); border-bottom-color:var(--accent); }
+.management-content,.management-section { display:flex; flex:1; flex-direction:column; min-height:0; min-width:0; }
+.management-split { display:grid; grid-template-columns:minmax(150px,27%) minmax(0,1fr); flex:1; min-height:0; min-width:0; gap:0; border:1px solid var(--line); border-radius:4px; overflow:hidden; }
+.management-roster { overflow-y:auto; min-height:0; min-width:0; background:var(--v4-bg,#121719); border-right:1px solid var(--line); padding:8px; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:var(--line) transparent; }
+.management-roster h2 { color:var(--text-dim); font:600 .75rem/1.3 var(--font-body,Inter,sans-serif); text-transform:uppercase; letter-spacing:.06em; padding:8px; margin:0; }
+.management-roster > p { font-size:.875rem; padding:8px; }
+.management-item { width:100%; display:grid; grid-template-columns:minmax(0,1fr); text-align:left; padding:12px 10px; gap:5px; border:0; border-radius:3px; color:var(--text); background:transparent; box-shadow:none; }
+.management-item + .management-item { border-top:1px solid color-mix(in srgb,var(--line) 55%,transparent); }
+.management-item strong { font-size:.9375rem; line-height:1.3; overflow-wrap:anywhere; }
+.management-item span,.management-item small { font-size:.8125rem; line-height:1.35; color:var(--text-dim); overflow-wrap:anywhere; }
+.management-item.is-selected { background:var(--v4-raised,#283237); box-shadow:inset 3px 0 var(--accent); }
+.management-item.has-warning small:last-child { color:var(--bad-text); }
+.management-item > .icon,.management-company-mark { width:28px; height:28px; margin-bottom:3px; }
+.management-detail { flex:1; min-height:0; min-width:0; overflow:auto; overscroll-behavior:contain; padding:20px; background:var(--v4-surface,#1c2427); scrollbar-width:thin; scrollbar-color:var(--line) transparent; }
+.management-detail > :last-child { margin-bottom:0; }
+.management-detail .panel { padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; }
+.management-detail .entity__head { margin-bottom:14px; }
+.management-detail .entity__name { font:650 1.4rem/1.15 var(--font-head,'Space Grotesk',sans-serif); }
+.management-detail .entity__sub { font-size:.8125rem; }
+.management-identity { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.management-identity > div { min-width:0; }
+.management-identity > .icon { flex:none; color:var(--accent); }
+.management-identity p { color:var(--text-dim); font-size:.8125rem; margin:0 0 4px; }
+.management-identity h2 { margin:0; }
+.management-actions,.management-v4 .actrow { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:12px 0 20px; }
+.management-v4 .btn { border:1px solid var(--line); background:var(--v4-raised,#283237); color:var(--text); border-radius:4px; box-shadow:none; white-space:normal; text-align:left; }
+.management-v4 .btn--primary { background:var(--accent); border-color:var(--accent); color:#171a19; }
+.management-v4 .btn:disabled { opacity:.5; cursor:default; }
+.management-v4 .actbtn { background:var(--v4-raised,#283237); color:var(--text); border:1px solid var(--line); border-radius:4px; min-height:44px; padding:10px 12px; box-shadow:none; }
+.management-v4 .chip { color:var(--text); background:transparent; box-shadow:none; border:0; padding:3px 0; white-space:normal; }
+.management-v4 .chip__label,.management-v4 .chip__num { color:inherit; }
+.management-v4 .cost { color:var(--text-dim); background:transparent; border:0; padding:2px 0; white-space:normal; }
+.management-v4 .conf { color:var(--text-dim); border:0; background:transparent; padding:0; font-size:.75rem; }
+.management-secondary { color:var(--text-dim); font-size:.875rem; }
+.management-warning { color:var(--bad-text); border-left:2px solid var(--bad-text); padding-left:10px; }
+.management-ledger { padding:14px 8px; border-top:1px solid var(--line); margin-top:12px; }
+.management-ledger span { display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px; font-size:.8125rem; padding:5px 0; color:var(--text-dim); }
+.management-ledger strong { color:var(--text); font-variant-numeric:tabular-nums; }
+.management-stat { margin-bottom:14px; }
+.management-stat > span { display:block; margin-bottom:6px; }
+.management-levels { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border:1px solid var(--line); border-radius:4px; overflow:hidden; margin:16px 0; }
+.management-levels button { background:var(--v4-bg,#121719); color:var(--text); border:0; border-right:1px solid var(--line); border-radius:0; padding:12px 7px; display:flex; flex-direction:column; gap:5px; text-align:left; }
+.management-levels button:last-child { border-right:0; }
+.management-levels button.is-selected { background:var(--v4-raised,#283237); box-shadow:inset 0 -3px var(--accent); }
+.management-levels button strong { font-size:1rem; }
+.management-levels button span,.management-levels button small { font-size:.75rem; color:var(--text-dim); }
+.management-funding-preview { border-top:1px solid var(--line); padding:12px 0 0; }
+.management-funding-preview h3 { margin-top:0; }
+.management-funding-preview dl { margin:0 0 14px; }
+.management-funding-preview dl > div { display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 16px; padding:6px 0; }
+.management-funding-preview dt { color:var(--text-dim); font-size:.875rem; }
+.management-funding-preview dd { margin:0; font-variant-numeric:tabular-nums; }
+.management-effects { padding-left:20px; }
+.management-effects li { margin-bottom:12px; }
+.management-v4 .demand { background:transparent; border:0; padding:0; }
+.management-v4 .demand__title { font:650 1.35rem/1.25 var(--font-head,'Space Grotesk',sans-serif); }
+.management-v4 .demand__top { gap:12px; flex-wrap:wrap; align-items:baseline; }
+.management-v4 .demand__status { font-size:.8125rem; padding:4px 0; }
+.management-v4 .demand__text { font-size:1rem; }
+.management-v4 .demand__foot { flex-wrap:wrap; gap:10px; }
+.forecast-v4 { border:1px solid var(--line); background:transparent; padding:14px; margin:14px 0; }
+.forecast-v4__values { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0 0 14px; }
+.forecast-v4__values dt { font-size:.75rem; line-height:1.3; color:var(--text-dim); }
+.forecast-v4__values dd { font-size:1.2rem; font-variant-numeric:tabular-nums; margin:6px 0 0; overflow-wrap:anywhere; }
+.forecast-v4 .forecast-v4__verdict { font-size:.9375rem; font-weight:600; }
+.forecast-v4 p { font-size:.875rem; }
+.forecast-v4__assumptions summary { min-height:44px; padding:10px 0; color:var(--text-dim); font-size:.8125rem; cursor:pointer; }
+.forecast-v4__assumptions p { color:var(--text-dim); margin-bottom:0; }
+.management-v4 .threat { max-width:none; }
+.management-v4 .threat__resp { padding:10px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+.management-v4 .threat__src { margin:10px 0; }
+.management-v4 .responses { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:0 0 22px; }
+.management-v4 .respbtn { padding:12px; border:1px solid var(--line); background:var(--v4-raised,#283237); color:var(--text); border-radius:4px; box-shadow:none; }
+.management-v4 .respbtn__label { font-size:.9375rem; }
+.management-v4 .respbtn__chips { gap:5px 10px; flex-wrap:wrap; }
+.management-v4 .respbtn__blocked { color:var(--text-dim); font-size:.8125rem; line-height:1.35; }
+.management-v4 .respbtn.is-current { border-color:var(--good); }
+.management-intelligence { border-top:1px solid var(--line); padding-top:8px; }
+.management-resolved { display:grid; grid-template-columns:24px 1fr; gap:4px 12px; padding:16px 0; border-bottom:1px solid var(--line); }
+.management-resolved h3 { margin:0; }.management-resolved span,.management-resolved strong { grid-column:2; }
+.management-v4 .models { margin-top:24px; }
+.management-v4 .model { background:transparent; border:0; border-top:1px solid var(--line); border-radius:0; padding:16px 0; }
+.management-v4 .model__top,.management-v4 .model__bottom { flex-wrap:wrap; gap:10px; }
+.management-v4 .model__ci { margin-left:0; }
+.management-v4 .model__actions { flex-wrap:wrap; }
+.management-v4 .model__actions button,.management-v4 .model__bottom > button { min-height:44px; }
+.management-v4 .trait { background:var(--v4-bg,#121719); border:0; border-radius:3px; }
+.management-v4 .worldmap { margin:0; }
+.management-v4 .worldmap__art { max-height:240px; }
+.management-v4 .worldmap__art svg { max-height:240px; }
+.management-accord-progress { margin-left:auto; color:var(--accent); font-size:1.75rem; font-variant-numeric:tabular-nums; }
+.management-accord > .btn { margin-top:14px; }
+.management-accord > .bar { margin-bottom:14px; }
+.management-supporters { color:var(--text-dim); font-size:.875rem; }
+.management-diplomacy-targets { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.management-operation { display:flex; flex-direction:column; text-align:left; align-items:flex-start; gap:8px; padding:14px; color:var(--text); background:var(--v4-raised,#283237); border:1px solid var(--line); border-radius:4px; }
+.management-operation strong { font-size:1rem; }.management-operation span { font-size:.875rem; color:var(--text-dim); }.management-operation small { font-size:.8125rem; color:var(--accent); }
+.management-tension { border-top:1px solid var(--line); margin-top:22px; padding-top:8px; }
+.management-tension h3 { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; }
+.management-action-catalog > div { border-bottom:1px solid var(--line); padding:10px 0 14px; }
+.management-action-catalog p { margin:8px 0 0; font-size:.875rem; color:var(--text-dim); }
+.management-embedded { gap:0; }
+@media (orientation:landscape) and (max-height:540px) {
+  .management-v4 { gap:6px; }
+  .management-v4 .pagehead__title { font-size:1.25rem; }
+  .management-v4 .pagehead__sub { display:none; }
+  .management-v4 .panel-sections .btn { padding:5px 12px; }
+  .management-detail { padding:14px 16px; }
+  .management-roster { padding:4px; }
+  .management-item { padding:10px 8px; }
+  .management-v4 .entity__logo { width:36px; height:36px; }
+}
+@media (max-width:600px) and (orientation:landscape) {
+  .management-split { grid-template-columns:144px minmax(0,1fr); }
+  .management-v4 .responses,.management-diplomacy-targets { grid-template-columns:1fr; }
+  .management-detail { padding:12px; }
+}
+@media (orientation:portrait) {
+  .management-split { display:flex; flex-direction:column; }
+  .management-roster { display:flex; flex:none; max-height:132px; overflow:auto; border-right:0; border-bottom:1px solid var(--line); gap:6px; padding:6px; }
+  .management-roster h2,.management-roster .management-ledger { display:none; }
+  .management-item { flex:0 0 160px; width:160px; padding:10px; }
+  .management-item + .management-item { border-top:0; }
+  .management-company-mark,.management-item > .icon { display:none; }
+  .management-v4 .responses,.management-diplomacy-targets { grid-template-columns:1fr; }
+  .management-v4 .pagehead__sub { display:none; }
+  .management-detail { padding:16px; }
+  .management-identity h2 { font-size:1.2rem; }
+}
+
+/* Program confirmation is a stable task control, outside its reading scroller. */
+.management-detail--program { overflow:hidden; display:flex; padding-bottom:0; }
+.management-program { display:flex; flex-direction:column; min-width:0; min-height:0; width:100%; }
+.management-program > .management-identity { flex:none; margin-bottom:10px; }
+.management-program > .management-identity p { display:none; }
+.management-program-scroll { flex:1; min-height:0; overflow:auto; padding-right:4px; overscroll-behavior:contain; scrollbar-width:thin; }
+.management-program-scroll .management-levels { margin-top:0; }
+.management-program-commit { display:flex; flex:none; gap:8px; padding:10px 0; border-top:1px solid var(--line); }
+.management-program-commit .btn { flex:1; min-width:0; text-align:center; padding:8px; font-size:.875rem; }
+.management-program-commit .btn span { display:block; font-size:.8125rem; }
+.management-v4 .company::before,.management-v4 .company::after,.management-v4 .rival::before,.management-v4 .rival::after { display:none; }
+.management-v4 .entity__head { border:0; padding:0; }
+@media (orientation:landscape) and (max-height:540px) {
+  .management-v4.page--nation > .pagehead { display:none; }
+  .management-item:has(>.icon),.management-item:has(>.management-company-mark) { grid-template-columns:24px minmax(0,1fr); column-gap:8px; }
+  .management-item > .icon,.management-item > .management-company-mark { grid-row:1/3; width:22px; height:22px; margin:0; }
+  .management-item:has(>.icon) > strong,.management-item:has(>.management-company-mark) > strong,.management-item:has(>.icon) > span:not(.icon),.management-item:has(>.management-company-mark) > span:not(.management-company-mark),.management-item:has(>.management-company-mark) > small { grid-column:2; }
+  .management-program > .management-identity { gap:8px; }
+  .management-program > .management-identity h2 { font-size:1.125rem; }
+  .management-program-commit { padding:6px 0; }
+  .management-program-commit .btn span { display:inline; padding-left:5px; }
+}
+
+.management-v4 .threat::before,.management-v4 .threat::after { display:none; }
+.management-threat-state { display:flex; flex-wrap:wrap; gap:4px 18px; border-block:1px solid var(--line); padding:8px 0; margin:12px 0; }
+.management-v4 .management-threat-state .threat__src,.management-v4 .management-threat-state .threat__resp { border:0; margin:0; padding:0; font-size:.875rem; }
+@media (orientation:landscape) and (max-height:540px) {
+  .management-v4.page--threats > .pagehead { display:none; }
+  .management-v4 .threat .entity__head { margin-bottom:8px; }
+  .management-v4 .threat .entity__name { font-size:1.2rem; }
+  .management-v4 .threat .entity__sub { font-size:.75rem; }
+  .management-v4 .threat__icon { width:32px; height:32px; }
+  .management-v4 .threat > h3 { margin-top:12px; }
+  .management-v4 .management-diplomacy-targets { margin-bottom:16px; }
+}
+.management-v4 .entity__name { margin:0; }
+.management-v4 .entity__sub { margin:4px 0 0; }
+.management-v4 .demand__title { color:var(--text); }
+
+@media (orientation:landscape) and (max-height:540px) {
+  .management-v4 .management-response-heading { margin:8px 0; }
+  .management-threat-state { margin:8px 0; padding:6px 0; }
+  .management-v4 .respbtn { padding:8px 10px; }
+  .management-program-scroll .management-levels { margin-bottom:8px; }
+  .management-levels button { padding:7px 6px; gap:3px; }
+  .management-funding-preview { padding-top:8px; }
+  .management-funding-preview h3 { margin-bottom:6px; }
+}
+
+.management-ledger-compact,.management-level-current { display:none; }
+@media (orientation:landscape) and (max-width:759px) {
+  .management-roster > .management-ledger { display:none; }
+  .management-ledger-compact { display:block; margin-top:8px; border-top:1px solid var(--line); }
+  .management-ledger-compact summary { min-height:44px; padding:12px 6px; color:var(--text-dim); font-size:.8125rem; cursor:pointer; }
+  .management-ledger-compact summary strong { color:var(--text); font-variant-numeric:tabular-nums; }
+  .management-ledger-compact .management-ledger { border:0; margin:0; padding:0 6px 8px; }
+  .management-levels button strong { display:flex; gap:5px; align-items:center; }
+  .management-levels .management-level-current { display:inline; color:var(--text-dim); font-size:.75rem; }
+  .management-level-current-text { display:none; }
+  .management-funding-preview > h3 { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
+  .management-program > .management-identity { margin-bottom:6px; }
+  .management-program-scroll .management-levels { margin-bottom:6px; }
+  .management-funding-preview { padding-top:6px; }
+}
+@media (orientation:landscape) and (max-width:759px) {
+  .management-program-commit .btn { display:block; }
+  .management-program-commit .btn span { display:block; padding:0; margin-top:2px; }
+}
+
+.management-program-name-short { display:none; }
+@media (orientation:landscape) and (max-width:759px) {
+  .management-program-name-full { display:none; }
+  .management-program-name-short { display:inline; }
+  h3.management-program-name-short { display:block; }
+  .management-program-commit .btn--primary { flex:1.7; }
+}

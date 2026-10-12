@@ -5,7 +5,7 @@
 import type { JSX } from 'preact';
 import { useState } from 'preact/hooks';
 import type { ActionView, ResponseView } from '../../engine/types';
-import { t } from '../../i18n';
+import { t, tp } from '../../i18n';
 import { CostChips, PreviewChip } from '../components/Chips';
 import { Icon } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
@@ -48,7 +48,7 @@ export function ActionSheet({
   const tgt = action.targets?.find((t) => t.id === target);
   const opt = action.options?.find((o) => o.id === option);
   const cost = opt?.cost ?? action.cost;
-  const preview = opt?.preview ?? action.preview;
+  const preview = opt?.preview ?? tgt?.preview ?? action.preview;
   const n = view.nation;
   const afford =
     cost.capacity && n.capacity < cost.capacity
@@ -65,133 +65,32 @@ export function ActionSheet({
   const hardBlocked = hardBlock || (needs ? null : afford);
   const blocked = hardBlocked || needs;
 
-  return (
-    <Sheet label={action.name} onClose={onClose} class="action-sheet">
-      <header class="detail__head">
-        <span class="detail__icon is-accent">
-          <Icon name={action.icon} size={26} />
-        </span>
-        <div class="detail__title">
-          <p class="eyebrow">{CATEGORY_LABEL[action.category]}</p>
-          <h2>{action.name}</h2>
-          {subject && <p class="dim">{subject}</p>}
-        </div>
-      </header>
-      <p class="detail__desc">{action.description}</p>
-
-      {action.targets && action.targets.length > 0 && !pickTarget && tgt && (
-        <div class="picker">
-          <div class="picker__head">
-            <span class="eyebrow">{t('Target')}</span>
-            {action.targets.length > 1 && (
-              <button type="button" class="linkbtn" onClick={() => setPickTarget(true)}>
-                {t('Change')}
-              </button>
-            )}
-          </div>
-          <div class={cx('picker__opt picker__opt--fixed is-on', tgt.disabled && 'is-blocked')}>
-            <span class="picker__text">
-              <span class="picker__label">{tgt.label}</span>
-              {tgt.sublabel && <span class="picker__sub">{tgt.sublabel}</span>}
-              {tgt.disabled && <span class="picker__blocked">{tgt.disabled}</span>}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {action.targets && action.targets.length > 0 && pickTarget && (
-        <fieldset class="picker">
-          <legend class="eyebrow">{t('Target')}</legend>
-          <div class="picker__list" role="radiogroup" aria-label={t('Target')}>
-            {action.targets.map((x) => (
-              <button
-                type="button"
-                key={x.id}
-                role="radio"
-                aria-checked={x.id === target}
-                class={cx('picker__opt', x.id === target && 'is-on', x.disabled && 'is-blocked')}
-                onClick={() => setTarget(x.id)}
-              >
-                <span class="picker__radio" aria-hidden="true" />
-                <span class="picker__text">
-                  <span class="picker__label">{x.label}</span>
-                  {x.sublabel && <span class="picker__sub">{x.sublabel}</span>}
-                  {x.disabled && <span class="picker__blocked">{x.disabled}</span>}
-                </span>
-              </button>
-            ))}
-          </div>
-        </fieldset>
-      )}
-
-      {action.options && action.options.length > 0 && (
-        <fieldset class="picker">
-          <legend class="eyebrow">{t('Option')}</legend>
-          <div class="picker__list" role="radiogroup" aria-label={t('Option')}>
-            {action.options.map((o) => (
-              <button
-                type="button"
-                key={o.id}
-                role="radio"
-                aria-checked={o.id === option}
-                class={cx('picker__opt', o.id === option && 'is-on', o.disabled && 'is-blocked')}
-                onClick={() => setOption(o.id)}
-              >
-                <span class="picker__radio" aria-hidden="true" />
-                <span class="picker__text">
-                  <span class="picker__label">{o.label}</span>
-                  {o.description && <span class="picker__sub">{o.description}</span>}
-                  {(o.preview.length > 0 || hasCost(o.cost)) && (
-                    <span class="picker__chips">
-                      <CostChips cost={o.cost} />
-                      {o.preview.map((p, i) => (
-                        <PreviewChip key={i} p={p} />
-                      ))}
-                    </span>
-                  )}
-                  {o.disabled && <span class="picker__blocked">{o.disabled}</span>}
-                </span>
-              </button>
-            ))}
-          </div>
-        </fieldset>
-      )}
-
-      <div class="confirm-fx">
-        <div class="confirm-fx__row">
-          <span class="eyebrow">{t('Cost')}</span>
-          <span class="chips">{hasCost(cost) ? <CostChips cost={cost} /> : <span class="dim">{action.options && !opt ? t('Depends on the option') : t('Free')}</span>}</span>
-        </div>
-        <div class="confirm-fx__row">
-          <span class="eyebrow">{t('Expected')}</span>
-          <span class="chips">
-            {preview.length ? (
-              preview.map((p, i) => <PreviewChip key={i} p={p} />)
-            ) : (
-              <span class="dim">{action.options && !opt ? t('Choose an option above') : t('No immediate visible effects')}</span>
-            )}
-          </span>
-        </div>
-      </div>
-
-      {!!cost.budget && <p class="small dim">{n.budget < cost.budget
-        ? t('Need {cost}; available {available}; shortfall {shortfall}.', { cost: money(cost.budget), available: money(n.budget), shortfall: money(Math.ceil((cost.budget - n.budget) * 100) / 100) })
-        : t('Available budget: {amount}', { amount: money(n.budget) })}</p>}
-
-      {hardBlocked && (
-        <p class="blocked" role="status">
-          <Icon name="lock" size={15} /> {blocked}
-        </p>
-      )}
-
-      <div class="sheet__actions">
-        <button type="button" class="btn btn--ghost" onClick={onClose}>
-          {t('Cancel')}
-        </button>
-        <button type="button" class="btn btn--primary" disabled={!!blocked} onClick={() => onConfirm(target, option)} data-autofocus={!blocked ? '' : undefined}>
-          {needs === 'target' ? t('Choose a target') : needs === 'option' ? t('Choose an option') : t('Authorize')}
-        </button>
-      </div>
-    </Sheet>
-  );
+  return <Sheet label={action.name} size="page" closeButton={false} onClose={onClose} class="action-sheet action-v4">
+    <div class="av4-shell">
+      <header class="av4-command"><button type="button" onClick={onClose}><Icon name="back" size={18} />{t('Cancel')}</button><span>{CATEGORY_LABEL[action.category]}</span><div>{money(n.budget)} · {tp(n.capacity, '{n} action', '{n} actions')}</div></header>
+      <main class="av4-body">
+        <section class="av4-brief">
+          <div class="av4-action-symbol"><Icon name={action.icon} size={40} /></div>
+          <h1>{action.name}</h1>
+          {subject && <p class="av4-subject">{subject}</p>}
+          <p>{action.description}</p>
+          {!!cost.budget && <p class="av4-budget">{n.budget < cost.budget
+            ? t('Need {cost}; available {available}; shortfall {shortfall}.', { cost: money(cost.budget), available: money(n.budget), shortfall: money(Math.ceil((cost.budget - n.budget) * 100) / 100) })
+            : t('Available budget: {amount}', { amount: money(n.budget) })}</p>}
+          {hardBlocked && <p class="av4-blocked" role="status"><Icon name="lock" size={16} />{hardBlocked}</p>}
+        </section>
+        <section class="av4-configuration">
+          {action.targets && action.targets.length > 0 && !pickTarget && tgt && <div class="av4-fixed-target"><div><span>{t('Target')}</span><h2>{tgt.label}</h2>{tgt.sublabel && <p>{tgt.sublabel}</p>}{tgt.disabled && <p class="av4-blocked">{tgt.disabled}</p>}</div>{action.targets.length > 1 && <button type="button" onClick={() => setPickTarget(true)}>{t('Change')}</button>}</div>}
+          {action.targets && action.targets.length > 0 && pickTarget && <fieldset class="av4-picker"><legend>{t('Target')}</legend><div class="picker__list" role="radiogroup" aria-label={t('Target')}>
+            {action.targets.map(x => <button type="button" key={x.id} role="radio" aria-checked={x.id === target} data-action-target={x.id} class={cx('av4-pick', x.id === target && 'is-selected', x.disabled && 'is-blocked')} onClick={() => setTarget(x.id)}><span class="av4-pick-mark" aria-hidden="true" /><span><strong>{x.label}</strong>{x.sublabel && <small>{x.sublabel}</small>}{x.disabled && <small class="av4-blocked">{x.disabled}</small>}</span></button>)}
+          </div></fieldset>}
+          {action.options && action.options.length > 0 && <fieldset class="av4-picker"><legend>{t('Option')}</legend><div class="picker__list" role="radiogroup" aria-label={t('Option')}>
+            {action.options.map(o => <button type="button" key={o.id} role="radio" aria-checked={o.id === option} data-action-option={o.id} class={cx('av4-pick', o.id === option && 'is-selected', o.disabled && 'is-blocked')} onClick={() => setOption(o.id)}><span class="av4-pick-mark" aria-hidden="true" /><span><strong>{o.label}</strong>{o.description && <small>{o.description}</small>}{(o.preview.length > 0 || hasCost(o.cost)) && <span class="av4-pick-effects"><CostChips cost={o.cost} />{o.preview.map((p, i) => <PreviewChip key={i} p={p} />)}</span>}{o.disabled && <small class="av4-blocked">{o.disabled}</small>}</span></button>)}
+          </div></fieldset>}
+          {preview.length > 0 && <section class="av4-expectations"><h2>{t('Expected')}</h2><div>{preview.map((p, i) => <PreviewChip key={i} p={p} />)}</div></section>}
+        </section>
+      </main>
+      <footer class="av4-dock"><div><span>{t('Cost')}</span>{hasCost(cost) ? <CostChips cost={cost} /> : <span>{action.options && !opt ? t('Depends on the option') : t('Free')}</span>}</div><button type="button" class="av4-authorize btn--primary" data-confirm-action disabled={!!blocked} onClick={() => !blocked && onConfirm(target, option)}>{needs === 'target' ? t('Choose a target') : needs === 'option' ? t('Choose an option') : t('Authorize')}<Icon name="chevron_right" size={18} /></button></footer>
+    </div>
+  </Sheet>;
 }

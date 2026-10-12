@@ -1,5 +1,5 @@
 /** Optional UI context. Engine saves remain authoritative; stale drafts are discarded. */
-import type { GameView } from '../../engine/types';
+import type { GameView, TabId } from '../../engine/types';
 import { readPreference, writePreference } from '../../platform/storage';
 
 export const TASK_KEY = 'ato.task.v1';
@@ -16,7 +16,8 @@ export interface TaskDraft {
   uid: string;
   selectedId: string | null;
   active: boolean;
-  route: 'decision' | 'company';
+  route: 'decision' | 'company' | 'management';
+  management?: { tab: TabId; section?: string; target?: string };
   reading: WorkspaceReading;
 }
 export const newReading = (): WorkspaceReading => ({ section: 'brief', pane: 'brief', scroll: { brief: 0, evidence: 0, effects: 0, options: 0 } });
@@ -26,7 +27,7 @@ export function newTask(view: GameView, uid: string): TaskDraft {
 export function validateTask(value: unknown, view: GameView): TaskDraft | null {
   if (!value || typeof value !== 'object') return null;
   const d = value as Partial<TaskDraft>;
-  const card = view.inbox.find(c => c.uid === d.uid && c.kind === 'deployment');
+  const card = view.inbox.find(c => c.uid === d.uid);
   if (d.schema !== 1 || d.seed !== view.seed || d.countryId !== view.country.id || d.turn !== view.turn || !card || view.gameOver) return null;
   const reading = newReading();
   if (d.reading && typeof d.reading === 'object') {
@@ -37,7 +38,12 @@ export function validateTask(value: unknown, view: GameView): TaskDraft | null {
       if (typeof n === 'number' && Number.isFinite(n) && n >= 0) reading.scroll[key] = Math.min(n, 100000);
     }
   }
-  return { ...newTask(view, card.uid), active: d.active === true, route: d.route === 'company' ? 'company' : 'decision',
+  const management = d.management && view.unlockedTabs.includes(d.management.tab) ? {
+    tab: d.management.tab, ...(typeof d.management.section === 'string' ? { section: d.management.section } : {}),
+    ...(typeof d.management.target === 'string' ? { target: d.management.target } : {}),
+  } : undefined;
+  return { ...newTask(view, card.uid), active: d.active === true, route: d.route === 'company' && card.kind === 'deployment' ? 'company' : d.route === 'management' && management ? 'management' : 'decision',
+    ...(management ? {management} : {}),
     selectedId: card.choices.some(c => c.id === d.selectedId) ? d.selectedId! : null, reading };
 }
 export function readTask(view: GameView): TaskDraft | null {

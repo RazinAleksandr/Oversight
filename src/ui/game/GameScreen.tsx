@@ -10,22 +10,23 @@ import { t } from '../../i18n';
 import { audio } from '../../audio';
 import { fx } from '../../fx';
 import { clearPending, readPending, writeSave, type SavedOverlay } from '../backend';
-import { DESKTOP_QUERY, useHeightVar, useMedia } from '../hooks';
+import { DESKTOP_QUERY, useMedia } from '../hooks';
 import { announce, cx, isInteractiveTarget } from '../util';
 import { closeTopSheet, sheetsOpen } from '../components/Sheet';
 import { ActionSheet, responseAsAction } from './ActionSheet';
 import { CompanyInspector, PilotOutcome } from './CompanyInspector';
 import { DeploymentWorkspace } from './DeploymentWorkspace';
 import { newTask, readTask, writeTask, type TaskDraft } from './taskDraft';
-import { BriefingSheet } from './Briefing';
 import { GameCtx, type GameCtxValue } from './context';
-import { Hud, MeterSheet, RiskSheet, METER_ORDER } from './Hud';
-import { EndQuarterButton, InboxPanel, InboxStack, isCrisisCard } from './Inbox';
-import { NewsList, NewsSheet } from './News';
+import { MeterSheet, RiskSheet, METER_ORDER } from './Hud';
+import { isCrisisCard } from './Inbox';
+import { CommandBar, CommandNav, QuarterAgenda, NationalStatus } from './CommandShell';
+import { NewsSheet } from './News';
 import { QuarterReport } from './QuarterReport';
 import { ActionResultOverlay, ChoiceResultOverlay } from './Results';
-import { TabBar, TABS } from './TabBar';
-import { TipPopup } from './Tips';
+import { TABS } from './TabBar';
+import { AdvisorHelp } from './Tips';
+import { LabsPanel } from './panels/LabsPanel';
 import { NationPanel } from './panels/NationPanel';
 import { ThreatsPanel } from './panels/ThreatsPanel';
 import { WorldPanel } from './panels/WorldPanel';
@@ -40,6 +41,8 @@ type Overlay =
 type SheetState =
   | { type: 'meter'; id: MeterId }
   | { type: 'risk' }
+  | { type: 'status' }
+  | { type: 'tip' }
   | { type: 'news' }
   | { type: 'action'; id: ActionId; targetId?: string; optionId?: string }
   | { type: 'response'; situationId: string; responseId: string }
@@ -54,12 +57,24 @@ export interface GameScreenProps {
   initialReport?: TurnReport | null;
 }
 
+function managementSections(route?: TaskDraft['management']): Record<string,string> {
+  if (!route) return {};
+  const sections: Record<string,string> = {};
+  if (route.section) sections[route.tab] = route.section;
+  if (route.target) {
+    const key = route.tab === 'labs' ? 'company' : route.tab === 'threats' ? 'threat' : route.tab === 'world' ? 'rival' : route.section === 'government' ? 'demand' : route.section === 'programs' ? 'program' : 'policy';
+    sections[key] = route.target;
+    if (route.tab === 'world') sections.world = route.target;
+  }
+  return sections;
+}
+
 export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreenProps): JSX.Element {
   const [version, setVersion] = useState(0);
-  const [tab, setTab] = useState<TabId>('inbox');
-  const [sections, setSections] = useState<Record<string, string>>({});
-  const scrollPositions = useRef<Partial<Record<TabId, number>>>({});
   const initialTask = useRef(readTask(game.view()));
+  const [tab, setTab] = useState<TabId>(() => initialTask.current?.active && initialTask.current.route === 'management' ? initialTask.current.management?.tab ?? 'inbox' : 'inbox');
+  const [sections, setSections] = useState<Record<string, string>>(() => managementSections(initialTask.current?.management));
+  const scrollPositions = useRef<Partial<Record<TabId, number>>>({});
   const [task, setTask] = useState<TaskDraft | null>(initialTask.current);
   const taskRef = useRef(task);
   const draftTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -79,15 +94,15 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     return () => { clearTimeout(draftTimer.current); window.removeEventListener('pagehide', flush); document.removeEventListener('visibilitychange', visibility); };
   }, []);
   const [overlay, setOverlay] = useState<Overlay>(() => initialReport ? { type: 'report', report: initialReport }
-    : readPending() ?? (initialTask.current?.active ? { type: 'card', uid: initialTask.current.uid } : null));
+    : readPending() ?? (initialTask.current?.active && initialTask.current.route !== 'management' ? { type: 'card', uid: initialTask.current.uid } : null));
   const choiceBusy = useRef(false);
   const investigationBusy = useRef(false);
+  const actionBusy = useRef(false);
   const [inspectionError, setInspectionError] = useState<string | null>(null);
   const [sheet, setSheet] = useState<SheetState>(null);
   const [fresh, setFresh] = useState<TabId[]>([]);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const desktop = useMedia(DESKTOP_QUERY);
-  const hudRef = useHeightVar<HTMLElement>('--hud-h');
   const mainRef = useRef<HTMLElement>(null);
   useLayoutEffect(() => { mainRef.current?.scrollTo({ top: scrollPositions.current[tab] ?? 0 }); }, [tab]);
   const pendingEnding = useRef<EndingReport | null>(null);
@@ -201,7 +216,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     setInspectionError(null);
     const current = game.view();
     const card = current.inbox.find(c => c.uid === uid);
-    if (card?.kind === 'deployment') {
+    if (card) {
       const previous = taskRef.current;
       updateTask(previous?.uid === uid && previous.turn === current.turn
         ? { ...previous, active: true, route: 'decision' } : newTask(current, uid));
@@ -230,7 +245,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
       toast(r.error ?? t('That choice is not available.'));
       return;
     }
-    const pilot = card.kind === 'deployment';
+    const pilot = true;
     if (taskRef.current?.uid === card.uid) updateTask(null);
     save({ type: 'choice', result: r, ...(pilot ? { pilot: true } : {}) });
     announce(`${card.title}: ${ch.label}. ${r.text}`);
@@ -249,10 +264,21 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     if (tab !== 'inbox' && !desktop) setTab('inbox');
   };
 
+  function openManagement(nextTab: TabId, section?: string, target?: string) {
+    if (!game.view().unlockedTabs.includes(nextTab)) return;
+    const management = { tab: nextTab, section, target };
+    if (overlay?.type === 'card' && taskRef.current) updateTask({ ...taskRef.current, active: true, route: 'management', management });
+    setSections(s => ({ ...s, ...managementSections(management) }));
+    setSheet(null); setOverlay(null); goTab(nextTab);
+  }
+
   const perform = (id: ActionId, targetId?: string, optionId?: string) => {
+    if (actionBusy.current) return;
+    actionBusy.current = true;
     const r = game.performAction(id, targetId, optionId);
     setSheet(null);
     if (!r.ok) {
+      actionBusy.current = false;
       // The engine validates at perform time (e.g. situation responses); explain, don't crash.
       audio.play('fail', { volume: 0.5 });
       toast(r.error ?? t('That action is not available right now.'));
@@ -270,7 +296,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     setInspectionError(null);
     if (finishIfOver()) { updateTask(null); return; }
     const current = game.view();
-    const card = current.inbox.find(c => c.uid === uid && c.kind === 'deployment');
+    const card = current.inbox.find(c => c.uid === uid);
     if (!card) {
       updateTask(null);
       setOverlay(null);
@@ -382,63 +408,39 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
       mainRef.current?.scrollTo({ top: 0 });
     },
     openCard,
-    openAction: (id, targetId, optionId) => setSheet({ type: 'action', id, targetId, optionId }),
-    openResponse: (situationId, responseId) => setSheet({ type: 'response', situationId, responseId }),
+    openAction: (id, targetId, optionId) => { actionBusy.current = false; setSheet({ type: 'action', id, targetId, optionId }); },
+    openResponse: (situationId, responseId) => { actionBusy.current = false; setSheet({ type: 'response', situationId, responseId }); },
     setProgram,
     goTab,
+    openManagement,
     endQuarter,
     toast,
     openNews: () => setSheet({ type: 'news' }),
   };
 
   // Tips show only when nothing else demands attention.
-  const tip = !overlay && !sheet ? view.pendingTips.find(id =>
+  const tip = !overlay ? view.pendingTips.find(id =>
     ['welcome', 'inbox', 'capacity', 'end_turn', 'low_confidence', 'risk_clock'].includes(id) ? tab === 'inbox' :
     id === 'labs' || id === 'first_deployment' ? tab === 'labs' :
     id === 'nation' || id === 'first_demand' ? tab === 'nation' :
     id === 'world' ? tab === 'world' : id === 'threats' || id === 'first_situation' || id === 'evidence' ? tab === 'threats' : false) : undefined;
-  const inlineChoice = overlay?.type === 'choice' && !overlay.pilot && !overlay.result.gameOver && !overlay.result.nextCardUid;
-  const inlineAction = overlay?.type === 'action' && !overlay.returnToCard && !overlay.result.gameOver;
+  const inlineChoice = false;
+  const inlineAction = false;
 
   const panel =
-    tab === 'labs' ? <NationPanel companies /> : tab === 'nation' ? <NationPanel /> : tab === 'world' ? <WorldPanel /> : tab === 'threats' ? <ThreatsPanel /> : <InboxPanel />;
+    tab === 'labs' ? <LabsPanel /> : tab === 'nation' ? <NationPanel /> : tab === 'world' ? <WorldPanel /> : tab === 'threats' ? <ThreatsPanel /> : <QuarterAgenda />;
 
   const openCardObj = overlay?.type === 'card' ? view.inbox.find((c) => c.uid === overlay.uid) : undefined;
 
   return (
     <GameCtx.Provider value={ctx}>
-      <div class={cx('game', desktop ? 'game--desktop' : 'game--phone', tip && 'has-tip')} data-country={view.country.id}>
-        <Hud hudRef={hudRef} onMeter={(id) => setSheet({ type: 'meter', id })} onRisk={() => setSheet({ type: 'risk' })} onMenu={() => onMenu()} />
-        <TabBar tab={tab} onTab={goTab} fresh={fresh} />
-        <main class="main" id="main" ref={mainRef} role="tabpanel" aria-labelledby={`tab-${tab === 'labs' ? 'nation' : tab === 'threats' ? 'inbox' : tab}`} key={tab} onScroll={() => { scrollPositions.current[tab] = mainRef.current?.scrollTop ?? 0; }}>
-          {(tab === 'inbox' || tab === 'threats') && <nav class="desk-nav" aria-label={t('Desk')}>
-            <button type="button" class={cx('btn', tab === 'inbox' && 'btn--accent')} onClick={() => goTab('inbox')}>{t('Briefings')}</button>
-            {view.unlockedTabs.includes('threats') && <button type="button" class={cx('btn', tab === 'threats' && 'btn--accent')} data-panel="threats" onClick={() => goTab('threats')}>{t('Threats')} · {view.situations.filter(s => !s.resolved).length}</button>}
-            <button type="button" class="btn" onClick={() => setSheet({ type: 'news' })}>{t('News')}</button>
-          </nav>}
-          {inlineChoice && overlay?.type === 'choice' && <ChoiceResultOverlay inline result={overlay.result} remaining={view.inbox.length} onNext={() => afterChoice(overlay.result)} onDesk={() => { clearPending(); setOverlay(null); }} />}
-          {inlineAction && overlay?.type === 'action' && <ActionResultOverlay inline result={overlay.result} onClose={() => { clearPending(); setOverlay(null); }} />}
+      <div class={cx('game command-game', desktop ? 'game--desktop' : 'game--phone')} data-country={view.country.id}>
+        <CommandBar onStatus={() => setSheet({type:'status'})} onRisk={() => setSheet({type:'risk'})} onMenu={() => onMenu()} onHelp={tip?()=>setSheet({type:'tip'}):undefined} />
+        <CommandNav tab={tab} onTab={goTab} />
+        <main class="main command-main" id="main" ref={mainRef} role="tabpanel" aria-labelledby={`tab-${tab}`} onScroll={() => { scrollPositions.current[tab] = mainRef.current?.scrollTop ?? 0; }}>
+          {task?.active && task.route === 'management' && <div class="command-return"><button type="button" data-return-task onClick={() => returnToDecision(task.uid)}>← {t('Return to decision')}</button><span>{view.inbox.find(c=>c.uid===task.uid)?.title}</span></div>}
           {panel}
-          {tip && <TipPopup id={tip} onDismiss={() => { game.dismissTip(tip); save(); }} />}
         </main>
-        {desktop ? (
-          <aside class="side" aria-label={t('Desk')}>
-            {tab !== 'inbox' && <InboxStack />}
-            <div class="side__end">
-              <EndQuarterButton wide />
-            </div>
-            <section class="side__news" aria-label={t('News')}>
-              <h2 class="side__title">
-                <span class="live-dot" aria-hidden="true" /> {t('News')}
-              </h2>
-              <NewsList news={view.news} limit={14} />
-            </section>
-          </aside>
-        ) : tab === 'inbox' && (
-          <div class="endbar">
-            <EndQuarterButton wide />
-          </div>
-        )}
 
         {toastMsg && (
           <div class="toast" role="status">
@@ -447,6 +449,8 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
         )}
 
         {/* Sheets */}
+        {sheet?.type === 'tip' && tip && <AdvisorHelp id={tip} onClose={()=>setSheet(null)} onDismiss={()=>{game.dismissTip(tip);save();setSheet(null);}}/>}
+        {sheet?.type === 'status' && <NationalStatus onClose={() => setSheet(null)} onMeter={id => setSheet({type:'meter',id})} />}
         {sheet?.type === 'meter' && <MeterSheet id={sheet.id} onClose={() => setSheet(null)} />}
         {sheet?.type === 'risk' && <RiskSheet onClose={() => setSheet(null)} />}
         {sheet?.type === 'news' && <NewsSheet news={view.news} onClose={() => setSheet(null)} />}
@@ -472,8 +476,8 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
           })()}
 
         {/* Overlays */}
-        {openCardObj?.kind === 'deployment' && task?.uid === openCardObj.uid ? (
-          task.route === 'company' ? <CompanyInspector card={openCardObj} error={inspectionError}
+        {openCardObj && task?.uid === openCardObj.uid && (
+          task.route === 'company' && openCardObj.kind === 'deployment' ? <CompanyInspector card={openCardObj} error={inspectionError}
             onReturn={() => returnToDecision(openCardObj.uid)}
             onInvestigate={companyId => investigateForDecision(openCardObj.uid, companyId)} />
           : <DeploymentWorkspace key={openCardObj.uid} card={openCardObj} selectedId={task.selectedId}
@@ -482,17 +486,8 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
               onSelect={selectedId => { if (taskRef.current) updateTask({ ...taskRef.current, selectedId }); }}
               onInspect={() => { investigationBusy.current = false; setInspectionError(null); if (taskRef.current) updateTask({ ...taskRef.current, route: 'company' }); }}
               onClose={() => { if (taskRef.current) updateTask({ ...taskRef.current, active: false }); setOverlay(null); }}
+              onManage={openManagement}
               onChoose={ch => choose(openCardObj, ch)} />
-        ) : openCardObj && (
-          <BriefingSheet
-            key={openCardObj.uid}
-            card={openCardObj}
-            onClose={() => {
-              audio.play('card_out', { volume: 0.7 });
-              setOverlay(null);
-            }}
-            onChoose={(ch) => choose(openCardObj, ch)}
-          />
         )}
         {overlay?.type === 'choice' && overlay.pilot && <PilotOutcome result={overlay.result} remaining={view.inbox.length}
           onNext={() => afterChoice(overlay.result)} onDesk={() => afterChoice(overlay.result, true)} />}
@@ -510,7 +505,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
             }}
           />
         )}
-        {overlay?.type === 'report' && <QuarterReport report={overlay.report} onContinue={afterReport} />}
+        {overlay?.type === 'report' && <QuarterReport report={overlay.report} onContinue={afterReport} onManage={(tab,section,target)=>{ afterReport(); openManagement(tab,section,target); }} />}
       </div>
     </GameCtx.Provider>
   );

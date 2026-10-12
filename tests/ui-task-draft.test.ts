@@ -8,6 +8,19 @@ function fixture() {
   return { game, card, draft: newTask(game.view(), card.uid) };
 }
 describe('deployment task recovery', () => {
+  it('recovers a non-deployment decision after a management detour and rejects a locked route', () => {
+    const game = newGame({countryId:'commonwealth',difficulty:'director',seed:20261012});
+    const card = game.view().inbox.find(c=>c.kind==='intro')!;
+    const draft = {...newTask(game.view(),card.uid),selectedId:card.choices[0].id,route:'management',management:{tab:'inbox',section:'briefings'}};
+    const before = game.serialize();
+    const restored = validateTask(JSON.parse(JSON.stringify(draft)),game.view());
+    expect(restored?.selectedId).toBe(card.choices[0].id);
+    expect(restored?.route).toBe('management');
+    expect(restored?.management?.tab).toBe('inbox');
+    expect(game.serialize()).toBe(before);
+    expect(validateTask({...draft,management:{tab:'not-a-tab'}},game.view())?.route).toBe('decision');
+    expect(validateTask({...draft,route:'company'},game.view())?.route).toBe('decision');
+  });
   it('rejects a draft from a different run, quarter or resolved card', () => {
     const { game, card, draft } = fixture();
     expect(validateTask({ ...draft, seed: draft.seed + 1 }, game.view())).toBeNull();

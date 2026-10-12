@@ -6,7 +6,7 @@ import type { JSX } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import type { CountryId, RivalView } from '../../../engine/types';
 import { Bar, EstimateLine, RangeBar } from '../../components/Bars';
-import { ActionChip, PageHead, Section, Trait } from '../../components/Common';
+import { ActionChip, PageHead, Trait } from '../../components/Common';
 import { Icon, Svg, artCached, isPlaceholder } from '../../components/Icon';
 import { cx } from '../../util';
 import { actionsFor, useGame } from '../context';
@@ -19,73 +19,38 @@ export function WorldPanel(): JSX.Element {
   const { view, actions, openAction, openCard, sections, selectSection } = useGame();
   const section = sections.world ?? 'overview';
   const n = view.nation;
-  const worldActions = actionsFor(actions, 'world');
-  // Untargeted actions first (export controls, recruitment), then targeted ones (open a target picker).
-  const ordered = [...worldActions.filter((a) => !a.targets), ...worldActions.filter((a) => a.targets)];
-  return (
-    <div class="page page--world">
-      <PageHead title={t('World')} sub={t('Three rival powers are racing too. Our picture of them is incomplete.')} />
-      <nav class="panel-sections" aria-label={t('World sections')}>
-        {[['overview', t('Overview')], ...view.rivals.map(r => [r.id, r.name])].map(([id, label]) => <button type="button" class={cx('btn', section === id && 'btn--accent')} aria-pressed={section === id} onClick={() => selectSection('world', id)}>{label}</button>)}
+  const treaty = view.inbox.find(c=>c.templateId==='sys:world:accord_ready');
+  const diplomacy = actions.find(a=>a.id==='diplomatic_initiative');
+  const otherActions = actionsFor(actions,'world').filter(a=>a.id!=='diplomatic_initiative');
+  const rival = view.rivals.find(r=>r.id===section);
+  return <div class="page page--world management-v4">
+    <PageHead title={t('World')} sub={t('Three rival powers are racing too. Our picture of them is incomplete.')}/>
+    <div class="management-split">
+      <nav class="management-roster" aria-label={t('World sections')}>
+        <button type="button" class={cx('management-item',section==='overview' && 'is-selected')} aria-pressed={section==='overview'} onClick={()=>selectSection('world','overview')}><Icon name="accord" size={20}/><strong>{t('Global Accord')}</strong><span>{n.accord.signed?t('Signed'):treaty?t('Ready to sign'):t('{n}% progress',{n:Math.round(n.accord.progress)})}</span></button>
+        <h2>{t('Rival powers')}</h2>
+        {view.rivals.map(r=><button type="button" key={r.id} class={cx('management-item',section===r.id && 'is-selected')} aria-pressed={section===r.id} data-rival-select={r.id} onClick={()=>selectSection('world',r.id)}><Svg class="management-company-mark" html={artCached.emblem(r.id,32)}/><strong>{r.name}</strong><span>{ATTITUDE_TEXT[r.attitude] ?? r.attitude} · {t('Trust')} {Math.round(r.trust)}</span>{r.accordMember && <small>{t('Accord supporter')}</small>}</button>)}
+        <button type="button" class={cx('management-item',section==='map' && 'is-selected')} aria-pressed={section==='map'} onClick={()=>selectSection('world','map')}><strong>{t('World map')}</strong><span>{t('Race tension')} {Math.round(n.tension)}</span></button>
+        <button type="button" class={cx('management-item',section==='actions' && 'is-selected')} aria-pressed={section==='actions'} onClick={()=>selectSection('world','actions')}><strong>{t('All international actions')}</strong></button>
       </nav>
-      {section === 'overview' && <div class="world-top">
-        <div class="world-gauges">
-          <div class={cx('panel gaugecard', n.tension >= 70 && 'is-hot')}>
-            <h3 class="eyebrow">
-              <Icon name="tension" size={13} /> {t('Race tension')}
-            </h3>
-            <Bar value={n.tension} tone={n.tension >= 90 ? 'bad' : n.tension >= 70 ? 'warn' : 'accent'} label={t('Race tension')} />
-            <p class="gaugecard__v">
-              <span class="num">{Math.round(n.tension)}</span>
-              <span class={cx('gaugecard__lbl', n.tension >= 70 ? 'is-bad' : n.tension >= 40 ? 'is-warn' : 'is-good')}>{tensionLabel(n.tension)}</span>
-            </p>
-          </div>
-          <div class={cx('panel gaugecard', n.accord.signed && 'is-signed')}>
-            <h3 class="eyebrow">
-              <Icon name="accord" size={13} /> {t('Global Accord')}
-            </h3>
-            <p class="gaugecard__v">
-              <span class="num">{n.accord.signed ? t('Signed') : `${Math.round(n.accord.progress)}%`}</span>
-            </p>
-            <Bar value={n.accord.progress} tone="good" label={t('Accord progress')} />
-            {!n.accord.signed && <p class="small">{t('Diplomacy builds progress. At 100%, a signing briefing arrives; the Accord takes effect only after you sign it.')}</p>}
-            {!n.accord.signed && view.inbox.find(c => c.templateId === 'sys:world:accord_ready') && <button class="btn btn--small" type="button" onClick={() => openCard(view.inbox.find(c => c.templateId === 'sys:world:accord_ready')!.uid)}>{t('Open treaty briefing')}</button>}
-            <p class="gaugecard__members">
-              {n.accord.members.length ? (
-                <>
-                  <span class="dim">{t('Supporters:')}</span>
-                  {n.accord.members.map((id) => (
-                    <Svg key={id} class="mini-emblem" html={artCached.emblem(id, 20)} label={view.rivals.find((r) => r.id === id)?.name ?? id} />
-                  ))}
-                </>
-              ) : (
-                <span class="dim">{t('No supporters yet')}</span>
-              )}
-            </p>
-          </div>
-        </div>
-        <details class="world-map-detail"><summary>{t('World map')}</summary><WorldMap /></details>
-      </div>}
-
-      {section !== 'overview' && <Section title={t('Rival powers')} icon="foreign">
-        <div class="cardgrid">
-          {view.rivals.filter(r => r.id === section).map((r) => (
-            <RivalCard key={r.id} r={r} />
-          ))}
-        </div>
-      </Section>}
-
-      {ordered.length > 0 && (
-        <Section title={t('International actions')} icon="diplomacy">
-          <div class="actrow actrow--loose">
-            {ordered.map((a) => (
-              <ActionChip key={a.id} action={a} onOpen={openAction} />
-            ))}
-          </div>
-        </Section>
-      )}
+      <div class="management-detail" key={section}>
+        {section==='overview' && <section class="management-accord">
+          <header class="management-identity"><Icon name="accord" size={30}/><div><p>{n.accord.signed?t('Signed'):treaty?t('Ready to sign'):t('Negotiations in progress')}</p><h2>{t('Global Accord')}</h2></div><strong class="management-accord-progress">{Math.round(n.accord.progress)}%</strong></header>
+          <Bar value={n.accord.progress} tone="good" label={t('Accord progress')}/>
+          {treaty && !n.accord.signed && <button type="button" class="btn btn--primary" onClick={()=>openCard(treaty.uid)}>{t('Open treaty briefing')}</button>}
+          <h3>{t('Diplomatic initiatives')}</h3>
+          {diplomacy && <div class="management-diplomacy-targets">{diplomacy.targets?.map(target=><button type="button" key={target.id} class="management-operation" data-diplomacy-target={target.id} onClick={()=>openAction(diplomacy.id,target.id)}><strong>{target.label}</strong><span>{target.sublabel ?? t('Build trust and Accord progress')}</span><small>{diplomacy.disabled ?? target.disabled ?? t('Review initiative')}</small></button>)}</div>}
+          {!n.accord.signed && <p>{t('Diplomacy builds progress. At 100%, a signing briefing arrives; the Accord takes effect only after you sign it.')}</p>}
+          {n.accord.signed && <p>{t('The agreement is active. Continue managing trust and the international race.')}</p>}
+          <p class="management-supporters">{t('Supporters:')} {n.accord.members.length?n.accord.members.map(id=>view.rivals.find(r=>r.id===id)?.name ?? view.country.name).join(' · '):t('No supporters yet')}</p>
+          <div class="management-tension"><h3>{t('Race tension')} <strong>{Math.round(n.tension)} · {tensionLabel(n.tension)}</strong></h3><Bar value={n.tension} tone={n.tension>=70?'warn':'accent'} label={t('Race tension')}/></div>
+        </section>}
+        {rival && <RivalCard r={rival}/>}
+        {section==='map' && <><h2>{t('World map')}</h2><WorldMap/></>}
+        {section==='actions' && <><h2>{t('All international actions')}</h2><div class="management-action-catalog">{[...(diplomacy?[diplomacy]:[]),...otherActions].map(a=><div key={a.id}><ActionChip action={a} onOpen={openAction}/><p>{a.description}</p></div>)}</div></>}
+      </div>
     </div>
-  );
+  </div>;
 }
 
 function WorldMap(): JSX.Element {
@@ -177,6 +142,13 @@ function RivalCard({ r }: { r: RivalView }): JSX.Element {
         <span class={cx('att', `att--${ATTITUDE_TONE[r.attitude]}`)}>{ATTITUDE_TEXT[r.attitude] ?? r.attitude}</span>
       </header>
 
+      {acts.length > 0 && (
+        <div class="actrow">
+          {acts.map((a) => (
+            <ActionChip key={a.id} action={a} targetId={r.id} onOpen={openAction} />
+          ))}
+        </div>
+      )}
       <div class="kvs">
         <div class="kvs__head">
           <span class="kv__k">{t('Frontier capability')}</span>
@@ -225,13 +197,7 @@ function RivalCard({ r }: { r: RivalView }): JSX.Element {
         {r.partnership && <span class="badge badge--ai">{t('Research partner')}</span>}
       </p>
 
-      {acts.length > 0 && (
-        <div class="actrow">
-          {acts.map((a) => (
-            <ActionChip key={a.id} action={a} targetId={r.id} onOpen={openAction} />
-          ))}
-        </div>
-      )}
+
     </article>
   );
 }

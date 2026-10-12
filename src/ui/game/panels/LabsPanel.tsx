@@ -48,20 +48,15 @@ export const ATTITUDE_TEXT: Record<string, string> = {
 export const relTone = (v: number) => (v >= 60 ? 'good' : v >= 35 ? 'warn' : 'bad');
 
 export function LabsPanel({ embedded = false }: { embedded?: boolean }): JSX.Element {
-  const { view } = useGame();
-  return (
-    <div class="page page--labs">
-      {!embedded && <PageHead title={t('Companies')} sub={t('Domestic AI companies — what they report, and what you actually know.')} />}
-      <div class="cardgrid">
-        {view.companies.map((c) => (
-          <details key={c.id} class="company-record">
-            <summary><strong>{c.name}</strong><span>{t('Capability')} {one(c.capability.low)}–{one(c.capability.high)}</span><span class={cx('is-' + ATTITUDE_TONE[c.attitude])}>{ATTITUDE_TEXT[c.attitude] ?? c.attitude}</span></summary>
-            <CompanyCard c={c} />
-          </details>
-        ))}
-      </div>
+  const { view, sections, selectSection } = useGame();
+  const selected = view.companies.find(c=>c.id===sections.company) ?? view.companies[0];
+  return <div class={cx('page page--labs management-v4',embedded && 'management-embedded')}>
+    {!embedded && <PageHead title={t('Companies')} sub={t('Domestic AI companies — what they report, and what you actually know.')} />}
+    <div class="management-split">
+      <nav class="management-roster" aria-label={t('Companies')}><h2>{t('Domestic companies')}</h2>{view.companies.map(c=><button type="button" key={c.id} class={cx('management-item',selected?.id===c.id && 'is-selected')} aria-pressed={selected?.id===c.id} data-company-select={c.id} onClick={()=>selectSection('company',c.id)}><Svg class="management-company-mark" html={artCached.logo(hash(c.id),c.color,c.archetype,32)}/><strong>{c.name}</strong><span>{t('Capability')} {one(c.capability.low)}–{one(c.capability.high)}</span><small>{ATTITUDE_TEXT[c.attitude] ?? c.attitude}</small></button>)}</nav>
+      <div class="management-detail" key={selected?.id}>{selected && <CompanyCard c={selected}/>}</div>
     </div>
-  );
+  </div>;
 }
 
 function CompanyCard({ c }: { c: CompanyView }): JSX.Element {
@@ -84,6 +79,13 @@ function CompanyCard({ c }: { c: CompanyView }): JSX.Element {
         </div>
         <span class={cx('att', `att--${ATTITUDE_TONE[c.attitude]}`)}>{ATTITUDE_TEXT[c.attitude] ?? c.attitude}</span>
       </header>
+      {acts.length > 0 && (
+        <div class="actrow">
+          {acts.map((a) => (
+            <ActionChip key={a.id} action={a} targetId={c.id} onOpen={openAction} />
+          ))}
+        </div>
+      )}
       <p class="entity__tag">“{c.tagline}”</p>
       {c.status !== 'active' && (
         <p class="badge badge--bad">
@@ -148,9 +150,9 @@ function CompanyCard({ c }: { c: CompanyView }): JSX.Element {
               <ModelRow
                 key={m.id}
                 m={m}
-                canAudit={!!audit && !audit.disabled && !!audit.targets?.some((t) => t.id === m.id && !t.disabled)}
+                canAudit={!!audit?.targets?.some((t) => t.id === m.id)}
                 onAudit={() => audit && openAction('audit_model', m.id)}
-                revoke={revoke?.targets?.find((t) => t.id === m.id && !t.disabled) ?? null}
+                revoke={revoke?.targets?.find((t) => t.id === m.id) ?? null}
                 onRevoke={() => openAction('revoke_model', m.id, m.status === 'restricted' ? 'suspend' : undefined)}
               />
             ))}
@@ -158,13 +160,7 @@ function CompanyCard({ c }: { c: CompanyView }): JSX.Element {
         </div>
       )}
 
-      {acts.length > 0 && (
-        <div class="actrow">
-          {acts.map((a) => (
-            <ActionChip key={a.id} action={a} targetId={c.id} onOpen={openAction} />
-          ))}
-        </div>
-      )}
+
     </article>
   );
 }
@@ -182,11 +178,12 @@ function ModelRow({
   revoke: ActionTarget | null;
   onRevoke(): void;
 }): JSX.Element {
-  const { goTab } = useGame();
+  const { view, openCard, goTab, selectSection } = useGame();
+  const pendingCard = view.inbox.find(c=>c.ctx.modelId===m.id && c.kind==='deployment');
   let flawText: string;
   let flawTone: string;
   let flawIcon: string;
-  if (m.flaw === 'unknown') [flawText, flawTone, flawIcon] = [t('Not audited'), 'dim', 'question'];
+  if (m.flaw === 'unknown') [flawText, flawTone, flawIcon] = [m.lastCheck ? t('No confirmed flaw') : t('Not independently evaluated'), 'dim', 'question'];
   else if (m.flaw === 'none_found') [flawText, flawTone, flawIcon] = [t('No issues found in the last check'), 'dim', 'check'];
   else if (m.flaw === 'suspected') [flawText, flawTone, flawIcon] = [t('Flaw suspected'), 'warn', 'warning'];
   else [flawText, flawTone, flawIcon] = [t('Flaw: {flaw}', { flaw: flawName(m.flaw) }), 'bad', 'warning'];
@@ -211,11 +208,12 @@ function ModelRow({
         {' '}{t('A negative result is not proof of safety.')}
       </p>}
       <div class="model__bottom">
+        {pendingCard && <button type="button" class="btn btn--primary" onClick={()=>openCard(pendingCard.uid)}>{t('Review deployment')}</button>}
         <span class={cx('flaw', `flaw--${flawTone}`)}>
           <Icon name={flawIcon} size={13} /> {flawText}
         </span>
         {m.situationId && (
-          <button type="button" class="linkbtn" onClick={() => goTab('threats')}>
+          <button type="button" class="linkbtn" onClick={() => { selectSection('threat',m.situationId!); goTab('threats'); }}>
             {t('Linked threat')} <Icon name="chevron_right" size={13} />
           </button>
         )}

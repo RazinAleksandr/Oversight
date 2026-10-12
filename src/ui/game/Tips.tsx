@@ -9,6 +9,7 @@ import { audio } from '../../audio';
 import { type CaseForm, formOf, t } from '../../i18n';
 import { countryCard } from '../countries';
 import { Portrait } from '../components/Icon';
+import { Sheet } from '../components/Sheet';
 import { advisorInfo, useGame } from './context';
 import { useHeightVar } from '../hooks';
 import { cx } from '../util';
@@ -62,6 +63,16 @@ export function fillTokens(text: string, view: GameView): string {
     if (v === undefined) return m;
     return form ? formOf(v, form as CaseForm) : v;
   });
+}
+
+/** Available when relevant, opened deliberately so advice never covers the playing surface. */
+export function AdvisorHelp({id,onClose,onDismiss}:{id:TipId;onClose():void;onDismiss():void}):JSX.Element {
+  const {view}=useGame();
+  const tip=tipDef(id),advisor=advisorInfo(view,tip.advisor);
+  return <Sheet size="page" class="advisor-help" label={t('Advisor advice')} onClose={onClose}>
+    <header><Portrait seed={advisor.portraitSeed} role="advisor" size={64} name={advisor.name}/><div><h1>{fillTokens(tip.title,view)}</h1><p>{advisor.name} · {advisor.role}</p></div></header>
+    <main><p>{fillTokens(tip.text,view)}</p></main><footer><button type="button" class="btn btn--primary" onClick={onDismiss}>{t('Got it')}</button></footer>
+  </Sheet>;
 }
 
 /**

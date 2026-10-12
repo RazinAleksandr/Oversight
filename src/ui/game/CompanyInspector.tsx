@@ -3,9 +3,11 @@ import type { JSX } from 'preact';
 import type { ActionResult, Card, ChoiceResult, TraitView } from '../../engine/types';
 import { t, tp } from '../../i18n';
 import { dateLabel } from '../../engine/labels';
+import { Icon, Svg, artCached } from '../components/Icon';
+import { ResolutionPage } from './Results';
 import { Sheet } from '../components/Sheet';
-import { ChangeChip, ConfBadge, CostChips, PreviewChip, mergeChanges } from '../components/Chips';
-import { money, one } from '../util';
+import { ConfBadge, CostChips, PreviewChip } from '../components/Chips';
+import { hash, money, one } from '../util';
 import { choiceBlock } from './Briefing';
 import { useGame } from './context';
 
@@ -19,12 +21,12 @@ export function CompanyInspector({ card, onReturn, onInvestigate, error }: {
 }): JSX.Element {
   const { view, actions } = useGame();
   const model = view.models.find(m => m.id === card.ctx.modelId);
-  const company = view.companies.find(c => c.id === model?.companyId);
+  const company = view.companies.find(c => c.id === (card.ctx.companyId ?? model?.companyId));
   const action = actions.find(a => a.id === 'investigate_company');
   const target = action?.targets?.find(t => t.id === company?.id);
   const deepEvaluation = card.choices.find(c => c.id === 'deep_eval' && !choiceBlock(c, { capacity: view.nation.capacity, budget: view.nation.budget, evidence: view.nation.evidence.length }));
   const blocked = action?.disabled ?? target?.disabled ?? (!action || !target ? t('That action is not available right now.') : null);
-  return <Sheet size="page" closeButton={false} label={t('Company investigation')} onClose={onReturn} class="pilot-inspector">
+  return <Sheet size="page" closeButton={false} label={t('Company investigation')} onClose={onReturn} class="pilot-inspector inspector-v4">
     <header class="pilot-inspector__bar" data-company-inspector>
       <button type="button" data-return-decision onClick={onReturn}>← {t('Return to decision')}</button>
       <span>{model?.name}</span>
@@ -32,8 +34,7 @@ export function CompanyInspector({ card, onReturn, onInvestigate, error }: {
     </header>
     <main class="pilot-inspector__body">
       <section class="pilot-inspector__record">
-        <p class="pilot-inspector__eyebrow">{t('Company record')}</p>
-        <h1>{company?.name ?? card.source.name}</h1>
+        <header class="iv4-company-identity">{company && <Svg html={artCached.logo(hash(company.id), company.color, company.archetype, 72)} label={company.name} />}<div><span>{t('Company record')}</span><h1>{company?.name ?? card.source.name}</h1>{company && <p>{company.ceo}</p>}</div></header>
         {company && <>
           <dl class="pilot-inspector__facts">
             <div><dt>{t('Capability estimate')}</dt><dd>{one(company.capability.low)}–{one(company.capability.high)} <ConfBadge c={company.capability.confidence} /></dd></div>
@@ -48,6 +49,7 @@ export function CompanyInspector({ card, onReturn, onInvestigate, error }: {
         </>}
       </section>
       <section class="pilot-inspector__purpose">
+        <Icon name="investigate" size={44} />
         <h2>{t('What this investigation tells you')}</h2>
         <p>{action?.description}</p>
         <p>{t('This checks the company. It does not repeat the model evaluation or guarantee that the model is safe.')}</p>
@@ -69,31 +71,8 @@ export function CompanyInspector({ card, onReturn, onInvestigate, error }: {
 export function PilotOutcome({ result, investigation = false, onNext, onDesk, remaining = 0 }: {
   result: ActionResult | ChoiceResult; investigation?: boolean; onNext(): void; onDesk?(): void; remaining?: number;
 }): JSX.Element {
-  const { view } = useGame();
-  const revealed = 'revealed' in result ? result.revealed ?? [] : [];
-  const changes = mergeChanges(result.changes);
-  return <Sheet size="page" closeButton={false} label={investigation ? t('Investigation complete') : t('Decision recorded')} class="pilot-inspector pilot-outcome">
-    <header class="pilot-inspector__bar" data-inspection-result={investigation || undefined} data-pilot-result={!investigation || undefined}>
-      <span>{view.dateLabel}</span>
-      <strong>{investigation ? t('Company investigation') : t('Decision recorded')}</strong>
-      <span class="pilot-inspector__resources">{money(view.nation.budget)} · {tp(view.nation.capacity, '{n} action', '{n} actions')}</span>
-    </header>
-    <main class="pilot-inspector__body pilot-outcome__body">
-      <section>
-        <p class="pilot-outcome__stamp">{investigation ? t('File updated') : t('Decision recorded')}</p>
-        <h1>{result.title}</h1>
-        <p>{result.text}</p>
-        {result.success !== undefined && <p><strong>{result.success ? t('It worked') : t('It failed')}</strong></p>}
-        {changes.length > 0 && <ul class="pilot-outcome__changes">{changes.map((c, i) => <li key={i}><ChangeChip c={c} /></li>)}</ul>}
-        {!!revealed.length && <><h2>{t('Investigation findings')}</h2><ul class="pilot-outcome__findings">{revealed.map((line, i) => <li key={i}>{line}</li>)}</ul></>}
-        {investigation && <p class="pilot-inspector__note">{t('These findings update the company record. The original model evaluation remains a separate report. A negative investigation is not proof of safety.')}</p>}
-      </section>
-    </main>
-    <footer class="pilot-inspector__footer result__actions">
-      {!investigation && onDesk && !result.gameOver && remaining > 0 && !('nextCardUid' in result && result.nextCardUid) && <button type="button" onClick={onDesk}>{t('Back to desk')}</button>}
-      <button type="button" data-return-decision={investigation || undefined} class="pilot-inspector__confirm btn--primary" onClick={onNext}>
-        {result.gameOver ? t('See what happened') : investigation ? t('Return to decision') : 'nextCardUid' in result && result.nextCardUid ? t('Continue') : remaining > 0 ? t('Next briefing ({n})', { n: remaining }) : t('Back to desk')}
-      </button>
-    </footer>
-  </Sheet>;
+  return <ResolutionPage result={result} investigation={investigation} pilot
+    label={investigation ? t('Investigation complete') : t('Decision recorded')}
+    primary={result.gameOver ? t('See what happened') : investigation ? t('Return to decision') : 'nextCardUid' in result && result.nextCardUid ? t('Continue') : remaining > 0 ? t('Next briefing ({n})', { n: remaining }) : t('Back to desk')}
+    onNext={onNext} onDesk={!investigation && !result.gameOver && remaining > 0 && !('nextCardUid' in result && result.nextCardUid) ? onDesk : undefined} />;
 }

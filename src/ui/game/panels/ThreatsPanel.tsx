@@ -7,7 +7,7 @@ import type { Situation, SituationView } from '../../../engine/types';
 import { dateLabel } from '../../../engine/labels';
 import { EstimateLine, RangeBar, StageStepper } from '../../components/Bars';
 import { CostChips, PreviewChip } from '../../components/Chips';
-import { EmptyState, PageHead, Section, rich } from '../../components/Common';
+import { EmptyState, PageHead, rich } from '../../components/Common';
 import { Icon } from '../../components/Icon';
 import { cx, hasCost } from '../../util';
 import { t } from '../../../i18n';
@@ -28,82 +28,44 @@ const STAGE_TONE = ['accent', 'warn', 'warn', 'bad', 'bad'] as const;
 
 /** Renders `**…**` segments of a translated sentence in bold (keeps the sentence one key). */
 export function ThreatsPanel(): JSX.Element {
-  const { view, actions, openAction } = useGame();
-  const active = view.situations.filter((s) => !s.resolved).sort((a, b) => b.stage - a.stage || Number(b.escalationWarning) - Number(a.escalationWarning));
-  const resolved = view.situations.filter((s) => s.resolved);
-  const signals = view.news.filter((n) => n.signal);
-  const followable = followableSignals(view, actions);
-  const investigate = actions.find((a) => a.id === 'investigate_situation');
-  return (
-    <div class="page page--threats">
-      <PageHead title={t('Threats')} sub={t('Detected situations. Undetected ones are still out there.')} />
-      {active.length === 0 ? (
-        <EmptyState icon="eye" title={t('No detected threats')} text={t('Quiet does not mean safe. Funding Evaluation & Oversight lets you see trouble sooner.')} />
-      ) : (
-        <div class="cardgrid cardgrid--threats">
-          {active.map((s) => (
-            <SituationCard key={s.id} s={s} canInvestigate={!!investigate?.targets?.some((t) => t.id === s.id)} onInvestigate={() => openAction('investigate_situation', s.id)} />
-          ))}
-        </div>
-      )}
-
-      {resolved.length > 0 && (
-        <Section title={t('Resolved')} icon="check">
-          <ul class="resolved">
-            {resolved.map((s) => (
-              <li key={s.id} class="resolved__row">
-                <Icon name={s.icon} size={16} />
-                <span class="resolved__name">{s.name}</span>
-                <span class={cx('pill', s.outcome === 'catastrophe' ? 'pill--bad' : 'pill--good')}>{s.outcome === 'catastrophe' ? t('Catastrophe') : s.outcome === 'faded' ? t('Faded') : t('Contained')}</span>
-              </li>
-            ))}
-          </ul>
-        </Section>
-      )}
-
-      <Section title={t('Warning signs')} icon="news" aside={<span class="dim small">{followable.length ? t('{n} worth a look', { n: followable.length }) : t('Possible early signals')}</span>} class="signals">
-        <div class={cx('panel signals__panel', followable.length > 0 && 'has-followable')}>
-          <p class="signals__intro">
-            {rich(t('Odd reports from the last three quarters. Most are noise. **Following one up** costs an action — if something real is behind it, you catch it before it grows.'), 'strong')}
-          </p>
-          {signals.length ? <NewsList news={signals} limit={10} /> : <p class="dim small">{t('No unusual reports. Keep watching the news.')}</p>}
-        </div>
-      </Section>
-    </div>
-  );
+  const { view, actions, openAction, sections, selectSection } = useGame();
+  const active = view.situations.filter(s=>!s.resolved).sort((a,b)=>b.stage-a.stage || Number(b.escalationWarning)-Number(a.escalationWarning));
+  const resolved = view.situations.filter(s=>s.resolved);
+  const selected = active.find(s=>s.id===sections.threat) ?? active[0];
+  const mode = sections.threatView ?? 'active';
+  const signals = view.news.filter(n=>n.signal);
+  const followable = followableSignals(view,actions);
+  const investigate = actions.find(a=>a.id==='investigate_situation');
+  return <div class="page page--threats management-v4">
+    <PageHead title={t('Threats')} sub={t('Detected situations. Undetected ones are still out there.')}/>
+    <nav class="panel-sections" aria-label={t('Threats')}>{[['active',t('Active threats')],['signals',t('Warning signs')],['resolved',t('Resolved')]].map(([id,label])=><button type="button" key={id} class={cx('btn',mode===id && 'btn--accent')} aria-pressed={mode===id} onClick={()=>selectSection('threatView',id)}>{label}</button>)}</nav>
+    {mode==='active' && (selected ? <div class="management-split"><nav class="management-roster" aria-label={t('Active threats')}><h2>{t('Needs attention')}</h2>{active.map(s=><button type="button" key={s.id} class={cx('management-item',selected.id===s.id && 'is-selected',s.escalationWarning && 'has-warning')} aria-pressed={selected.id===s.id} data-threat-select={s.id} onClick={()=>selectSection('threat',s.id)}><strong>{s.name}</strong><span>{s.stageLabel}{s.sourceLabel?` · ${s.sourceLabel}`:''}</span><small>{RESPONSE_LABEL[s.response]}</small>{s.escalationWarning && <small>{t('Escalation expected next quarter')}</small>}</button>)}</nav><div class="management-detail" key={selected.id}><SituationCard s={selected} canInvestigate={!!investigate?.targets?.some(target=>target.id===selected.id)} onInvestigate={()=>openAction('investigate_situation',selected.id)}/></div></div> : <div class="management-detail"><EmptyState icon="eye" title={t('No detected threats')} text={t('Quiet does not mean safe. Funding Evaluation & Oversight lets you see trouble sooner.')}/></div>)}
+    {mode==='signals' && <div class="management-detail"><h2>{t('Warning signs')} · {followable.length}</h2><p>{rich(t('Odd reports from the last three quarters. Most are noise. **Following one up** costs an action — if something real is behind it, you catch it before it grows.'),'strong')}</p>{signals.length?<NewsList news={signals} limit={10}/>:<p>{t('No unusual reports. Keep watching the news.')}</p>}</div>}
+    {mode==='resolved' && <div class="management-detail"><h2>{t('Resolved')}</h2>{resolved.length?resolved.map(s=><article class="management-resolved" key={s.id}><Icon name={s.icon} size={20}/><h3>{s.name}</h3><span>{s.sourceLabel}</span><strong>{s.outcome==='catastrophe'?t('Catastrophe'):s.outcome==='faded'?t('Faded'):t('Contained')}</strong></article>):<p>{t('No resolved threats yet.')}</p>}</div>}
+  </div>;
 }
 
 function SituationCard({ s, canInvestigate, onInvestigate }: { s: SituationView; canInvestigate: boolean; onInvestigate(): void }): JSX.Element {
-  const { openResponse } = useGame();
+  const { openResponse, actions } = useGame();
+  const investigation = actions.find(a=>a.id==='investigate_situation');
+  const activeResponse = (id: string) => ({monitor:'monitor',contain:'contained',restrict:'restricted',suspend:'suspended',shutdown:'shutdown',taskforce:'taskforce'} as Record<string,string>)[id] === s.response;
   const tone = STAGE_TONE[s.stage];
   // The engine exposes "investigate" as a response; avoid showing it twice.
   const hasInvestigateResponse = s.responses.some((r) => r.id === 'investigate');
+  const responses = [...s.responses].sort((a,b)=>Number(!!a.disabled)-Number(!!b.disabled));
   return (
-    <article class={cx('panel threat', `threat--${tone}`, s.escalationWarning && 'threat--escalating')}>
+    <article data-management-threat={s.id} class={cx('panel threat', `threat--${tone}`, s.escalationWarning && 'threat--escalating')}>
       <header class="entity__head">
         <span class={cx('threat__icon', `is-${tone}`)}>
           <Icon name={s.icon} size={24} />
         </span>
         <div class="entity__id">
           <h3 class="entity__name">{s.name}</h3>
-          <p class="entity__sub">
-            {s.detectedTurn === undefined
-              ? s.causeKnown
-                ? t('Cause identified')
-                : t('Cause unknown')
-              : s.detectedTurn > 0
-                ? s.causeKnown
-                  ? t('Cause identified · detected {date}', { date: dateLabel(s.detectedTurn) })
-                  : t('Cause unknown · detected {date}', { date: dateLabel(s.detectedTurn) })
-                : s.causeKnown
-                  ? t('Cause identified · detected before term')
-                  : t('Cause unknown · detected before term')}
-          </p>
+
         </div>
         <span class={cx('stagepill', `stagepill--${s.stage}`)}>{s.stageLabel}</span>
       </header>
 
-      <StageStepper stage={s.stage} />
 
       {s.escalationWarning && (
         <p class="threat__warn" role="alert">
@@ -111,30 +73,21 @@ function SituationCard({ s, canInvestigate, onInvestigate }: { s: SituationView;
         </p>
       )}
 
-      <p class="threat__text">{s.text}</p>
-
-      <div class="kvs">
-        <div class="kvs__head">
-          <span class="kv__k">{t('Severity (rough)')}</span>
-          <EstimateLine est={s.severity} digits={0} />
-        </div>
-        <RangeBar est={s.severity} max={100} tone={tone === 'accent' ? 'accent' : tone} />
-      </div>
-
-      <p class="threat__src">
+      <div class="management-threat-state"><p class="threat__src">
         <Icon name="target" size={15} />
         {s.causeKnown && s.sourceLabel ? (
           <span>
             {t('Source:')} <strong>{s.sourceLabel}</strong>
           </span>
         ) : (
-          <span>{t('Source unknown — investigate to unlock targeted responses.')}</span>
+          <span>{t('Cause unknown')}</span>
         )}
       </p>
       <p class="threat__resp">
         {t('Current response:')} <strong>{RESPONSE_LABEL[s.response]}</strong>
-      </p>
+      </p></div>
 
+      <h3 class="management-response-heading">{t('Available responses')}</h3>
       <div class="responses">
         {canInvestigate && !hasInvestigateResponse && (
           <button type="button" class="respbtn" onClick={onInvestigate}>
@@ -143,22 +96,22 @@ function SituationCard({ s, canInvestigate, onInvestigate }: { s: SituationView;
               <span class="respbtn__label">{t('Investigate')}</span>
             </span>
             <span class="respbtn__chips">
-              <CostChips cost={{ capacity: 1 }} />
+              <CostChips cost={investigation?.cost} />
             </span>
           </button>
         )}
-        {s.responses.map((r) => (
+        {responses.map((r) => (
           <button
             type="button"
             key={r.id}
-            class={cx('respbtn', r.disabled && 'is-blocked', r.id === s.response && 'is-current')}
-            onClick={() => openResponse(s.id, r.id)}
+            class={cx('respbtn', r.disabled && 'is-blocked', activeResponse(r.id) && 'is-current')}
+            data-threat-response={r.id} onClick={() => openResponse(s.id, r.id)}
             aria-label={r.disabled ? t('{label}, unavailable: {reason}', { label: r.label, reason: r.disabled }) : r.label}
           >
             <span class="respbtn__top">
               <Icon name={r.id === 'investigate' ? 'investigate' : r.id === 'monitor' ? 'eye' : 'respond'} size={16} />
               <span class="respbtn__label">{r.label}</span>
-              {r.id === s.response && <span class="respbtn__cur">{t('Active')}</span>}
+              {activeResponse(r.id) && <span class="respbtn__cur">{t('Active')}</span>}
             </span>
             {(hasCost(r.cost) || r.preview.length > 0) && (
               <span class="respbtn__chips">
@@ -176,6 +129,30 @@ function SituationCard({ s, canInvestigate, onInvestigate }: { s: SituationView;
           </button>
         ))}
       </div>
+      <section class="management-intelligence"><h3>{t('Situation report')}</h3>          <p class="entity__sub">
+            {s.detectedTurn === undefined
+              ? s.causeKnown
+                ? t('Cause identified')
+                : t('Cause unknown')
+              : s.detectedTurn > 0
+                ? s.causeKnown
+                  ? t('Cause identified · detected {date}', { date: dateLabel(s.detectedTurn) })
+                  : t('Cause unknown · detected {date}', { date: dateLabel(s.detectedTurn) })
+                : s.causeKnown
+                  ? t('Cause identified · detected before term')
+                  : t('Cause unknown · detected before term')}
+          </p><StageStepper stage={s.stage}/>{!s.causeKnown && <p>{t('Source unknown — investigate to unlock targeted responses.')}</p>}
+      <p class="threat__text">{s.text}</p>
+
+      <div class="kvs">
+        <div class="kvs__head">
+          <span class="kv__k">{t('Severity (rough)')}</span>
+          <EstimateLine est={s.severity} digits={0} />
+        </div>
+        <RangeBar est={s.severity} max={100} tone={tone === 'accent' ? 'accent' : tone} />
+      </div>
+
+      </section>
     </article>
   );
 }

@@ -21,6 +21,8 @@ export interface GameCtxValue {
   openResponse(situationId: string, responseId: string): void;
   setProgram(id: ProgramId, level: number): void;
   goTab(tab: TabId): void;
+  /** Open an operation in context, preserving the active decision and return route. */
+  openManagement(tab: TabId, section?: string, target?: string): void;
   endQuarter(): void;
   toast(msg: string): void;
   /** Open the full news feed sheet. */
