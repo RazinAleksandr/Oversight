@@ -177,6 +177,8 @@ export function runEvaluation(s: GameState, m: AIModel, bonus: number): EvalResu
   if (detected) m.flawKnown = true;
   m.suspected = suspected && !detected;
   m.evalConfidence = confidence;
+  m.lastCheckTurn = s.turn;
+  m.lastCheckDetection = undefined;
   return { detected, suspected, confidence, lines };
 }
 

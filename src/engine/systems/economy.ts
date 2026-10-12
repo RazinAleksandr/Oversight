@@ -3,6 +3,7 @@
  * Every term is recorded as a named reason so the UI can explain each meter move.
  */
 import { listJoinL, t } from '../../i18n';
+import { adoptionStep } from '../adoption';
 import { changeAdoptionTarget, changeMeter, changeResource, infraCap } from '../changes';
 import { getCountry } from '../content';
 import { PROGRAMS, PROGRAM_ORDER } from '../data/programs';
@@ -76,12 +77,9 @@ export function tickEconomy(s: GameState, tc: TickCtx): void {
   // Adoption ramps 40% of the way toward targets each quarter.
   const cap = infraCap(s);
   if (s.adoptionTarget.infrastructure > cap) s.adoptionTarget.infrastructure = cap;
-  const rate = clamp(0.4 * (1 + mods.adoptionRamp), 0.1, 0.9);
   for (const sector of SECTORS) {
     const before = s.adoption[sector];
-    let after = before + (s.adoptionTarget[sector] - before) * rate;
-    if (sector === 'infrastructure') after = Math.min(after, cap);
-    s.adoption[sector] = clamp(after, 0, 100);
+    s.adoption[sector] = adoptionStep(before, s.adoptionTarget[sector], mods.adoptionRamp, sector === 'infrastructure' ? cap : 100);
     tc.adoptionDelta[sector] = s.adoption[sector] - before;
   }
 

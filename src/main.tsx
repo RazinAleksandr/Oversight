@@ -10,8 +10,11 @@ import './styles/ui-card.css';
 import './styles/ui-screens.css';
 import { getLang, loadLangPack, setLang } from './i18n';
 import { bootLang } from './ui/lang';
+import { initializeStorage } from './platform/storage';
+import { t } from './i18n';
 
 async function start(): Promise<void> {
+  await initializeStorage();
   const lang = bootLang();
   if (lang !== 'en') {
     try {
@@ -28,4 +31,14 @@ async function start(): Promise<void> {
   await import('./boot');
 }
 
-void start();
+void start().catch(() => {
+  const root = document.getElementById('app')!;
+  const message = document.createElement('p');
+  message.textContent = t('Saved data could not be opened. Your files have been kept.');
+  const retry = document.createElement('button');
+  retry.className = 'btn btn--primary';
+  retry.textContent = t('Retry');
+  retry.onclick = () => window.location.reload();
+  root.style.padding = 'max(24px, env(safe-area-inset-top)) 24px';
+  root.replaceChildren(message, retry);
+});

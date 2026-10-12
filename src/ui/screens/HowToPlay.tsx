@@ -4,17 +4,18 @@
 import type { JSX } from 'preact';
 import { t } from '../../i18n';
 import { METER_INFO } from '../../engine/labels';
-import type { MeterId } from '../../engine/types';
+import type { GameView, MeterId } from '../../engine/types';
 import { RangeBar, StageStepper } from '../components/Bars';
 import { ChanceBadge, ConfBadge, CostChips, PreviewChip, UncertainChip } from '../components/Chips';
 import { Trait, rich } from '../components/Common';
 import { Icon } from '../components/Icon';
 import { RiskClock } from '../components/RiskClock';
+import { tipDef, fillTokens } from '../game/Tips';
 import { Sheet } from '../components/Sheet';
 
 const METERS: MeterId[] = ['confidence', 'economy', 'stability', 'security'];
 
-export function HowToPlay({ onClose }: { onClose(): void }): JSX.Element {
+export function HowToPlay({ onClose, view }: { onClose(): void; view?: GameView }): JSX.Element {
   return (
     <Sheet label={t('How to play')} onClose={onClose} size="full" class="howto-sheet">
       <div class="howto">
@@ -26,6 +27,10 @@ export function HowToPlay({ onClose }: { onClose(): void }): JSX.Element {
           </p>
         </header>
 
+        {view?.tipsShown?.length ? <section class="howto__sec">
+          <h3 class="howto__h">{t('Advice received')}</h3>
+          {view.tipsShown.map(id => { const tip = tipDef(id); return <details class="howto__tip" key={id}><summary>{tip.title}</summary><p>{fillTokens(tip.text, view)}</p></details>; })}
+        </section> : null}
         <section class="howto__sec">
           <h3 class="howto__h">
             <span class="howto__n">1</span> {t('The quarterly loop')}

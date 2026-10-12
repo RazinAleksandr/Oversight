@@ -3,13 +3,13 @@
  * (briefing → result → next, actions, quarter report, tips), autosave, audio/fx reactions and keyboard.
  */
 import type { JSX } from 'preact';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { ActionId, ActionResult, Card, Choice, ChoiceResult, EndingReport, GameAPI, GameEvent, MeterId, ProgramId, TabId, TurnReport } from '../../engine/types';
 import { METER_INFO } from '../../engine/labels';
 import { t } from '../../i18n';
 import { audio } from '../../audio';
 import { fx } from '../../fx';
-import { writeSave } from '../backend';
+import { clearPending, readPending, writeSave, type SavedOverlay } from '../backend';
 import { DESKTOP_QUERY, useHeightVar, useMedia } from '../hooks';
 import { announce, cx, isInteractiveTarget } from '../util';
 import { closeTopSheet, sheetsOpen } from '../components/Sheet';
@@ -55,16 +55,19 @@ export interface GameScreenProps {
 export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreenProps): JSX.Element {
   const [version, setVersion] = useState(0);
   const [tab, setTab] = useState<TabId>('inbox');
-  const [overlay, setOverlay] = useState<Overlay>(initialReport ? { type: 'report', report: initialReport } : null);
+  const [sections, setSections] = useState<Record<string, string>>({});
+  const scrollPositions = useRef<Partial<Record<TabId, number>>>({});
+  const [overlay, setOverlay] = useState<Overlay>(() => initialReport ? { type: 'report', report: initialReport } : readPending());
   const [sheet, setSheet] = useState<SheetState>(null);
   const [fresh, setFresh] = useState<TabId[]>([]);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const desktop = useMedia(DESKTOP_QUERY);
   const hudRef = useHeightVar<HTMLElement>('--hud-h');
   const mainRef = useRef<HTMLElement>(null);
+  useLayoutEffect(() => { mainRef.current?.scrollTo({ top: scrollPositions.current[tab] ?? 0 }); }, [tab]);
   const pendingEnding = useRef<EndingReport | null>(null);
   /** True from End Quarter until the report is dismissed: blocks re-entry (double taps, key repeat). */
-  const turnBusy = useRef(!!initialReport);
+  const turnBusy = useRef(overlay?.type === 'report');
 
   // Re-render on every engine event.
   useEffect(
@@ -158,13 +161,12 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     announce(msg);
   }, []);
 
-  const save = () => writeSave(game);
+  const save = (pending: SavedOverlay | null = null) => writeSave(game, pending);
 
   const goTab = useCallback((t: TabId) => {
     audio.play('tab');
     setTab(t);
     setFresh((f) => f.filter((x) => x !== t));
-    mainRef.current?.scrollTo({ top: 0 });
   }, []);
 
   const openCard = useCallback((uid: string) => {
@@ -189,12 +191,13 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
       toast(r.error ?? t('That choice is not available.'));
       return;
     }
-    save();
+    save({ type: 'choice', result: r });
     announce(`${card.title}: ${ch.label}. ${r.text}`);
     setOverlay({ type: 'choice', result: r });
   };
 
   const afterChoice = (r: ChoiceResult, toDesk = false) => {
+    clearPending();
     if (finishIfOver()) return;
     const v = game.view();
     if (r.nextCardUid && v.inbox.some((c) => c.uid === r.nextCardUid)) return setOverlay({ type: 'card', uid: r.nextCardUid });
@@ -212,7 +215,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
       toast(r.error ?? t('That action is not available right now.'));
       return;
     }
-    save();
+    save({ type: 'action', result: r });
     announce(`${r.title}. ${r.text}`);
     setOverlay({ type: 'action', result: r });
   };
@@ -235,13 +238,14 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     }
     turnBusy.current = true;
     const report = game.endTurn();
-    save();
+    save({ type: 'report', report });
     setSheet(null);
     setOverlay({ type: 'report', report });
     announce(t('Quarter ended. {date} begins.', { date: report.dateLabel }));
   }, [game]);
 
   const afterReport = () => {
+    clearPending();
     turnBusy.current = false;
     if (finishIfOver()) return;
     setOverlay(null);
@@ -283,6 +287,11 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     view,
     actions,
     desktop,
+    sections,
+    selectSection: (panel, section) => {
+      setSections(s => ({ ...s, [panel]: section }));
+      mainRef.current?.scrollTo({ top: 0 });
+    },
     openCard,
     openAction: (id, targetId, optionId) => setSheet({ type: 'action', id, targetId, optionId }),
     openResponse: (situationId, responseId) => setSheet({ type: 'response', situationId, responseId }),
@@ -307,7 +316,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
         <Hud hudRef={hudRef} onMeter={(id) => setSheet({ type: 'meter', id })} onRisk={() => setSheet({ type: 'risk' })} onMenu={() => onMenu()} />
         {!desktop && <NewsTicker news={view.news} onOpen={() => setSheet({ type: 'news' })} />}
         <TabBar tab={tab} onTab={goTab} fresh={fresh} />
-        <main class="main" id="main" ref={mainRef} role="tabpanel" aria-labelledby={`tab-${tab}`} key={tab}>
+        <main class="main" id="main" ref={mainRef} role="tabpanel" aria-labelledby={`tab-${tab}`} key={tab} onScroll={() => { scrollPositions.current[tab] = mainRef.current?.scrollTop ?? 0; }}>
           {panel}
         </main>
         {desktop ? (
@@ -329,7 +338,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
           </div>
         )}
 
-        {tip && <TipPopup id={tip} onDismiss={() => game.dismissTip(tip)} />}
+        {tip && <TipPopup id={tip} onDismiss={() => { game.dismissTip(tip); save(); }} />}
 
         {toastMsg && (
           <div class="toast" role="status">
@@ -381,6 +390,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
           <ActionResultOverlay
             result={overlay.result}
             onClose={() => {
+              clearPending();
               if (!finishIfOver()) setOverlay(null);
             }}
           />

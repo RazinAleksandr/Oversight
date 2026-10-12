@@ -28,6 +28,7 @@ let schedTimer: ReturnType<typeof setInterval> | null = null;
 let unavailable = false;
 let primed = false;
 let suspendedForHidden = false;
+let appActive = true;
 let activeVoices = 0;
 const lastPlayed = new Map<SfxId, number>();
 
@@ -66,23 +67,31 @@ function ensureContext(): boolean {
 }
 
 function resume(): void {
-  if (!ctx || ctx.state === 'closed' || suspendedForHidden) return;
+  if (!ctx || ctx.state === 'closed' || suspendedForHidden || !appActive || document.hidden) return;
   if (ctx.state !== 'running') ctx.resume().catch(() => { /* needs a gesture; retried on next call */ });
 }
 
 function onVisibility(): void {
   guard(() => {
     if (!ctx || ctx.state === 'closed') return;
-    if (document.hidden) {
+    if (document.hidden || !appActive) {
+      suspendedForHidden = true;
+      if (schedTimer) { clearInterval(schedTimer); schedTimer = null; }
       if (ctx.state === 'running') {
-        suspendedForHidden = true;
-        ctx.suspend().catch(() => { suspendedForHidden = false; });
+        ctx.suspend().catch(report);
       }
-    } else if (suspendedForHidden) {
+    } else {
       suspendedForHidden = false;
-      ctx.resume().catch(() => {});
+      resume();
+      if (musicState.wanted && settings.music) startMusicNow();
     }
   });
+}
+
+/** Native interruptions share the same suspension path as page visibility. */
+export function setAudioActive(active: boolean): void {
+  appActive = active;
+  onVisibility();
 }
 
 /** Push volume / enable flags into the graph (smoothed, so toggles never click). */
@@ -106,7 +115,7 @@ function applySettings(immediate = false): void {
 // ───────────────────────────── music ─────────────────────────────
 
 function startMusicNow(): void {
-  if (!ctx || !graph) return;
+  if (!ctx || !graph || !appActive || document.hidden) return;
   const fresh = !music;
   if (!music) music = new Music(ctx, graph.music, graph.musicVerb);
   music.setMood(musicState.mood);
@@ -125,7 +134,7 @@ function startMusicNow(): void {
 // ───────────────────────────── sfx ─────────────────────────────
 
 function playNow(id: SfxId, opts?: { volume?: number; pitch?: number }): void {
-  if (!settings.sound || !ctx || !graph || ctx.state === 'closed') return;
+  if (!settings.sound || !ctx || !graph || ctx.state === 'closed' || !appActive || document.hidden) return;
   const recipe = SFX[id];
   if (!recipe) return;
   resume();

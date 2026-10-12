@@ -52,6 +52,8 @@ export function SettingsSheet({
   onQuit,
   onLang,
   confirmQuit,
+  onExport,
+  onImport,
 }: {
   onClose(): void;
   inGame?: boolean;
@@ -62,6 +64,8 @@ export function SettingsSheet({
   /** Saves (if needed) and switches language — reloads the page. */
   onLang(l: Lang): void;
   confirmQuit?: boolean;
+  onExport?(): void;
+  onImport?(file: File): void;
 }): JSX.Element {
   const { settings, update } = useSettings();
   const lang = getLang();
@@ -140,6 +144,16 @@ export function SettingsSheet({
           </button>
         </div>
       )}
+      <div class="save-transfer">
+        {onExport && <button type="button" class="btn" onClick={onExport}>{t('Export save')}</button>}
+        {onImport && <label class="save-import">
+          <span>{t('Import save')}</span>
+          <input type="file" accept=".json,application/json" onChange={e => {
+            const file = e.currentTarget.files?.[0]; if (file) onImport(file);
+            e.currentTarget.value = '';
+          }} />
+        </label>}
+      </div>
       <div class="sheet__actions">
         <button type="button" class="btn btn--primary btn--wide" onClick={onClose} data-autofocus={confirmQuit ? undefined : ''}>
           {inGame ? t('Resume') : t('Done')}

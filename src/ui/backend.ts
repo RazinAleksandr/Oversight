@@ -2,7 +2,9 @@
  * Backend abstraction (real engine or MockGame) + save-slot helpers.
  * main.tsx decides which backend to hand to <App/>.
  */
-import type { GameAPI, NewGameOptions } from '../engine/types';
+import type { ActionResult, ChoiceResult, GameAPI, NewGameOptions, TurnReport } from '../engine/types';
+import { readSnapshot, writeSnapshot } from '../platform/storage';
+export { SAVE_KEY } from '../platform/storage';
 
 export interface Backend {
   kind: 'engine' | 'mock';
@@ -13,34 +15,28 @@ export interface Backend {
   canLoad(json: string): boolean;
 }
 
-export const SAVE_KEY = 'ato.save.v1';
-
 /** Mock saves are tagged; a cheap string check avoids loading the mock module just to look. */
 export function isMockSave(json: string): boolean {
   return json.includes('"__mock":true');
 }
 
 export function readSave(): string | null {
-  try {
-    return localStorage.getItem(SAVE_KEY);
-  } catch {
-    return null;
-  }
+  return readSnapshot().active;
 }
 
-export function writeSave(game: GameAPI): void {
+export type SavedOverlay = { type: 'choice'; result: ChoiceResult } | { type: 'action'; result: ActionResult } | { type: 'report'; report: TurnReport };
+export function readPending(): SavedOverlay | null {
   try {
-    if (game.view().gameOver) localStorage.removeItem(SAVE_KEY);
-    else localStorage.setItem(SAVE_KEY, game.serialize());
-  } catch (e) {
-    console.warn('[ui] autosave failed', e);
-  }
+    const saved = JSON.parse(readSnapshot().pending ?? 'null');
+    return saved && (saved.type === 'report' && saved.report || ['choice', 'action'].includes(saved.type) && saved.result) ? saved : null;
+  } catch { return null; }
+}
+export function clearPending(): void { writeSnapshot({ pending: null }); }
+export function writeSave(game: GameAPI, pending?: SavedOverlay | null): void {
+  if (game.view().gameOver) writeSnapshot({ active: null, completed: game.serialize(), pending: null });
+  else writeSnapshot({ active: game.serialize(), ...(pending !== undefined ? { pending: pending ? JSON.stringify(pending) : null } : {}) });
 }
 
 export function clearSave(): void {
-  try {
-    localStorage.removeItem(SAVE_KEY);
-  } catch {
-    /* ignore */
-  }
+  writeSnapshot({ active: null, pending: null });
 }

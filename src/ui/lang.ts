@@ -4,12 +4,13 @@
  * `?lang=ru|en` in the URL overrides the saved choice for that page load (QA, screenshots).
  */
 import { type Lang, detectLang } from '../i18n';
+import { flushStorage, native, readPreference, writePreference } from '../platform/storage';
 
 export const LANG_KEY = 'ato.lang.v1';
 
 function savedLang(): string | null {
   try {
-    return localStorage.getItem(LANG_KEY);
+    return readPreference(LANG_KEY);
   } catch {
     return null;
   }
@@ -27,12 +28,14 @@ export function bootLang(): Lang {
 }
 
 /** Saves the language and reloads the page (dropping a `?lang=` override so the saved choice wins). */
-export function switchLang(l: Lang): void {
+export async function switchLang(l: Lang): Promise<void> {
   let stored = false;
   try {
-    localStorage.setItem(LANG_KEY, l);
-    stored = localStorage.getItem(LANG_KEY) === l;
-  } catch {
+    writePreference(LANG_KEY, l);
+    await flushStorage();
+    stored = readPreference(LANG_KEY) === l;
+  } catch (error) {
+    if (native) throw error;
     /* storage unavailable (private mode): fall back to the URL override */
   }
   const url = new URL(window.location.href);

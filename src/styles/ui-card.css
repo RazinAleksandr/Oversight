@@ -16,6 +16,19 @@
 .briefing-sheet .sheet__close {
   margin: 8px 10px 0 0;
 }
+.briefing__dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  padding: 8px var(--gutter) calc(8px + var(--safe-b));
+  border-top: 1px solid var(--line);
+  background: #0a111f;
+}
+.briefing-sheet .decision,
+.briefing-sheet .dossier {
+  scroll-margin-top: 60px;
+  scroll-margin-bottom: 84px;
+}
 .briefing__count {
   display: flex;
   align-items: center;
@@ -52,6 +65,20 @@
 }
 
 /* ── Dossier (paper) ──────────────────────────────────────────────────── */
+.dossier__reveal {
+  display: flex;
+  justify-content: flex-end;
+}
+.dossier__reveal .linkbtn {
+  color: var(--ink-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.dossier__reveal .linkbtn:disabled {
+  color: var(--ink-dim);
+  text-decoration: none;
+  opacity: 1;
+}
 .dossier {
   position: relative;
   margin-top: 6px;
@@ -1333,7 +1360,7 @@
   margin-bottom: 4px;
 }
 .picker__head .linkbtn {
-  min-height: 36px;
+  min-height: 44px;
 }
 .picker__opt--fixed {
   cursor: default;
@@ -1344,3 +1371,6 @@
   gap: 5px;
   margin-top: 6px;
 }
+
+.decision__sources { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.evidence, .advisors { scroll-margin-top: 72px; }

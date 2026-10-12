@@ -16,7 +16,8 @@ import { t } from '../../../i18n';
 const tensionLabel = (v: number) => (v >= 90 ? t('Brink of war') : v >= 70 ? t('Escalating') : v >= 40 ? t('Rising') : t('Calm'));
 
 export function WorldPanel(): JSX.Element {
-  const { view, actions, openAction } = useGame();
+  const { view, actions, openAction, openCard, sections, selectSection } = useGame();
+  const section = sections.world ?? 'overview';
   const n = view.nation;
   const worldActions = actionsFor(actions, 'world');
   // Untargeted actions first (export controls, recruitment), then targeted ones (open a target picker).
@@ -24,7 +25,10 @@ export function WorldPanel(): JSX.Element {
   return (
     <div class="page page--world">
       <PageHead title={t('World')} sub={t('Three rival powers are racing too. Our picture of them is incomplete.')} />
-      <div class="world-top">
+      <nav class="panel-sections" aria-label={t('World sections')}>
+        {[['overview', t('Overview')], ...view.rivals.map(r => [r.id, r.name])].map(([id, label]) => <button type="button" class={cx('btn', section === id && 'btn--accent')} aria-pressed={section === id} onClick={() => selectSection('world', id)}>{label}</button>)}
+      </nav>
+      {section === 'overview' && <div class="world-top">
         <WorldMap />
         <div class="world-gauges">
           <div class={cx('panel gaugecard', n.tension >= 70 && 'is-hot')}>
@@ -45,6 +49,8 @@ export function WorldPanel(): JSX.Element {
               <span class="num">{n.accord.signed ? t('Signed') : `${Math.round(n.accord.progress)}%`}</span>
             </p>
             <Bar value={n.accord.progress} tone="good" label={t('Accord progress')} />
+            {!n.accord.signed && <p class="small">{t('Diplomacy builds progress. At 100%, a signing briefing arrives; the Accord takes effect only after you sign it.')}</p>}
+            {!n.accord.signed && view.inbox.find(c => c.templateId === 'sys:world:accord_ready') && <button class="btn btn--small" type="button" onClick={() => openCard(view.inbox.find(c => c.templateId === 'sys:world:accord_ready')!.uid)}>{t('Open treaty briefing')}</button>}
             <p class="gaugecard__members">
               {n.accord.members.length ? (
                 <>
@@ -59,15 +65,15 @@ export function WorldPanel(): JSX.Element {
             </p>
           </div>
         </div>
-      </div>
+      </div>}
 
-      <Section title={t('Rival powers')} icon="foreign">
+      {section !== 'overview' && <Section title={t('Rival powers')} icon="foreign">
         <div class="cardgrid">
-          {view.rivals.map((r) => (
+          {view.rivals.filter(r => r.id === section).map((r) => (
             <RivalCard key={r.id} r={r} />
           ))}
         </div>
-      </Section>
+      </Section>}
 
       {ordered.length > 0 && (
         <Section title={t('International actions')} icon="diplomacy">
@@ -83,7 +89,7 @@ export function WorldPanel(): JSX.Element {
 }
 
 function WorldMap(): JSX.Element {
-  const { view } = useGame();
+  const { view, selectSection } = useGame();
   const ref = useRef<HTMLDivElement>(null);
   const player = view.country.id;
   useEffect(() => {
@@ -104,7 +110,8 @@ function WorldMap(): JSX.Element {
   const onClick = (e: MouseEvent) => {
     const g = (e.target as Element).closest?.('.region');
     if (!g) return;
-    document.getElementById(`rival-${g.id.replace('region-', '')}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const id = g.id.replace('region-', '');
+    if (view.rivals.some(r => r.id === id)) selectSection('world', id);
   };
   const all = [{ id: player, name: view.country.name, color: view.country.color }, ...view.rivals.map((r) => ({ id: r.id, name: r.name, color: r.color }))];
   return (

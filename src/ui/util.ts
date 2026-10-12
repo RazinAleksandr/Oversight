@@ -2,7 +2,7 @@
  * Small UI helpers: class joining, number formatting, polarity of preview keys, screen-reader announcements.
  */
 import type { Confidence, Cost, Difficulty, PreviewKey, Tone } from '../engine/types';
-import { t } from '../i18n';
+import { locale, t } from '../i18n';
 
 export const cx = (...xs: (string | false | null | undefined | 0)[]): string => xs.filter(Boolean).join(' ');
 
@@ -19,9 +19,12 @@ export function signed(n: number, digits = 0): string {
 
 /** "$65B" / "−$3B" / "+$2B" (ru: «$65 млрд»). */
 export function money(n: number, withSign = false): string {
-  const r = Math.round(n);
+  // Never round available cash up to a purchase threshold.
+  const absolute = Math.abs(n);
+  const rounded = Number(absolute.toFixed(2));
+  const r = Math.sign(n) * (rounded > absolute ? rounded - 0.01 : rounded);
   const sign = r < 0 ? MINUS : withSign && r > 0 ? '+' : '';
-  return t('{sign}${n}B', { sign, n: Math.abs(r) });
+  return t('{sign}${n}B', { sign, n: Math.abs(r).toLocaleString(locale(), { maximumFractionDigits: 2 }) });
 }
 
 export const one = (n: number): string => n.toFixed(1);

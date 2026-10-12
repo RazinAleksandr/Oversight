@@ -28,3 +28,21 @@ Stub files exist for every module so the project compiles from day one. Replace 
 - Dev servers: UI uses port 5173 (`npx vite --port 5173`), art 5175, fx 5174. Dev-only pages live in `dev/` (not part of the build).
 - Screenshots: `npx tsx scripts/shot.ts http://localhost:5173/ /tmp/x.png 390 844` (see script header for clicks/evals). Look at your screenshots with the Read tool.
 - Write code like a professional studio: small focused modules, clear names, brief comments where intent isn't obvious.
+
+## Approved iPhone port exception (12 October 2026)
+
+The user approved `docs/IOS_PORT_PLAN.md` and an iPhone-first TestFlight release.
+That approval allows coordinated changes to shared UI, optional engine view fields,
+localization, persistence, audio/fx lifecycle, tests and build configuration. It
+supersedes the original no-dependency/config restrictions for the following scope:
+
+- Pinned Capacitor core/iOS/CLI and official App, Filesystem, Preferences and Share
+  plugins; no additional UI framework. Share implements the approved save export.
+- `src/platform/` owns native services. Engine code stays pure; UI still reads
+  fogged views. Platform storage keeps engine JSON v1 compatible.
+- Licensed local fonts (including Cyrillic), font licenses and app icon assets
+  are allowed. Gameplay art/audio remain procedural.
+- Node version, CI, iOS project and release commands may be maintained together.
+- Desktop/browser release qualification is deferred by the user. Phone previews
+  and WebKit tests support iPhone work; they are not physical-device evidence.
+- Do not push `main`: it deploys the browser game automatically.

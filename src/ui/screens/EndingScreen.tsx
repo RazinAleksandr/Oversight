@@ -3,7 +3,7 @@
  * decisive moments, hidden truths, warning signs, missed opportunities, stats, seed & replay.
  */
 import type { JSX } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import type { EndingReport } from '../../engine/types';
 import { audio } from '../../audio';
 import { fx } from '../../fx';
@@ -25,6 +25,16 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
   const { settings } = useSettings();
   const good = ending.category === 'survival' && ending.tone !== 'bad';
   const [shown, setShown] = useState(settings.reducedMotion ? ending.epilogue.length : 1);
+  const [section, setSection] = useState('epilogue');
+  const navigationRef = useRef<HTMLElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [navigated, setNavigated] = useState(false);
+  useLayoutEffect(() => {
+    if (navigated) {
+      contentRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' });
+      contentRef.current?.focus({ preventScroll: true });
+    }
+  }, [section, navigated]);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -73,7 +83,20 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
           <p class="ending__subtitle">{ending.subtitle}</p>
         </header>
 
-        <section class="epilogue" aria-label={t('Epilogue')} onClick={() => setShown(ending.epilogue.length)}>
+        <nav ref={navigationRef} tabIndex={-1} class="panel-sections ending__nav" aria-label={t('Debrief sections')}>
+          {[
+            ['epilogue', t('Epilogue')], ['rating', t('Rating')],
+            ...(ending.decisiveMoments.length ? [['moments', t('Decisive moments')]] : []),
+            ...(truths.length ? [['truths', t('Hidden truths')]] : []),
+            ...(ending.warningSigns.length ? [['warnings', t('Warning signs')]] : []),
+            ...(ending.missed.length ? [['missed', t('Missed opportunities')]] : []),
+            ...(ending.stats.length ? [['stats', t('By the numbers')]] : []),
+          ].map(([id, label]) => <button type="button" class={cx('btn', section === id && 'btn--accent')} aria-pressed={section === id} onClick={() => { setNavigated(true); setSection(id); contentRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' }); }}>{label}</button>)}
+        </nav>
+
+        <div ref={contentRef} tabIndex={-1} class="ending__section">
+        {navigated && <button type="button" class="btn btn--small" onClick={() => { navigationRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' }); navigationRef.current?.focus({ preventScroll: true }); }}>{t('Debrief sections')}</button>}
+        {section === 'epilogue' && <section class="epilogue" aria-label={t('Epilogue')} onClick={() => setShown(ending.epilogue.length)}>
           {ending.epilogue.slice(0, shown).map((p, i) => (
             <p key={i} class="epilogue__p">
               {p}
@@ -84,9 +107,11 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
               {t('Reveal all')}
             </button>
           )}
-        </section>
+        </section>}
 
-        <section class="scorecard" aria-label={t('Rating')}>
+        {section === 'rating' && <><p class="ending__rating-note">{ending.category === 'failure'
+          ? t('The overall grade reflects how the run ended. Global failures receive F; other failures receive D after 12 quarters, otherwise F. The four scores describe individual outcomes and are not averaged for a failed run.')
+          : t('The overall grade uses the average of the four scores. A governed transition with an average of at least 80 earns S. Other grades: A at 70, B at 58, C at 46, otherwise D.')}</p><section class="scorecard" aria-label={t('Rating')}>
           <div class={cx('rating', `rating--${gradeTone(ending.rating)}`)}>
             <span class="eyebrow">{t('Overall')}</span>
             <span class="rating__letter">{ending.rating}</span>
@@ -108,9 +133,9 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
               );
             })}
           </ul>
-        </section>
+        </section></>}
 
-        {ending.decisiveMoments.length > 0 && (
+        {section === 'moments' && ending.decisiveMoments.length > 0 && (
           <Section title={t('Decisive moments')} icon="flag">
             <ol class="timeline">
               {ending.decisiveMoments.map((m, i) => (
@@ -132,7 +157,7 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
           </Section>
         )}
 
-        {truths.length > 0 && (
+        {section === 'truths' && truths.length > 0 && (
           <Section title={t('Hidden truths')} icon="eye" aside={<span class="dim small">{t('What was really going on')}</span>}>
             <div class="truths">
               {truths.map((g) => (
@@ -153,7 +178,7 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
           </Section>
         )}
 
-        {ending.warningSigns.length > 0 && (
+        {section === 'warnings' && ending.warningSigns.length > 0 && (
           <Section title={t('Warning signs')} icon="warning" aside={<span class="dim small num">{t('{acted}/{total} acted on', { acted, total: ending.warningSigns.length })}</span>}>
             <ul class="signs">
               {ending.warningSigns.map((w, i) => (
@@ -169,7 +194,7 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
           </Section>
         )}
 
-        {ending.missed.length > 0 && (
+        {section === 'missed' && ending.missed.length > 0 && (
           <Section title={t('Missed opportunities')} icon="target">
             <ul class="missed">
               {ending.missed.map((m, i) => (
@@ -179,7 +204,7 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
           </Section>
         )}
 
-        {ending.stats.length > 0 && (
+        {section === 'stats' && ending.stats.length > 0 && (
           <Section title={t('By the numbers')} icon="report">
             <dl class="stats">
               {ending.stats.map((s) => (
@@ -192,6 +217,7 @@ export function EndingScreen({ ending, onReplay, onNew, onTitle }: { ending: End
           </Section>
         )}
 
+        </div>
         <footer class="ending__foot">
           <button type="button" class="seed" onClick={copySeed} aria-label={t('Seed {seed}. Copy', { seed: ending.seed })}>
             <span class="eyebrow">{t('Seed')}</span>

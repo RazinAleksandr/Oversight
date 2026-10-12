@@ -549,6 +549,8 @@ export interface AIModel {
   audited?: boolean;
   /** (engine) confidence label of the latest evaluation shown to the player */
   evalConfidence?: Confidence;
+  lastCheckTurn?: number;
+  lastCheckDetection?: number;
 }
 
 export interface Rival {
@@ -913,6 +915,7 @@ export interface ModelView {
   openWeights: boolean;
   flaw: FlawType | 'unknown' | 'none_found' | 'suspected';
   releasedTurn: number;
+  lastCheck?: { turn: number; confidence?: Confidence; detection?: number };
   situationId?: string; // only if the link is known to the player
 }
 
@@ -1006,6 +1009,7 @@ export interface DemandView {
   deadlineLabel: string;
   progress: number; // 0–1
   progressLabel: string; // "Prosperity 58 / 62"
+  forecast?: { metric: 'budget' | 'defense' | 'adoption'; current: number; target: number; projected: number | null; quarters: number; currentOrder?: number };
   reward: number;
   penalty: number;
 }
@@ -1102,6 +1106,7 @@ export interface GameView {
   log: LogEntry[];
   unlockedTabs: TabId[];
   pendingTips: TipId[];
+  tipsShown?: TipId[];
   canEndTurn: boolean;
   gameOver: boolean;
   ending: EndingReport | null;

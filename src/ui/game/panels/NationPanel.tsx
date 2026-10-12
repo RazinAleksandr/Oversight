@@ -10,6 +10,7 @@ import { ActionChip, PageHead, Section } from '../../components/Common';
 import { Icon, Portrait } from '../../components/Icon';
 import { cx, hueOf, money, one } from '../../util';
 import { actionsFor, useGame } from '../context';
+import { DemandForecast } from '../DemandForecast';
 import { stripDeadline } from '../Inbox';
 import { t, tp } from '../../../i18n';
 
@@ -23,19 +24,21 @@ const MOOD_TEXT: Record<string, string> = { Supportive: t('Mood: Supportive'), S
 const SUPPORT_TEXT: Record<string, string> = { '-2': t('Strongly opposes'), '-1': t('Opposes'), '0': t('Indifferent'), '1': t('Supports'), '2': t('Champions') };
 
 export function NationPanel(): JSX.Element {
-  const { view, desktop } = useGame();
+  const { view, sections, selectSection } = useGame();
+  const section = sections.nation ?? 'government';
   return (
     <div class="page page--nation">
       <PageHead title={t('Nation')} sub={t('{country} — your levers at home.', { country: view.country.name })} />
-      <div class={cx('nation', desktop && 'nation--wide')}>
+      <nav class="panel-sections" aria-label={t('Nation sections')}>
+        {[['government', t('Government')], ['programs', t('Programs')], ['policies', t('Laws')], ['society', t('Society')]].map(([id, label]) =>
+          <button type="button" class={cx('btn', section === id && 'btn--accent')} aria-pressed={section === id} onClick={() => selectSection('nation', id)}>{label}</button>)}
+      </nav>
+      <div class="nation">
         <div class="nation__col">
-          <GovernmentPanel />
-          <SafetyGap />
-          <Society />
-        </div>
-        <div class="nation__col">
-          <Programs />
-          <Policies />
+          {section === 'government' && <GovernmentPanel />}
+          {section === 'programs' && <><Programs /><SafetyGap /></>}
+          {section === 'policies' && <Policies />}
+          {section === 'society' && <Society />}
         </div>
       </div>
     </div>
@@ -117,6 +120,8 @@ function Demand({ d }: { d: DemandView }): JSX.Element {
         </span>
       </div>
       <p class="demand__text">{d.text}</p>
+      {d.forecast && <DemandForecast forecast={d.forecast} />}
+      {!d.forecast && (st === 'active' || st === 'offered') && <p class="dim small">{t('No numeric projection is available for this demand. Review its current progress and conditions.')}</p>}
       <Bar value={d.progress * 100} tone={d.progress >= 1 ? 'good' : 'gov'} label={d.progressLabel} />
       <div class="demand__foot num">
         <span>{d.progressLabel}</span>
@@ -127,6 +132,7 @@ function Demand({ d }: { d: DemandView }): JSX.Element {
     </div>
   );
 }
+
 
 function SafetyGap(): JSX.Element {
   const { view } = useGame();

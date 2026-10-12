@@ -6,6 +6,7 @@ import { useContext } from 'preact/hooks';
 import type { Settings } from '../engine/types';
 import { audio } from '../audio';
 import { fx } from '../fx';
+import { readPreference, writePreference } from '../platform/storage';
 
 export const SETTINGS_KEY = 'ato.settings.v1';
 
@@ -24,7 +25,7 @@ export function defaultSettings(): Settings {
 export function loadSettings(): Settings {
   const d = defaultSettings();
   try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
+    const raw = readPreference(SETTINGS_KEY);
     if (!raw) return d;
     const p = JSON.parse(raw) as Partial<Settings>;
     return {
@@ -41,7 +42,7 @@ export function loadSettings(): Settings {
 
 export function saveSettings(s: Settings): void {
   try {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+    writePreference(SETTINGS_KEY, JSON.stringify(s));
   } catch {
     /* storage unavailable (private mode) — settings stay in memory */
   }

@@ -4,7 +4,7 @@
  */
 import type { ComponentChildren, JSX } from 'preact';
 import { createPortal } from 'preact/compat';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { t } from '../../i18n';
 import { cx } from '../util';
 import { Icon } from './Icon';
@@ -12,6 +12,27 @@ import { Icon } from './Icon';
 // ── Escape stack (one global listener, top-most handler wins) ──
 const escStack: { fn: () => void }[] = [];
 let escInstalled = false;
+
+// Portals are siblings of the app. Only the top sheet remains interactive,
+// including when a second sheet opens or a result replaces a briefing.
+const modalStack: HTMLElement[] = [];
+const previousInert = new Map<HTMLElement, boolean>();
+let modalObserver: MutationObserver | undefined;
+function syncModalInert(): void {
+  const top = modalStack.at(-1);
+  for (const child of Array.from(document.body.children)) {
+    if (!(child instanceof HTMLElement) || child.id === 'sr-live') continue;
+    if (!previousInert.has(child)) previousInert.set(child, child.inert);
+    child.inert = top ? child !== top : previousInert.get(child)!;
+  }
+  if (!top) previousInert.clear();
+}
+
+function focusableControls(dialog: HTMLElement): HTMLElement[] {
+  return Array.from(dialog.querySelectorAll<HTMLElement>('button, a[href], input, select, textarea, [tabindex]'))
+    .filter((el) => el.tabIndex >= 0 && !el.matches(':disabled') && !el.closest('[inert]') && el.getClientRects().length > 0
+      && getComputedStyle(el).visibility !== 'hidden');
+}
 function installEsc(): void {
   if (escInstalled) return;
   escInstalled = true;
@@ -74,15 +95,52 @@ export function Sheet({ label, onClose, size = 'auto', class: cls, closeButton =
     const t = window.setTimeout(() => setArmed(true), 320);
     return () => window.clearTimeout(t);
   }, []);
-  useEscape(onClose);
-  useEffect(() => {
+  // Non-dismissable results consume Escape/Back as well, so a lower sheet cannot close.
+  useEscape(onClose ?? (() => {}));
+  useLayoutEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
-    // Focus the first primary control if any, otherwise the dialog itself.
     const el = ref.current;
-    const auto = el?.querySelector<HTMLElement>('[data-autofocus]');
-    (auto ?? el)?.focus({ preventScroll: true });
+    const root = el?.parentElement;
+    if (!el || !root) return;
+    modalStack.push(root);
+    syncModalInert();
+    if (!modalObserver) {
+      modalObserver = new MutationObserver(syncModalInert);
+      modalObserver.observe(document.body, { childList: true });
+    }
+    const focusInitial = () => (el.querySelector<HTMLElement>('[data-autofocus]') ?? el).focus({ preventScroll: true });
+    focusInitial();
+    const onFocus = (e: FocusEvent) => {
+      if (modalStack.at(-1) === root && !el.contains(e.target as Node)) focusInitial();
+    };
+    const onTab = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || modalStack.at(-1) !== root) return;
+      const controls = focusableControls(el);
+      const first = controls[0];
+      const last = controls.at(-1);
+      if (!first) {
+        e.preventDefault();
+        el.focus();
+      } else if (e.shiftKey && (document.activeElement === first || document.activeElement === el)) {
+        e.preventDefault();
+        last!.focus();
+      } else if (!e.shiftKey && (document.activeElement === last || document.activeElement === el)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('focusin', onFocus);
+    document.addEventListener('keydown', onTab);
     return () => {
-      if (prev && document.contains(prev)) prev.focus({ preventScroll: true });
+      document.removeEventListener('focusin', onFocus);
+      document.removeEventListener('keydown', onTab);
+      modalStack.splice(modalStack.indexOf(root), 1);
+      syncModalInert();
+      if (!modalStack.length) {
+        modalObserver?.disconnect();
+        modalObserver = undefined;
+      }
+      if (prev?.isConnected && !prev.closest('[inert]')) prev.focus({ preventScroll: true });
     };
   }, []);
   const canBackdrop = backdropClose ?? (!!onClose && size !== 'overlay');

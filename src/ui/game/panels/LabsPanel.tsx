@@ -184,7 +184,7 @@ function ModelRow({
   let flawTone: string;
   let flawIcon: string;
   if (m.flaw === 'unknown') [flawText, flawTone, flawIcon] = [t('Not audited'), 'dim', 'question'];
-  else if (m.flaw === 'none_found') [flawText, flawTone, flawIcon] = [t('No issues found'), 'good', 'check'];
+  else if (m.flaw === 'none_found') [flawText, flawTone, flawIcon] = [t('No issues found in the last check'), 'dim', 'check'];
   else if (m.flaw === 'suspected') [flawText, flawTone, flawIcon] = [t('Flaw suspected'), 'warn', 'warning'];
   else [flawText, flawTone, flawIcon] = [t('Flaw: {flaw}', { flaw: flawName(m.flaw) }), 'bad', 'warning'];
   return (
@@ -202,6 +202,11 @@ function ModelRow({
           </span>
         ))}
       </div>
+      {m.flaw === 'none_found' && <p class="small dim model__check">
+        {m.lastCheck ? t('Checked {date}.', { date: dateLabel(m.lastCheck.turn) }) : t('Check date unavailable in this older save.')}
+        {' '}{m.lastCheck?.detection !== undefined && t('Estimated detection power: {n}%.', { n: Math.round(m.lastCheck.detection * 100) })}
+        {' '}{t('A negative result is not proof of safety.')}
+      </p>}
       <div class="model__bottom">
         <span class={cx('flaw', `flaw--${flawTone}`)}>
           <Icon name={flawIcon} size={13} /> {flawText}

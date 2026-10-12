@@ -47,6 +47,7 @@ export function TitleScreen({
   hasSave,
   mock,
   onContinue,
+  onDebrief,
   onNew,
   onDaily,
   onHowTo,
@@ -55,6 +56,7 @@ export function TitleScreen({
   hasSave: boolean;
   mock: boolean;
   onContinue(): void;
+  onDebrief?(): void;
   onNew(): void;
   onDaily(): void;
   onHowTo(): void;
@@ -96,6 +98,7 @@ export function TitleScreen({
               {today} · #{dailySeed()}
             </span>
           </button>
+          {onDebrief && <button type="button" class="btn" onClick={onDebrief}>{t('Last debrief')}</button>}
           <div class="title__row">
             <button type="button" class="btn" onClick={onHowTo}>
               <Icon name="help" size={17} /> {t('How to Play')}

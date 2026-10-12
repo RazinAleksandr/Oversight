@@ -1321,8 +1321,8 @@
   align-items: center;
 }
 .langtoggle__opt {
-  min-width: 40px;
-  min-height: 36px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0 8px;
   border: none;
   background: none;
@@ -1516,3 +1516,16 @@ html[lang='ru'] .game:not(.game--desktop) .tab__new {
   font-size: 9.5px;
   letter-spacing: 0.02em;
 }
+
+.save-transfer { display: grid; gap: 12px; margin-top: 20px; }
+.save-import { display: grid; gap: 8px; }
+.save-import input { min-height: 44px; max-width: 100%; font: inherit; color: var(--text); }
+.save-import input::file-selector-button { min-height: 44px; margin-right: 8px; }
+
+.howto__tip summary { min-height: 44px; padding: 12px 0; cursor: pointer; }
+.howto__tip p { margin: 8px 0 16px; }
+.ending__nav { margin: 24px 0; }
+.ending__rating-note { line-height: 1.6; margin-bottom: 20px; }
+
+.ending__section { scroll-margin-top: calc(16px + var(--safe-t)); }
+.ending__section > .btn { margin-bottom: 16px; }

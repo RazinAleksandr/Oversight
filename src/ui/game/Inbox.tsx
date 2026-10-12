@@ -48,6 +48,8 @@ export const isAiCard = (c: Card) => !!c.tags?.includes('ai') || c.source.type =
 export const isCrisisCard = (c: Card) => !!c.tags?.includes('crisis') || c.urgency === 'critical';
 
 export function InboxItem({ card, index, compact, onOpen }: { card: Card; index: number; compact?: boolean; onOpen(): void }): JSX.Element {
+  const { view } = useGame();
+  const situation = view.situations.find(s => s.id === card.ctx.situationId);
   const src = SOURCE_INFO[card.source.type];
   return (
     <li class="slip-wrap" style={{ '--tilt': `${index % 2 ? 0.35 : -0.3}deg` }}>
@@ -69,6 +71,10 @@ export function InboxItem({ card, index, compact, onOpen }: { card: Card; index:
         </span>
         <span class="slip__title">{card.title}</span>
         <span class="slip__sub">{card.subtitle ?? KIND_LABEL[card.kind]}</span>
+        {situation && <span class="slip__sub">
+          {situation.sourceLabel ? `${situation.sourceLabel} · ` : ''}{situation.stageLabel}
+          {situation.escalationWarning ? ` · ${t('Escalation expected next quarter')}` : ''}
+        </span>}
         <span class="slip__go" aria-hidden="true">
           <Icon name="chevron_right" size={18} />
         </span>
@@ -78,13 +84,13 @@ export function InboxItem({ card, index, compact, onOpen }: { card: Card; index:
 }
 
 export function EndQuarterButton({ wide }: { wide?: boolean }): JSX.Element {
-  const { view, endQuarter, goTab } = useGame();
+  const { view, endQuarter, openCard } = useGame();
   const n = view.inbox.length;
   const unused = view.nation.capacity;
   if (view.gameOver) return <></>;
   if (!view.canEndTurn) {
     return (
-      <button type="button" class={cx('btn btn--end is-blocked', wide && 'btn--wide')} aria-disabled="true" onClick={() => goTab('inbox')}>
+      <button type="button" class={cx('btn btn--primary btn--end', wide && 'btn--wide')} onClick={() => view.inbox[0] && openCard(view.inbox[0].uid)}>
         <Icon name="inbox" size={18} />
         <span class="btn--end__text">
           <span class="btn--end__main">{tp(n, 'Resolve {n} briefing', 'Resolve {n} briefings')}</span>

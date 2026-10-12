@@ -52,8 +52,9 @@
   grid-area: hud;
   position: relative;
   z-index: var(--z-hud);
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 52px;
+  grid-template-areas: 'date res res' 'meters meters risk';
   align-items: center;
   gap: 8px 10px;
   padding: calc(6px + var(--safe-t)) var(--gutter) 10px;
@@ -77,12 +78,12 @@
   grid-area: date;
   flex: 1 1 0;
   order: 1;
-  /* phone: "Q4 2027  4/16" over the era label, so long era names never wrap the HUD */
+  /* Keep the date above the era and progress; resources have their own column. */
   display: grid;
-  grid-template-columns: auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
-    'q t'
-    'e e';
+    'q q'
+    'e t';
   justify-content: start;
   align-items: baseline;
   gap: 3px 8px;
@@ -96,8 +97,9 @@
 }
 .hud__date .hud__era {
   grid-area: e;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
 }
 .hud__quarter {
   font-size: 15px;
@@ -119,15 +121,18 @@
   grid-area: res;
   flex: none;
   order: 2;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 44px;
+  grid-template-areas: 'cap menu' 'budget menu';
   align-items: center;
-  gap: 12px;
+  gap: 4px 8px;
 }
 .hud__cap {
+  grid-area: cap;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
 }
 .hud__reslabel {
   font: 600 11px/1 var(--font-head);
@@ -154,8 +159,10 @@
   box-shadow: 0 0 7px var(--accent);
 }
 .hud__budget {
+  grid-area: budget;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 5px;
   color: var(--gov);
 }
@@ -175,9 +182,10 @@
   color: var(--bad-text);
 }
 .hud__menu {
+  grid-area: menu;
   width: 44px;
   height: 44px;
-  margin: -4px -8px -4px 0;
+  margin: 0;
   border-color: transparent;
   background: transparent;
 }
@@ -191,6 +199,7 @@
   gap: 4px;
   min-width: 0;
 }
+
 .meter {
   display: flex;
   flex-direction: column;
@@ -372,7 +381,12 @@
   font-size: 11px;
 }
 .game--desktop .hud__res {
+  display: flex;
   gap: 18px;
+}
+.game--desktop .hud__cap {
+  flex-direction: column;
+  gap: 4px;
 }
 .game--desktop .hud__net {
   display: inline;
@@ -2183,7 +2197,7 @@ button.desk__tile:hover {
   position: relative;
   display: block;
   width: 100%;
-  min-height: 34px;
+  min-height: 44px;
   margin-top: 2px;
   padding: 2px 0;
   background: none;
@@ -2319,7 +2333,7 @@ button.desk__tile:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 44px;
   margin-top: 6px;
   padding: 6px 12px;
   border-radius: var(--r-2);
@@ -2463,3 +2477,15 @@ button.desk__tile:hover {
   opacity: 0.5;
   border-style: dashed;
 }
+
+/* Phone section navigation: every destination remains a full touch target. */
+.panel-sections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.panel-sections .btn { white-space: normal; min-height: 48px; padding: 8px; }
+.save-error { padding: 24px; display: grid; gap: 16px; }
+
+.demand__forecast { border-left: 2px solid var(--gov); padding: 10px 12px; margin: 12px 0; background: var(--panel-2); }
+.demand__forecast p { margin: 6px 0 0; }

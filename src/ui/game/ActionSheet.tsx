@@ -9,7 +9,7 @@ import { t } from '../../i18n';
 import { CostChips, PreviewChip } from '../components/Chips';
 import { Icon } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
-import { cx, hasCost } from '../util';
+import { cx, hasCost, money } from '../util';
 import { useGame } from './context';
 
 const CATEGORY_LABEL: Record<ActionView['category'], string> = {
@@ -173,6 +173,10 @@ export function ActionSheet({
           </span>
         </div>
       </div>
+
+      {!!cost.budget && <p class="small dim">{n.budget < cost.budget
+        ? t('Need {cost}; available {available}; shortfall {shortfall}.', { cost: money(cost.budget), available: money(n.budget), shortfall: money(Math.ceil((cost.budget - n.budget) * 100) / 100) })
+        : t('Available budget: {amount}', { amount: money(n.budget) })}</p>}
 
       {hardBlocked && (
         <p class="blocked" role="status">

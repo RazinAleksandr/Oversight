@@ -25,6 +25,7 @@ import { policyCost } from './actions';
 import { refreshCard } from './resolve';
 import { computeIncome, programUpkeep } from './systems/economy';
 import { demandProgress, demandSatisfied } from './systems/government';
+import { demandForecast } from './forecasts';
 import { escalationExpected, responseViews, severityEstimate, situationText, visibleStage } from './systems/situations';
 import { situationDisplayName } from './template';
 import type {
@@ -126,6 +127,7 @@ function modelView(s: GameState, m: AIModel): ModelView {
     openWeights: m.openWeights,
     flaw: modelFlawView(m),
     releasedTurn: m.releasedTurn,
+    lastCheck: m.lastCheckTurn === undefined ? undefined : { turn: m.lastCheckTurn, confidence: m.lastCheckDetection === undefined ? m.evalConfidence : undefined, detection: m.lastCheckDetection },
   };
   const x = s.situations.find((sx) => sx.source.modelId === m.id && sx.detected && sx.causeKnown);
   if (x) v.situationId = x.id;
@@ -235,6 +237,7 @@ function demandView(s: GameState, d: GameState['demands'][number]): DemandView {
         : dateLabel(d.deadlineTurn),
     progress,
     progressLabel: label,
+    forecast: demandForecast(s, d),
     reward: d.reward,
     penalty: d.penalty,
   };
@@ -398,6 +401,7 @@ export function buildView(s: GameState): GameView {
     log: s.log.slice().reverse().map((l) => logView(s, l)),
     unlockedTabs: [...s.unlockedTabs],
     pendingTips: [...s.pendingTips],
+    tipsShown: [...s.tipsShown],
     canEndTurn: !s.gameOver && s.inbox.length === 0,
     gameOver: s.gameOver,
     ending: s.ending,

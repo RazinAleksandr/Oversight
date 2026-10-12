@@ -223,6 +223,8 @@ function buildActions(): ActionDef[] {
         bumpStat(s, 'audits');
         const d = Math.min(0.9, detectionChance(s, m, 0.3));
         const shownD = Math.min(0.9, perceivedDetectionChance(s, m, 0.3));
+        m.lastCheckTurn = s.turn;
+        m.lastCheckDetection = shownD;
         const x = s.situations.find((sx) => sx.source.modelId === m.id && !sx.resolved);
         if (x) x.firstActionTurn = x.firstActionTurn ?? s.turn;
         if (m.flaw && rng(s).chance(d)) {

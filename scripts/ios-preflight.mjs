@@ -1,0 +1,22 @@
+/** Run after ios:sync. Inspect bundled release assets before archiving. */
+import { readFile, readdir, stat } from 'node:fs/promises';
+import { join } from 'node:path';
+import assert from 'node:assert/strict';
+const root = new URL('../', import.meta.url).pathname;
+const app = process.argv[2] ?? join(root, 'ios/App/App');
+const publicDir = join(app, 'public');
+const config = JSON.parse(await readFile(join(app, 'capacitor.config.json'), 'utf8'));
+assert.equal(config.appId, 'com.viktor.oversight');
+assert.equal(config.server?.url, undefined, 'Release must bundle the game, not load a development server');
+const index = await readFile(join(publicDir, 'index.html'), 'utf8');
+assert(!/<(?:script|link)[^>]+(?:src|href)=["']https?:/i.test(index), 'Remote launch dependency');
+const fonts = await readFile(join(publicDir, 'fonts/fonts.css'), 'utf8');
+assert(!fonts.includes('https://'), 'Remote font dependency');
+const fontPaths = [...fonts.matchAll(/url\(['"]?([^)'"\s]+)/g)].map(m => m[1]);
+for (const path of fontPaths) assert((await stat(join(publicDir, 'fonts', path))).size > 0);
+const assets = await readdir(join(publicDir, 'assets'));
+assert(assets.some(name => name.startsWith('lang-ru-')), 'Russian language pack missing');
+assert(!assets.some(name => /mock/i.test(name)), 'Mock backend in release');
+const manifest = await readFile(join(app, 'PrivacyInfo.xcprivacy'), 'utf8');
+for (const reason of ['C617.1', 'CA92.1']) assert(manifest.includes(reason), `Missing privacy reason ${reason}`);
+console.log(`PASS: bundled game, ${fontPaths.length} local font faces, Russian pack, no remote launch dependency, privacy reasons.`);

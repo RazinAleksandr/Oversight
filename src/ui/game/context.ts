@@ -12,6 +12,8 @@ export interface GameCtxValue {
   view: GameView;
   actions: ActionView[];
   desktop: boolean;
+  sections: Record<string, string>;
+  selectSection(panel: string, section: string): void;
   openCard(uid: string): void;
   /** Open the action picker/confirm sheet, optionally pre-selecting a target and option. */
   openAction(id: ActionId, targetId?: string, optionId?: string): void;

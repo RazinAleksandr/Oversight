@@ -4,7 +4,7 @@
  * Keys 1–4 pick a choice; tapping the paper skips the typewriter.
  */
 import type { JSX } from 'preact';
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Card, Choice, EvidenceLine } from '../../engine/types';
 import { SOURCE_INFO } from '../../engine/labels';
 import { getLang, t } from '../../i18n';
@@ -16,19 +16,21 @@ import { Kbd, StampMark } from '../components/Common';
 import { RiskClock } from '../components/RiskClock';
 import { Sheet } from '../components/Sheet';
 import { typeCps, useSettings } from '../settings';
-import { clamp, cx, hash } from '../util';
+import { clamp, cx, hash, money } from '../util';
 import { advisorInfo, useGame } from './context';
+import { DemandForecast } from './DemandForecast';
 import { KIND_LABEL, isAiCard, isCrisisCard } from './Inbox';
 
 /** Reason a choice can't be taken right now (engine-provided, or an affordability check). */
 export function choiceBlock(ch: Choice, res: { capacity: number; budget: number; evidence: number }): string | null {
-  if (ch.disabled) return ch.disabled;
   const c = ch.cost;
-  if (!c) return null;
+  if (!c) return ch.disabled ?? null;
   if (c.capacity && res.capacity < c.capacity) return t('No actions left this quarter');
-  if (c.budget && res.budget < c.budget) return t('Not enough budget');
+  if (c.budget && res.budget < c.budget) return t('Need {cost}; available {available}; shortfall {shortfall}.', {
+    cost: money(c.budget), available: money(res.budget), shortfall: money(Math.ceil((c.budget - res.budget) * 100) / 100),
+  });
   if (c.evidence && res.evidence < c.evidence) return t('You hold no evidence');
-  return null;
+  return ch.disabled ?? null;
 }
 
 /**
@@ -64,14 +66,36 @@ export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose
   const bodyRef = useRef<HTMLParagraphElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const paperRef = useRef<HTMLElement>(null);
+  const evidenceRef = useRef<HTMLElement>(null);
+  const advisorsRef = useRef<HTMLElement>(null);
+  const decisionRef = useRef<HTMLElement>(null);
+  const [atChoices, setAtChoices] = useState(false);
   const typer = useRef<{ skip(): void } | null>(null);
+  const [revealing, setRevealing] = useState(typeCps(settings) > 0);
   const ai = isAiCard(card);
   const crisis = isCrisisCard(card);
   const finale = card.kind === 'threshold';
   const res = { capacity: view.nation.capacity, budget: view.nation.budget, evidence: view.nation.evidence.length };
 
+  useEffect(() => {
+    const decision = decisionRef.current;
+    if (!decision) return;
+    const observer = new IntersectionObserver(([entry]) => setAtChoices(entry.isIntersecting), {
+      root: decision.closest('.sheet'), rootMargin: '0px 0px -80px 0px', threshold: 0,
+    });
+    observer.observe(decision);
+    return () => observer.disconnect();
+  }, [card.uid]);
+
+  const jumpTo = (target: HTMLElement | null) => {
+    typer.current?.skip();
+    target?.scrollIntoView({ block: 'start', behavior: 'instant' });
+    target?.focus({ preventScroll: true });
+  };
+
   // Entrance: sound, glitch / pulse, typewriter body.
   useEffect(() => {
+    let active = true;
     audio.play('card_in');
     if (finale) {
       audio.play('critical');
@@ -102,13 +126,21 @@ export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose
       if (cps > 0) {
         try {
           // fx throttles onTick (~22/s), so every tick may click.
-          typer.current = fx.typewriter(body, card.body, cps, () => audio.play('type', { volume: 0.4 }));
+          const job = fx.typewriter(body, card.body, cps, () => audio.play('type', { volume: 0.4 }));
+          typer.current = job;
+          setRevealing(true);
+          void job.done.then(() => { if (active) setRevealing(false); });
         } catch {
           body.textContent = card.body;
+          setRevealing(false);
         }
-      } else body.textContent = card.body;
+      } else {
+        body.textContent = card.body;
+        setRevealing(false);
+      }
     }
     return () => {
+      active = false;
       typer.current?.skip();
       typer.current = null;
     };
@@ -117,6 +149,7 @@ export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose
   // Keyboard 1–4.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (paperRef.current?.closest('[inert]')) return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       const i = Number(e.key) - 1;
       if (!Number.isInteger(i) || i < 0 || i >= card.choices.length) return;
@@ -129,6 +162,7 @@ export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose
     return () => window.removeEventListener('keydown', onKey);
   });
 
+  const forecast = view.government.demands.find(d => d.id === card.ctx.demandId)?.forecast;
   const src = SOURCE_INFO[card.source.type];
   const headStamp = finale ? t('Top secret') : card.urgency === 'critical' ? t('Urgent') : card.kind === 'demand' ? t('Priority') : t('Classified');
   const docNo = `${view.year}-Q${view.quarter}-${String(hash(card.uid) % 900 + 100)}`;
@@ -155,6 +189,7 @@ export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose
         </p>
         <article
           ref={paperRef}
+          tabIndex={-1}
           class={cx('dossier', `dossier--${card.urgency}`, ai && !finale && 'dossier--ai', crisis && 'dossier--crisis', finale && 'dossier--threshold')}
         >
           {card.urgency !== 'routine' && <div class="dossier__strip" aria-hidden="true" />}
@@ -174,10 +209,16 @@ export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose
             <StampMark text={headStamp} size="md" class={cx('dossier__stamp', card.urgency === 'critical' && 'stamp--urgent')} />
           </header>
 
-          <p class="dossier__body" ref={bodyRef} />
+          <div class="dossier__reveal">
+            <button type="button" class="linkbtn" onClick={() => typer.current?.skip()} disabled={!revealing}>
+              {revealing ? t('Show full text') : t('Full text shown')}
+            </button>
+          </div>
+          <p class="dossier__body" ref={bodyRef} aria-hidden="true" />
+          <p class="sr-only">{card.body}</p>
 
           {card.evidence && card.evidence.length > 0 && (
-            <section class="evidence" aria-label={t('Evidence')}>
+            <section ref={evidenceRef} tabIndex={-1} class="evidence" aria-label={t('Evidence')}>
               <h3 class="dossier__h">{t('Evidence')}</h3>
               <dl class="evidence__list">
                 {card.evidence.map((e, i) => (
@@ -188,7 +229,7 @@ export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose
           )}
 
           {card.advisors && card.advisors.length > 0 && (
-            <section class="advisors" aria-label={t('Advisor notes')}>
+            <section ref={advisorsRef} tabIndex={-1} class="advisors" aria-label={t('Advisor notes')}>
               <h3 class="dossier__h">{t('Advisors')}</h3>
               {card.advisors.map((n) => {
                 const a = advisorInfo(view, n.advisor);
@@ -209,19 +250,30 @@ export function BriefingSheet({ card, onClose, onChoose }: { card: Card; onClose
           )}
         </article>
 
-        <section class="decision" aria-label={t('Your decision')}>
+        <section ref={decisionRef} tabIndex={-1} class="decision" aria-label={t('Your decision')}>
           <h3 class="decision__title">
             <span>{t('Your decision')}</span>
             <span class="decision__keys">
               <Kbd>1</Kbd>–<Kbd>{card.choices.length}</Kbd>
             </span>
           </h3>
+          <nav class="decision__sources" aria-label={t('Briefing sources')}>
+            {!!card.evidence?.length && <button type="button" class="btn btn--small" onClick={() => jumpTo(evidenceRef.current)}>{t('Evidence')}</button>}
+            {!!card.advisors?.length && <button type="button" class="btn btn--small" onClick={() => jumpTo(advisorsRef.current)}>{t('Advisors')}</button>}
+          </nav>
+          {forecast && <DemandForecast forecast={forecast} />}
           <ol class="choices">
             {card.choices.map((ch, i) => (
               <ChoiceButton key={ch.id} ch={ch} index={i} blocked={choiceBlock(ch, res)} onPick={() => onChoose(ch)} finale={finale} />
             ))}
           </ol>
         </section>
+      </div>
+      <div class="briefing__dock">
+        <button type="button" class={cx('btn btn--wide', atChoices ? 'btn--ghost' : 'btn--primary')} onClick={() => jumpTo(atChoices ? paperRef.current : decisionRef.current)}>
+          {atChoices ? t('Read dossier') : t('Review choices')}
+          <Icon name={atChoices ? 'back' : 'chevron_right'} size={18} />
+        </button>
       </div>
     </Sheet>
   );

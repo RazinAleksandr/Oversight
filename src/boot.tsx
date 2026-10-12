@@ -13,7 +13,7 @@ import { type Backend, isMockSave } from './ui/backend';
 import { App } from './ui/App';
 
 const params = new URLSearchParams(window.location.search);
-const useMock = !ENGINE_READY || params.has('mock');
+const useMock = import.meta.env.DEV && (!ENGINE_READY || params.has('mock'));
 const mockOpts = { unlockAll: params.get('mock') === 'full' };
 
 const loadMock = () => import('./ui/mock');
@@ -31,13 +31,15 @@ const engineBackend: Backend = {
     try {
       return newGame(opts);
     } catch (e) {
-      console.error('[ui] engine newGame failed — falling back to the mock game', e);
-      return new (await loadMock()).MockGame(opts, mockOpts);
+      console.error('[ui] engine newGame failed', e);
+      throw e;
     }
   },
   loadGame: (json) => {
     try {
-      return loadGame(json);
+      const game = loadGame(json);
+      if (game) { game.view(); game.getActions(); }
+      return game;
     } catch (e) {
       console.error('[ui] engine loadGame failed', e);
       return null;
