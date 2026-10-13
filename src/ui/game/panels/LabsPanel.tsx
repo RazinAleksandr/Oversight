@@ -1,6 +1,7 @@
 /**
  * Labs: domestic AI companies — fogged capability estimates, traits, violations, models and company actions.
  */
+import { SubjectPicker } from '../../components/SubjectPicker';
 import type { JSX } from 'preact';
 import type { ActionTarget, AIModel, CompanyView, FlawType, ModelView } from '../../../engine/types';
 import { ARCHETYPE_INFO, SECTOR_INFO, dateLabel } from '../../../engine/labels';
@@ -53,6 +54,7 @@ export function LabsPanel({ embedded = false }: { embedded?: boolean }): JSX.Ele
   return <div class={cx('page page--labs management-v4 institutions-v5',embedded && 'management-embedded')}>
     {!embedded && <PageHead title={t('Companies')} sub={t('Domestic AI companies — what they report, and what you actually know.')} />}
     <div class="management-split">
+      <SubjectPicker kind="company" label={t('Companies')} value={selected?.id ?? ''} options={view.companies.map(c=>({id:c.id,label:c.name}))} onSelect={id=>selectSection('company',id)}/>
       <nav class="management-roster" aria-label={t('Companies')}><h2>{t('Domestic companies')}</h2>{view.companies.map(c=><button type="button" key={c.id} class={cx('management-item',selected?.id===c.id && 'is-selected')} aria-pressed={selected?.id===c.id} data-company-select={c.id} onClick={()=>selectSection('company',c.id)}><Svg class="management-company-mark" html={artCached.logo(hash(c.id),c.color,c.archetype,32)}/><strong>{c.name}</strong><span>{t('Capability')} {one(c.capability.low)}–{one(c.capability.high)}</span><small>{ATTITUDE_TEXT[c.attitude] ?? c.attitude}</small></button>)}</nav>
       <div class="management-detail" key={selected?.id}>{selected && <CompanyCard c={selected}/>}</div>
     </div>

@@ -49,6 +49,7 @@ export function SettingsSheet({
   inGame,
   hasSave,
   onHowTo,
+  onGuide,
   onQuit,
   onLang,
   confirmQuit,
@@ -60,6 +61,7 @@ export function SettingsSheet({
   /** A saved run exists (switching language mid-run deserves a note). */
   hasSave?: boolean;
   onHowTo?(): void;
+  onGuide?(): void;
   onQuit?(): void;
   /** Saves (if needed) and switches language — reloads the page. */
   onLang(l: Lang): void;
@@ -81,6 +83,7 @@ export function SettingsSheet({
         </div>
       </header>
 
+      {inGame && onGuide && <button type="button" class="btn btn--wide" data-start-guide onClick={onGuide}><Icon name="help" size={18}/>{t('Guided walkthrough')}</button>}
       {confirmQuit && <QuitPrompt onStay={onClose} onQuit={onQuit} />}
 
       <div class="settings">

@@ -18,7 +18,7 @@ import { cx } from '../util';
 let fallbackTips: Record<TipId, TipDef> | null = null;
 const FALLBACK_TIPS = (): Record<TipId, TipDef> =>
   (fallbackTips ??= {
-    welcome: { advisor: 'chief_of_staff', title: t('Welcome, Director'), text: t('Each quarter, briefings land on your desk. Decide them, spend your actions, then end the quarter. Reports are evidence — not truth.') },
+    welcome: { advisor: 'chief_of_staff', title: t('Welcome, Director'), text: t('Each quarter, briefings land on your desk. Answer them, use actions where useful, then end the quarter. Reports are evidence — not truth.') },
     inbox: { advisor: 'chief_of_staff', title: t('Your inbox'), text: t('Every briefing must be resolved before the quarter can end. Critical ones are marked in red.') },
     labs: { advisor: 'scientist', title: t('The labs'), text: t('Companies report their own capabilities. Investigate them to learn what they are hiding.') },
     nation: { advisor: 'economist', title: t('Programs & policies'), text: t('Fund programs with your budget — changes are free and immediate, upkeep is charged each quarter. Laws cost an action and political capital.') },
@@ -30,7 +30,7 @@ const FALLBACK_TIPS = (): Record<TipId, TipDef> =>
     risk_clock: { advisor: 'scientist', title: t('The Risk Clock'), text: t('The hand shows our best estimate of global AI risk; the shaded arc shows how unsure we are. At midnight, the world fails.') },
     capacity: { advisor: 'chief_of_staff', title: t('Actions'), text: t('Your department can do only a few things per quarter. Unused actions are lost.') },
     evidence: { advisor: 'intelligence', title: t('Evidence'), text: t('Evidence from investigations lets you enforce rules on companies and win arguments with the leader.') },
-    end_turn: { advisor: 'chief_of_staff', title: t('End the quarter'), text: t('When the desk is clear and your actions are spent, end the quarter to see what changed.') },
+    end_turn: { advisor: 'chief_of_staff', title: t('End the quarter'), text: t('When every briefing is resolved, you can end the quarter to see what changed. Spending every action is optional.') },
     low_confidence: { advisor: 'chief_of_staff', title: t('You are losing them'), text: t('Government confidence is low. Brief the leader or deliver on a demand — or you will be replaced.') },
   });
 

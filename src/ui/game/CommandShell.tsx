@@ -3,7 +3,7 @@ import type { JSX } from 'preact';
 import { useState } from 'preact/hooks';
 import { StrategicMap } from '../components/StrategicMap';
 import type { Card, MeterId, TabId } from '../../engine/types';
-import { METER_INFO, SOURCE_INFO } from '../../engine/labels';
+import { METER_INFO, SOURCE_INFO, turnYearQuarter } from '../../engine/labels';
 import { t, tp } from '../../i18n';
 import { Icon, Portrait, Svg, artCached } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
@@ -14,13 +14,14 @@ import { useGame } from './context';
 
 export function CommandBar({ onMenu, onStatus, onRisk, onHelp }: { onMenu(): void; onStatus(): void; onRisk(): void; onHelp?:()=>void }): JSX.Element {
   const { view } = useGame();
+  const calendar=turnYearQuarter(view.turn);
   const critical = METER_ORDER.filter(id => view.meters[id].status === 'critical').length;
   return <header class="command-bar">
-    <div class="command-date"><strong>{view.dateLabel}</strong><span>{view.country.name}</span></div>
+    <div class="command-date"><strong class="command-date-full">{view.dateLabel}</strong><strong class="command-date-compact" aria-label={view.dateLabel}><span>{t('Q{q}',{q:calendar.quarter})}</span><small>{calendar.year}</small></strong><span>{view.country.name}</span></div>
     <button type="button" class={cx('command-status', critical > 0 && 'is-critical')} onClick={onStatus} aria-label={t('National indicators')}>
       <Icon name={critical ? 'warning' : 'nation'} size={18}/><span>{t('Status')}</span>{critical > 0 && <b>{critical}</b>}
     </button>
-    <div class="command-resources"><span data-hud="budget">{money(view.nation.budget)}</span><span data-hud="capacity"><Icon name="capacity" size={15}/>{tp(view.nation.capacity, '{n} action', '{n} actions')}</span></div>
+    <div class="command-resources"><span data-hud="budget">{money(view.nation.budget)}</span><span data-hud="capacity" aria-label={tp(view.nation.capacity, '{n} action', '{n} actions')}><Icon name="capacity" size={15}/><span class="command-capacity-full">{tp(view.nation.capacity, '{n} action', '{n} actions')}</span><span class="command-capacity-compact" aria-hidden="true">{view.nation.capacity}</span></span></div>
     <button type="button" class="command-clock" onClick={onRisk} aria-label={t('Risk clock')}><Icon name="clock" size={18}/>{view.risk.clock}</button>
     {onHelp&&<button type="button" class="command-help" onClick={onHelp} aria-label={t('Advisor advice')}><Icon name="help" size={20}/></button>}
     <button type="button" class="command-menu" onClick={onMenu} aria-label={t('Menu and settings')}><Icon name="menu" size={21}/></button>

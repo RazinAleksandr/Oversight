@@ -1,0 +1,21 @@
+/* Optional guidance is a margin note: the game and highlighted control keep receiving input. */
+.guided-coach { position:fixed; inset:0; z-index:150; pointer-events:none; padding:var(--safe-t, env(safe-area-inset-top, 0px)) var(--safe-r, env(safe-area-inset-right, 0px)) var(--safe-b, env(safe-area-inset-bottom, 0px)) var(--safe-l, env(safe-area-inset-left, 0px)); }
+.guided-coach__ring { position:absolute; border:3px solid #d7ae66; outline:2px solid #071b2b; outline-offset:2px; border-radius:4px; pointer-events:none; box-shadow:0 0 0 5px #d7ae6638; }
+.guided-coach__note { position:absolute; display:flex; flex-direction:column; overflow:hidden; box-sizing:border-box; pointer-events:auto; color:#f0eadb; background:#0b293b; border:1px solid #d7ae66; border-left:4px solid #d7ae66; border-radius:3px; box-shadow:0 6px 22px #0005; font-family:var(--font-body, Inter, sans-serif); }
+.guided-coach__copy { min-height:0; overflow:auto; overscroll-behavior:contain; padding:12px 14px 8px; -webkit-overflow-scrolling:touch; }
+.guided-coach__progress { display:block; color:#d7ae66; font-size:12px; line-height:1.4; margin-bottom:4px; }
+.guided-coach__note h2 { margin:0 0 6px; color:#f0eadb; font:600 18px/1.25 var(--font-head, 'Space Grotesk', sans-serif); text-transform:none; letter-spacing:0; }
+.guided-coach__note p { margin:0; color:#f0eadb; font-size:16px; line-height:1.4; }
+.guided-coach__note .guided-coach__missing { margin-top:8px; color:#d7cba9; }
+.guided-coach__actions { flex-shrink:0; display:flex; justify-content:space-between; gap:8px; border-top:1px solid #365264; padding:3px 7px; }
+.guided-coach__actions button { min-width:44px; min-height:44px; padding:7px 9px; border:0; border-radius:2px; background:transparent; color:#f0eadb; font:600 14px/1.3 var(--font-body, Inter, sans-serif); cursor:pointer; }
+.guided-coach__actions .guided-coach__next { background:#d7ae66; color:#071b2b; }
+.guided-coach__actions button:focus-visible { outline:2px solid #f0eadb; outline-offset:-3px; }
+@media (max-height:420px) { .guided-coach__copy { padding:8px 10px 6px; } .guided-coach__note h2 { font-size:16px; margin-bottom:4px; } .guided-coach__progress { display:inline; margin-right:8px; } }
+@media (prefers-reduced-motion:no-preference) { .guided-coach__ring { animation:guide-arrive 220ms ease-out; } @keyframes guide-arrive { from { outline-offset:7px; } to { outline-offset:2px; } } }
+
+/* Collapsing the note preserves the real-control spotlight and the tour position. */
+.guided-coach__copy[hidden] { display:none; }
+.guided-coach__actions { flex-wrap:wrap; }
+.guided-coach__note--collapsed .guided-coach__actions { border-top:0; }
+.guided-coach__actions [data-guide-toggle] { color:#d7ae66; }

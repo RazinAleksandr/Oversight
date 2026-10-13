@@ -121,7 +121,7 @@ function signalNote(): JSX.Element {
 
 export function NewsSheet({ news, onClose }: { news: NewsItem[]; onClose(): void }): JSX.Element {
   return (
-    <Sheet label={t('News feed')} onClose={onClose} size="page" class="news-sheet newspaper-v5">
+    <Sheet label={t('News feed')} onClose={onClose} size="page" class="news-sheet newspaper-v5 newspaper-v6">
       <header class="detail__head newspaper-masthead">
         <span class="detail__icon is-accent">
           <Icon name="news" size={24} />
@@ -131,8 +131,10 @@ export function NewsSheet({ news, onClose }: { news: NewsItem[]; onClose(): void
           <h2>{t('News feed')}</h2>
         </div>
       </header>
+      <div class="newspaper-scroll">
       <p class="dim small newspaper-explainer">{signalNote()}</p>
       <NewsList news={news} />
+      </div>
     </Sheet>
   );
 }

@@ -14,6 +14,7 @@ await tap(p.locator('button[data-country="atlantic"]'));
 assert.equal(await p.locator('button[data-country="atlantic"]').getAttribute('aria-checked'),'true');
 await p.screenshot({path:`${out}/final-${lang}-${width}-setup.png`});
 await tap(p.locator('.newgame-footer >button'));await p.locator('[data-agenda]').waitFor();
+await p.locator('[data-guide-skip]').waitFor({state:'visible'});await tap(p.locator('[data-guide-skip]')); // The dedicated guide QA owns the walkthrough.
 await p.screenshot({path:`${out}/final-${lang}-${width}-new-agenda.png`});
 await tap(p.locator('.command-status'));await p.screenshot({path:`${out}/final-${lang}-${width}-status.png`});
 await tap(p.locator('[data-meter="confidence"]'));await p.screenshot({path:`${out}/final-${lang}-${width}-meter.png`});

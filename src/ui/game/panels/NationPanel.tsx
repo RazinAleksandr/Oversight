@@ -2,6 +2,7 @@
  * Nation: government (leader, priorities, demands, reviews), safety gap, programs (budget levels),
  * policies (laws) and society (adoption by sector, dependence, displacement).
  */
+import { SubjectPicker } from '../../components/SubjectPicker';
 import { LabsPanel } from './LabsPanel';
 import type { JSX } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
@@ -54,6 +55,7 @@ function GovernmentPanel(): JSX.Element {
   const demands = [...g.demands].sort((a,b) => Number(b.status === 'active' || b.status === 'offered') - Number(a.status === 'active' || a.status === 'offered') || a.deadlineTurn-b.deadlineTurn);
   const selected = sections.demand === 'government' ? undefined : demands.find(d => d.id === sections.demand) ?? demands[0];
   return <div class="management-split government-v5">
+    <SubjectPicker kind="demand" label={t('Government')} value={selected?.id ?? 'government'} options={[...demands.map(d=>({id:d.id,label:stripDeadline(d.title)})),{id:'government',label:g.leaderName}]} onSelect={id=>selectSection('demand',id)}/>
     <nav class="management-roster" aria-label={t('Demands')}>
       <button type="button" class="government-source" onClick={()=>selectSection('demand','government')}><Portrait seed={g.portraitSeed} role="leader" size={72} name={g.leaderName} hue={hueOf(view.country.color)}/><span><small>{g.leaderTitle}</small><strong>{g.leaderName}</strong><em>{g.stanceLabel}</em></span></button>
       <h2>{t('Commitments')}</h2>
@@ -163,6 +165,7 @@ function Programs(): JSX.Element {
   const n = view.nation;
   const selected = n.programs.find(p => p.id === sections.program) ?? n.programs[0];
   return <div class="management-split allocations-v5">
+    <SubjectPicker kind="program" label={t('Programs')} value={selected?.id ?? ''} options={n.programs.map(p=>({id:p.id,label:p.short}))} onSelect={id=>selectSection('program',id)}/>
     <nav class="management-roster" aria-label={t('Programs')}>
       <h2>{t('Funding')}</h2>
       {n.programs.map(p=><button type="button" key={p.id} class={cx('management-item',selected?.id===p.id && 'is-selected')} aria-pressed={selected?.id===p.id} data-program-select={p.id} onClick={()=>selectSection('program',p.id)}><Icon name={p.icon} size={18}/><strong>{p.short}</strong><span>{t('L{n}',{n:p.level})} · {t('{amount}/q',{amount:money(p.costs[p.level])})}</span></button>)}
@@ -180,12 +183,13 @@ function ProgramEditor({ p }: { p: ProgramView }): JSX.Element {
   const unaffordable = proposed > p.level && p.costs[proposed] > view.nation.budget;
   const nominal = view.nation.programs.reduce((total,item)=>total+item.costs[item.id===p.id?proposed:item.level],0);
   return <section class="management-program" data-program-editor={p.id}>
-    <header class="management-identity"><Icon name={p.icon} size={28}/><div><p>{t('Free to change · upkeep each quarter')}</p><h2><span class="management-program-name-full">{p.name}</span><span class="management-program-name-short">{p.short}</span></h2></div></header>
     <div class="management-program-scroll">
+    <header class="management-identity"><Icon name={p.icon} size={28}/><div><p>{t('Free to change · upkeep each quarter')}</p><h2><span class="management-program-name-full">{p.name}</span><span class="management-program-name-short">{p.short}</span></h2></div></header>
     <div class="allocation-scale-label"><span>{t('Funding')}</span><span>{t('Free to change · upkeep each quarter')}</span></div>
     <div class="management-levels allocation-scale" role="radiogroup" aria-label={t('{program} funding level',{program:p.name})}>{p.costs.map((cost,level)=><button type="button" key={level} role="radio" aria-checked={proposed===level} class={cx(proposed===level && 'is-selected')} data-propose-level={level} onClick={()=>setProposed(level)}><strong class="allocation-stop">{level===0?t('Off'):t('L{n}',{n:level})}{p.level===level && <span class="management-level-current" title={t('Current')} aria-label={t('Current')}>✓</span>}</strong><span>{t('{amount}/q',{amount:money(cost)})}</span>{p.level===level && <small class="management-level-current-text">{t('Current')}</small>}</button>)}</div>
     <div class="management-funding-preview" aria-live="polite" aria-label={t('Proposed funding')}><h3>{t('Proposed funding')}</h3><p>{p.levelText[proposed]}</p>{unaffordable && <p class="management-warning">{t('Need {cost}; available {available}; shortfall {shortfall}.',{cost:money(p.costs[proposed]),available:money(view.nation.budget),shortfall:money(p.costs[proposed]-view.nation.budget)})}</p>}<dl><div><dt>{t('Listed upkeep')}</dt><dd>{money(p.costs[p.level])} → {money(p.costs[proposed])}</dd></div><div><dt>{t('Quarterly cost change')}</dt><dd>{money(delta,true)}</dd></div><div><dt>{t('Net income at listed costs')}</dt><dd>{money(view.nation.income-nominal,true)}</dd></div></dl><p class="management-secondary">{t('Upkeep is charged at the end of the quarter. Temporary waivers can change the actual charge.')}</p></div>
     <h3 class="management-program-name-short">{p.name}</h3><p class="management-secondary">{p.description}</p>
+    <dl class="program-finances-compact"><div><dt>{t('Treasury')}</dt><dd>{money(view.nation.budget)}</dd></div><div><dt>{t('Income')}</dt><dd>{money(view.nation.income)}</dd></div><div><dt>{t('Upkeep')}</dt><dd>{money(view.nation.upkeep)}</dd></div><div><dt>{t('Net / q')}</dt><dd>{money(view.nation.income-view.nation.upkeep,true)}</dd></div></dl>
     {(p.id==='safety' || p.id==='oversight') && <SafetyGap/>}
     </div>
     <footer class="management-program-commit"><button type="button" class="btn btn--primary" data-apply-funding disabled={proposed===p.level || unaffordable} onClick={()=>setProgram(p.id,proposed)}>{t('Apply funding')} <span>{money(p.costs[p.level])} → {money(p.costs[proposed])}</span></button><button type="button" class="btn" disabled={proposed===p.level} onClick={()=>setProposed(p.level)}>{t('Cancel changes')}</button></footer>
@@ -196,7 +200,7 @@ function Policies(): JSX.Element {
   const { view, sections, selectSection } = useGame();
   const policies = [...view.nation.policies].sort((a,b)=>Number(b.active)-Number(a.active));
   const selected = policies.find(p=>p.id===sections.policy) ?? policies[0];
-  return <div class="management-split statutes-v5"><nav class="management-roster" aria-label={t('Laws')}><h2>{t('Laws')}</h2>{policies.map(p=><button type="button" key={p.id} class={cx('management-item',selected?.id===p.id && 'is-selected')} aria-pressed={selected?.id===p.id} data-policy-select={p.id} onClick={()=>selectSection('policy',p.id)}><strong>{p.short}</strong><span>{p.active?t('In force'):t('Available legislation')}</span></button>)}</nav><div class="management-detail">{selected && <Law p={selected}/>}</div></div>;
+  return <div class="management-split statutes-v5"><SubjectPicker kind="policy" label={t('Laws')} value={selected?.id ?? ''} options={policies.map(p=>({id:p.id,label:p.short}))} onSelect={id=>selectSection('policy',id)}/><nav class="management-roster" aria-label={t('Laws')}><h2>{t('Laws')}</h2>{policies.map(p=><button type="button" key={p.id} class={cx('management-item',selected?.id===p.id && 'is-selected')} aria-pressed={selected?.id===p.id} data-policy-select={p.id} onClick={()=>selectSection('policy',p.id)}><strong>{p.short}</strong><span>{p.active?t('In force'):t('Available legislation')}</span></button>)}</nav><div class="management-detail">{selected && <Law p={selected}/>}</div></div>;
 }
 
 function Law({ p }: { p: PolicyView }): JSX.Element {

@@ -20,6 +20,8 @@ import './styles/ui-atlas-v5.css';
 import './styles/ui-dispatch-v5.css';
 import './styles/ui-identity-v5.css';
 import './styles/ui-national-v5.css';
+import './styles/ui-guide-v6.css';
+import './styles/ui-responsive-v6.css';
 import { getLang, loadLangPack, setLang } from './i18n';
 import { bootLang } from './ui/lang';
 import { initializeStorage } from './platform/storage';

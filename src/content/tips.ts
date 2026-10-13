@@ -57,7 +57,7 @@ export const TIPS: Record<TipId, TipDef> = {
   capacity: {
     title: 'Department Actions',
     advisor: 'chief_of_staff',
-    text: 'The pips are your actions this quarter. Investigations, policies, diplomacy and briefings each cost one. They refill every quarter, so unused actions are wasted. Oversight funding at higher levels gives us more hands.',
+    text: 'Actions are your department’s time this quarter. Check the cost shown on each response or operation: some are free, others need actions, money or evidence. Actions refill next quarter. You may end a quarter with actions left once every briefing is resolved.',
   },
   evidence: {
     title: 'Evidence',

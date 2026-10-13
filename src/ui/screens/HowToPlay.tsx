@@ -15,13 +15,14 @@ import { Sheet } from '../components/Sheet';
 
 const METERS: MeterId[] = ['confidence', 'economy', 'stability', 'security'];
 
-export function HowToPlay({ onClose, view }: { onClose(): void; view?: GameView }): JSX.Element {
+export function HowToPlay({ onClose, view, onGuide }: { onClose(): void; view?: GameView; onGuide?():void }): JSX.Element {
   return (
     <Sheet label={t('How to play')} onClose={onClose} size="full" class="howto-sheet">
       <div class="howto">
         <header class="howto__head">
           <p class="eyebrow">{t('Field manual')}</p>
           <h2>{t('How to play')}</h2>
+          {onGuide && <button type="button" class="btn btn--primary" data-start-guide onClick={onGuide}>{t('Guided walkthrough')}</button>}
           <p class="howto__lede">
             {t("You run your country's government AI department from 2027 to 2030 — sixteen quarters. Keep the nation standing, keep your job, and get the world through the transition before the clock strikes midnight.")}
           </p>
@@ -43,13 +44,13 @@ export function HowToPlay({ onClose, view }: { onClose(): void; view?: GameView 
             </li>
             <li class="loop__step">
               <Icon name="capacity" size={22} />
-              <b>{t('Spend actions')}</b>
+              <b>{t('Use actions where useful')}</b>
               <span>{t('A few per quarter: investigate, legislate, negotiate. Programs are free to adjust.')}</span>
             </li>
             <li class="loop__step">
               <Icon name="calendar" size={22} />
               <b>{t('End the quarter')}</b>
-              <span>{t('The world moves. Read the report — consequences arrive with warnings first.')}</span>
+              <span>{t('The world moves. Read the report for changes and warning signs; not every consequence is known in advance.')}</span>
             </li>
           </ol>
         </section>
@@ -128,7 +129,7 @@ export function HowToPlay({ onClose, view }: { onClose(): void; view?: GameView 
             <ChanceBadge chance={0.62} />
           </div>
           <p class="howto__p">
-            {rich(t('Arrows show direction and size of immediate effects — green is good for you, red is bad. **?** means it could go either way. Delayed and hidden consequences are never previewed: that is what the “Uncertain” chip warns about. Percentages are honest.'))}
+            {rich(t('Arrows summarize expected direction and size. Read the effect labels: adoption targets change before actual uptake. **?** means the direction is uncertain. Hidden and delayed consequences may not appear in the preview.'))}
           </p>
         </section>
 
@@ -138,7 +139,7 @@ export function HowToPlay({ onClose, view }: { onClose(): void; view?: GameView 
           </h3>
           <StageStepper stage={2} />
           <p class="howto__p">
-            {rich(t('Flawed deployments, leaks and rivals spawn hidden situations. Before anything becomes a crisis, there are always warning signs — odd headlines, advisor remarks. Detected threats show **“Escalation expected next quarter”** when time is short. Investigate, then restrict or suspend the source.'))}
+            {rich(t('Flawed deployments, leaks and rivals can create hidden situations. Watch headlines and advisor remarks for clues. Detected threats show **“Escalation expected next quarter”** when time is short. Investigate, then consider restricting or suspending the source.'))}
           </p>
         </section>
 

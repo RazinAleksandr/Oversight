@@ -10,6 +10,7 @@ import { fx } from '../fx';
 import { t } from '../i18n';
 import { type Backend, readSave, writeSave } from './backend';
 import { writeTask } from './game/taskDraft';
+import { clearActiveGuide, shouldOfferGuide, startGuide, writeGuide } from './game/playGuide';
 import { GameScreen } from './game/GameScreen';
 import { EndingScreen } from './screens/EndingScreen';
 import { HowToPlay } from './screens/HowToPlay';
@@ -42,6 +43,7 @@ export function App({ backend }: { backend: Backend }): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [saveTick, setSaveTick] = useState(0);
   const [gameKey, setGameKey] = useState(0);
+  const [guideRequest, setGuideRequest] = useState(0);
   const [importedGame, setImportedGame] = useState<GameAPI | null>(null);
   const [storageStatus, setStorageStatus] = useState(saveStatus);
   useEffect(() => watchStorage(() => {
@@ -92,6 +94,10 @@ export function App({ backend }: { backend: Backend }): JSX.Element {
     try {
       const g = await backend.newGame(opts);
       writeTask(null);
+      if (shouldOfferGuide()) writeGuide(startGuide(g.view()));
+      else clearActiveGuide();
+      await flushStorage();
+      setGuideRequest(0);
       setGame(g);
       setGameKey((k) => k + 1);
       setEnding(null);
@@ -208,6 +214,8 @@ export function App({ backend }: { backend: Backend }): JSX.Element {
             setQuitPrompt(!!o?.confirmQuit);
             setModal('settings');
           }}
+          guideRequest={guideRequest}
+          guideSuspended={!!modal || !!importedGame || !!error || storageStatus === 'failed'}
           initialReport={screen.report}
         />
       )}
@@ -244,6 +252,7 @@ export function App({ backend }: { backend: Backend }): JSX.Element {
           hasSave={hasSave}
           confirmQuit={quitPrompt && screen.name === 'game'}
           onHowTo={() => setModal('howto')}
+          onGuide={() => { setModal(null); setGuideRequest(n => n + 1); }}
           onQuit={async () => {
             if (game) writeSave(game);
             try { await flushStorage(); toTitle(); }
@@ -256,7 +265,7 @@ export function App({ backend }: { backend: Backend }): JSX.Element {
           }}
         />
       )}
-      {modal === 'howto' && <HowToPlay view={screen.name === 'game' ? game?.view() : undefined} onClose={() => setModal(null)} />}
+      {modal === 'howto' && <HowToPlay view={screen.name === 'game' ? game?.view() : undefined} onGuide={screen.name === 'game' ? () => { setModal(null); setGuideRequest(n => n + 1); } : undefined} onClose={() => setModal(null)} />}
       {importedGame && <Sheet label={t('Import save')} onClose={() => setImportedGame(null)} size="overlay">
         <div class="save-error">
           <h2>{t('Replace the current run?')}</h2>
@@ -264,7 +273,7 @@ export function App({ backend }: { backend: Backend }): JSX.Element {
           <p>{t('The imported run will replace your active save. Export your current run first if you want to keep it.')}</p>
           <button type="button" class="btn btn--primary" onClick={async () => {
             try {
-              writeTask(null); writeSave(importedGame, null); await flushStorage();
+              writeTask(null); clearActiveGuide(); writeSave(importedGame, null); await flushStorage();
               setImportedGame(null); setModal(null); setSaveTick(n => n + 1);
               setGame(importedGame); setGameKey(n => n + 1);
               const v = importedGame.view();

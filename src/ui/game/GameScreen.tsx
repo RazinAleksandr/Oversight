@@ -26,6 +26,8 @@ import { QuarterReport } from './QuarterReport';
 import { ActionResultOverlay, ChoiceResultOverlay } from './Results';
 import { TABS } from './TabBar';
 import { AdvisorHelp } from './Tips';
+import { GuidedCoach } from '../components/GuidedCoach';
+import { deriveGuide, readGuide, startGuide, writeGuide, type GuideProgress } from './playGuide';
 import { LabsPanel } from './panels/LabsPanel';
 import { NationPanel } from './panels/NationPanel';
 import { ThreatsPanel } from './panels/ThreatsPanel';
@@ -55,6 +57,8 @@ export interface GameScreenProps {
   onMenu(opts?: { confirmQuit?: boolean }): void;
   /** Show the latest quarter report on mount (e.g. after loading a save). */
   initialReport?: TurnReport | null;
+  guideRequest?: number;
+  guideSuspended?: boolean;
 }
 
 function managementSections(route?: TaskDraft['management']): Record<string,string> {
@@ -69,8 +73,17 @@ function managementSections(route?: TaskDraft['management']): Record<string,stri
   return sections;
 }
 
-export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreenProps): JSX.Element {
+export function GameScreen({ game, onEnding, onMenu, initialReport, guideRequest = 0, guideSuspended = false }: GameScreenProps): JSX.Element {
   const [version, setVersion] = useState(0);
+  const [guide, setGuide] = useState<GuideProgress | null>(() => readGuide(game.view()));
+  const guideRequestSeen = useRef(guideRequest);
+  const updateGuide = (next: GuideProgress | null) => { writeGuide(next); setGuide(next); };
+  useEffect(() => {
+    if (guideRequest > guideRequestSeen.current) {
+      guideRequestSeen.current = guideRequest;
+      updateGuide(startGuide(game.view()));
+    }
+  }, [guideRequest]);
   const initialTask = useRef(readTask(game.view()));
   const [tab, setTab] = useState<TabId>(() => initialTask.current?.active && initialTask.current.route === 'management' ? initialTask.current.management?.tab ?? 'inbox' : 'inbox');
   const [sections, setSections] = useState<Record<string, string>>(() => managementSections(initialTask.current?.management));
@@ -245,6 +258,7 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
       toast(r.error ?? t('That choice is not available.'));
       return;
     }
+    if (guide) updateGuide({ ...guide, lastDecisionKind: card.kind });
     const pilot = true;
     if (taskRef.current?.uid === card.uid) updateTask(null);
     save({ type: 'choice', result: r, ...(pilot ? { pilot: true } : {}) });
@@ -431,6 +445,14 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
     tab === 'labs' ? <LabsPanel /> : tab === 'nation' ? <NationPanel /> : tab === 'world' ? <WorldPanel /> : tab === 'threats' ? <ThreatsPanel /> : <QuarterAgenda />;
 
   const openCardObj = overlay?.type === 'card' ? view.inbox.find((c) => c.uid === overlay.uid) : undefined;
+  const guideStep = guide ? deriveGuide({ view, guide,
+    route: sheet ? 'other' : overlay?.type === 'report' ? 'report' : overlay?.type === 'choice' ? 'result'
+      : overlay?.type === 'card' && task?.route === 'decision' ? (task.reading.pane === 'options' ? 'options' : 'brief')
+      : !overlay && tab === 'inbox' ? 'agenda' : 'other',
+    card: openCardObj, selectedId: task?.selectedId,
+    suspended: guideSuspended || !!sheet,
+  }) : null;
+
 
   return (
     <GameCtx.Provider value={ctx}>
@@ -506,6 +528,12 @@ export function GameScreen({ game, onEnding, onMenu, initialReport }: GameScreen
           />
         )}
         {overlay?.type === 'report' && <QuarterReport report={overlay.report} onContinue={afterReport} onManage={(tab,section,target)=>{ afterReport(); openManagement(tab,section,target); }} />}
+        {guide && guideStep && <GuidedCoach stepId={guideStep.id} title={guideStep.title} body={guideStep.body}
+          target={guideStep.target} onSkip={() => updateGuide(null)}
+          onNext={guideStep.ack ? () => updateGuide(guideStep.ack === 'welcome' ? { ...guide, welcomed: true } : { ...guide, completed: true }) : undefined}
+          nextLabel={guideStep.ack === 'finish' ? t('Keep playing') : t('Show me where to start')}
+        />}
+
       </div>
     </GameCtx.Provider>
   );
