@@ -8,6 +8,7 @@ Strategy thriller about governing the AI transition. It's a static web game: Typ
 - `docs/TEAM.md`: code ownership and conventions.
 - `docs/I18N.md`: localization architecture, Russian glossary and style.
 - `docs/DEVELOPMENT.md`: commands and deployment.
+- `docs/IOS_COLLABORATION.md`: start here to launch/debug on your own iPhone or set up a second developer. Includes local signing, device discovery, install and launch commands. The iOS port is already implemented; routine setup does not require a new port proposal.
 
 `README.md` is player-facing only. Keep developer details out of it.
 

@@ -37,6 +37,10 @@ npm run preview    # serve dist/ locally
 
 ## iOS toolchain setup
 
+**New developer or different Mac:** start with [IOS_COLLABORATION.md](IOS_COLLABORATION.md).
+The machine path and paid signing team below describe Viktor's existing setup.
+Personal iPhone builds use that guide's local overrides.
+
 The approved port plan is in [`IOS_PORT_PLAN.md`](IOS_PORT_PLAN.md). Use Xcode
 26.3 on this Mac (macOS 15.7.3). It is installed alongside Xcode 16.2 at
 `/Applications/Xcode-26.3.0.app` and includes the iOS 26.2 SDK.
